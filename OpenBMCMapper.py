@@ -45,10 +45,22 @@ class Path:
 			last = self.depth()
 		return prefix + '/'.join(self.parts[first:last])
 
+def org_dot_openbmc_match(name):
+	return 'org.openbmc' in name
+
+class TagListMatch(object):
+	def __init__(self, tag_list):
+		self.tag_list = tag_list
+
+	def __call__(self, tag):
+		return tag in self.tag_list
+
 class IntrospectionNodeParser:
-	def __init__(self, data):
+	def __init__(self, data, tag_match = bool, intf_match = bool):
 		self.data = data
 		self.cache = {}
+		self.tag_match = tag_match
+		self.intf_match = intf_match
 
 	def parse_args(self):
 		return [ x.attrib for x in self.data.findall('arg') ]
@@ -64,16 +76,18 @@ class IntrospectionNodeParser:
 		iface = {}
 		iface['method'] = {}
 		iface['signal'] = {}
-		name = self.data.attrib['name']
 
 		for node in self.data:
-			p = IntrospectionNodeParser(node)
 			if node.tag not in ['method', 'signal']:
 				continue
+			if not self.tag_match(node.tag):
+				continue
+			p = IntrospectionNodeParser(
+					node, self.tag_match, self.intf_match)
 			n, element = p.parse_method_or_signal()
 			iface[node.tag][n] = element
 
-		return name, iface
+		return iface
 
 	def parse_node(self):
 		if self.cache:
@@ -83,10 +97,13 @@ class IntrospectionNodeParser:
 		self.cache['children'] = []
 
 		for node in self.data:
-			p = IntrospectionNodeParser(node)
 			if node.tag == 'interface':
-				name, ifaces = p.parse_interface()
-				self.cache['interfaces'][name] = ifaces
+				p = IntrospectionNodeParser(
+						node, self.tag_match, self.intf_match)
+				name = p.data.attrib['name']
+				if not self.intf_match(name):
+					continue
+				self.cache['interfaces'][name] = p.parse_interface()
 			elif node.tag == 'node':
 				self.cache['children'] = self.parse_children()
 
@@ -102,9 +119,11 @@ class IntrospectionNodeParser:
 		return any('/' in s for s in self.get_children())
 
 class IntrospectionParser:
-	def __init__(self, name, bus):
+	def __init__(self, name, bus, tag_match = bool, intf_match = bool):
 		self.name = name
 		self.bus = bus
+		self.tag_match = tag_match
+		self.intf_match = intf_match
 
 	def _introspect(self, path):
 		try:
@@ -114,7 +133,10 @@ class IntrospectionParser:
 		except dbus.DBusException:
 			return None
 
-		return IntrospectionNodeParser(ElementTree.fromstring(data))
+		return IntrospectionNodeParser(
+				ElementTree.fromstring(data),
+				self.tag_match,
+				self.intf_match)
 
 	def _discover_flat(self, path, parser):
 		items = {}
@@ -146,5 +168,8 @@ class IntrospectionParser:
 			if not parser:
 				continue
 			items.update(callback(path + k, parser))
+
+		if path == '/':
+			print items
 
 		return items
