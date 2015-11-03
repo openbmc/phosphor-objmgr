@@ -34,8 +34,7 @@ class ObjectMapper(dbus.service.Object):
 		self.name_match = name_match
 		self.intf_match = intf_match
 		self.tag_match = OpenBMCMapper.ListMatch(['children', 'interface'])
-
-		self.discovery_done = False
+		self.service = None
 
 		gobject.idle_add(self.discover)
 		self.bus.dbus.add_signal_receiver(self.bus_handler,
@@ -50,13 +49,20 @@ class ObjectMapper(dbus.service.Object):
 			signal_name = 'InterfacesRemoved',
 			sender_keyword = 'sender')
 
+	def discovery_pending(self):
+		return not bool(self.service)
+
 	def interfaces_added_handler(self, path, iprops, **kw):
+		if self.discovery_pending():
+			return
 		matches = [ x for x in iprops.iterkeys() if self.intf_match(x) ]
 		d = self.cache.setdefault(path, {})
 		d[path].setdefault(kw['sender'], []).extend(matches)
 		self.cache[path] = d
 
 	def interfaces_removed_handler(self, path, interfaces, **kw):
+		if self.discovery_pending():
+			return
 		item = self.cache[path]
 		name = kw['sender']
 		for x in interfaces:
@@ -94,7 +100,7 @@ class ObjectMapper(dbus.service.Object):
 				del self.cache[x]
 
 	def bus_handler(self, service, old, new):
-		if not self.discovery_done or \
+		if self.discovery_pending() or \
 				not self.name_match(service):
 			return
 
@@ -113,17 +119,17 @@ class ObjectMapper(dbus.service.Object):
 			self.add_interfaces(x, owner, y['interfaces'])
 
 	def discover(self, owners = None):
-		discovery = not self.discovery_done
 		if not owners:
 			owners = [ IntrospectionParser(x, self.bus.dbus,
 				self.tag_match, self.intf_match) \
 						for x in self.bus.get_owner_names(self.name_match) ]
-			self.discovery_done = True
 		for o in owners:
 			self.add_items(o.name, o.introspect())
 
-		if discovery:
+		if self.discovery_pending():
 			print "ObjectMapper discovery complete..."
+			self.service = dbus.service.BusName(
+					OpenBMCMapper.MAPPER_NAME, self.bus.dbus)
 
 	@dbus.service.method(OpenBMCMapper.MAPPER_IFACE, 's', 'a{sas}')
 	def GetObject(self, path):
@@ -154,7 +160,6 @@ class BusWrapper:
 if __name__ == '__main__':
 	dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 	bus = dbus.SystemBus()
-	s = dbus.service.BusName(OpenBMCMapper.MAPPER_NAME, bus)
 	o = ObjectMapper(BusWrapper(bus), OpenBMCMapper.MAPPER_PATH)
 	loop = gobject.MainLoop()
 
