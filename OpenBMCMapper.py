@@ -336,3 +336,19 @@ class PathTree:
 		if not self.root:
 			return {}.iteritems()
 		return PathTreeItemIterator(self, subtree, depth)
+
+class Mapper:
+	def __init__(self, bus):
+		self.bus = bus
+		obj = bus.get_object(MAPPER_NAME, MAPPER_PATH)
+		self.iface = dbus.Interface(
+				obj, dbus_interface = MAPPER_IFACE)
+
+	def get_object(self, path):
+		return self.iface.GetObject(path)
+
+	def get_subtree_paths(self, path = '/', depth = 0):
+		return self.iface.GetSubTreePaths(path, depth)
+
+	def get_subtree(self, path = '/', depth = 0):
+		return self.iface.GetSubTree(path, depth)
