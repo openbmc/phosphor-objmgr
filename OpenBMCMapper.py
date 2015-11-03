@@ -48,12 +48,12 @@ class Path:
 def org_dot_openbmc_match(name):
 	return 'org.openbmc' in name
 
-class TagListMatch(object):
-	def __init__(self, tag_list):
-		self.tag_list = tag_list
+class ListMatch(object):
+	def __init__(self, l):
+		self.l = l
 
-	def __call__(self, tag):
-		return tag in self.tag_list
+	def __call__(self, match):
+		return match in self.l
 
 class IntrospectionNodeParser:
 	def __init__(self, data, tag_match = bool, intf_match = bool):

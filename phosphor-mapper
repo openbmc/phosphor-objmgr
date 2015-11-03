@@ -174,7 +174,7 @@ class ObjectMapper(dbus.service.Object):
 		self.bus = bus
 		self.name_match = name_match
 		self.intf_match = intf_match
-		self.tag_match = OpenBMCMapper.TagListMatch(['children', 'interface'])
+		self.tag_match = OpenBMCMapper.ListMatch(['children', 'interface'])
 
 		self.discovery_done = False
 
