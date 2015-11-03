@@ -24,6 +24,10 @@ MAPPER_IFACE = MAPPER_NAME + '.ObjectMapper'
 MAPPER_PATH = '/org/openbmc/objectmapper/objectmapper'
 ENUMERATE_IFACE = 'org.openbmc.Object.Enumerate'
 
+class MapperNotFoundException(Exception):
+	def __init__(self, msg):
+		super(MapperNotFoundException, self).__init__(msg)
+
 class Path:
 	def __init__(self, path):
 		self.parts = filter(bool, path.split('/'))

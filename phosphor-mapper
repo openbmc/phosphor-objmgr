@@ -133,15 +133,24 @@ class ObjectMapper(dbus.service.Object):
 
 	@dbus.service.method(OpenBMCMapper.MAPPER_IFACE, 's', 'a{sas}')
 	def GetObject(self, path):
-		return self.cache[path]
+		o = self.cache.get(path)
+		if not o:
+			raise MapperNotFoundException(path)
+		return o
 
 	@dbus.service.method(OpenBMCMapper.MAPPER_IFACE, 'si', 'as')
 	def GetSubTreePaths(self, path, depth):
-		return self.cache.iterkeys(path, depth)
+		try:
+			return self.cache.iterkeys(path, depth)
+		except KeyError:
+			raise MapperNotFoundException(path)
 
 	@dbus.service.method(OpenBMCMapper.MAPPER_IFACE, 'si', 'a{sa{sas}}')
 	def GetSubTree(self, path, depth):
-		return { x:y for x, y in self.cache.dataitems(path, depth) }
+		try:
+			return { x:y for x, y in self.cache.dataitems(path, depth) }
+		except KeyError:
+			raise MapperNotFoundException(path)
 
 class BusWrapper:
 	def __init__(self, bus):
