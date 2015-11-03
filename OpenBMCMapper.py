@@ -22,6 +22,7 @@ import dbus
 MAPPER_NAME = 'org.openbmc.objectmapper'
 MAPPER_IFACE = MAPPER_NAME + '.ObjectMapper'
 MAPPER_PATH = '/org/openbmc/objectmapper/objectmapper'
+ENUMERATE_IFACE = 'org.openbmc.Object.Enumerate'
 
 class Path:
 	def __init__(self, path):
