@@ -132,7 +132,7 @@ class IntrospectionParser:
 
 	def _introspect(self, path):
 		try:
-			obj = self.bus.get_object(self.name, path)
+			obj = self.bus.get_object(self.name, path, introspect = False)
 			iface = dbus.Interface(obj, dbus.BUS_DAEMON_IFACE + '.Introspectable')
 			data = iface.Introspect()
 		except dbus.DBusException:
@@ -344,7 +344,7 @@ class PathTree:
 class Mapper:
 	def __init__(self, bus):
 		self.bus = bus
-		obj = bus.get_object(MAPPER_NAME, MAPPER_PATH)
+		obj = bus.get_object(MAPPER_NAME, MAPPER_PATH, introspect = False)
 		self.iface = dbus.Interface(
 				obj, dbus_interface = MAPPER_IFACE)
 

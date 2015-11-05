@@ -49,11 +49,17 @@ class ObjectMapper(dbus.service.Object):
 			signal_name = 'InterfacesRemoved',
 			sender_keyword = 'sender')
 
+	def bus_match(self, name):
+		if name == OpenBMCMapper.MAPPER_NAME:
+			return False
+		return self.name_match(name)
+
 	def discovery_pending(self):
 		return not bool(self.service)
 
 	def interfaces_added_handler(self, path, iprops, **kw):
-		if self.discovery_pending():
+		if self.discovery_pending() or \
+				not self.bus_match(kw['sender']):
 			return
 		matches = [ x for x in iprops.iterkeys() if self.intf_match(x) ]
 		d = self.cache.setdefault(path, {})
@@ -61,7 +67,8 @@ class ObjectMapper(dbus.service.Object):
 		self.cache[path] = d
 
 	def interfaces_removed_handler(self, path, interfaces, **kw):
-		if self.discovery_pending():
+		if self.discovery_pending() or \
+				not self.bus_match(kw['sender']):
 			return
 		item = self.cache[path]
 		name = kw['sender']
@@ -101,7 +108,7 @@ class ObjectMapper(dbus.service.Object):
 
 	def bus_handler(self, service, old, new):
 		if self.discovery_pending() or \
-				not self.name_match(service):
+				not self.bus_match(service):
 			return
 
 		if new:
@@ -122,7 +129,7 @@ class ObjectMapper(dbus.service.Object):
 		if not owners:
 			owners = [ IntrospectionParser(x, self.bus.dbus,
 				self.tag_match, self.intf_match) \
-						for x in self.bus.get_owner_names(self.name_match) ]
+						for x in self.bus.get_owner_names(self.bus_match) ]
 		for o in owners:
 			self.add_items(o.name, o.introspect())
 
@@ -159,7 +166,7 @@ class BusWrapper:
 	def get_service_names(self, match):
 		# these are well known names
 		return [ x for x in self.dbus.list_names() \
-				if match(x) and x != OpenBMCMapper.MAPPER_NAME ]
+				if match(x) ]
 
 	def get_owner_names(self, match):
 		# these are unique connection names
