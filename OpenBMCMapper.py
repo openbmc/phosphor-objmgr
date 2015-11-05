@@ -133,7 +133,7 @@ class IntrospectionParser:
 	def _introspect(self, path):
 		try:
 			obj = self.bus.get_object(self.name, path, introspect = False)
-			iface = dbus.Interface(obj, dbus.BUS_DAEMON_IFACE + '.Introspectable')
+			iface = dbus.Interface(obj, dbus.INTROSPECTABLE_IFACE)
 			data = iface.Introspect()
 		except dbus.DBusException:
 			return None
