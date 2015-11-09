@@ -16,13 +16,19 @@
 # implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-import sys
 import dbus
 import dbus.service
+import dbus.exceptions
 import dbus.mainloop.glib
 import gobject
-from OpenBMCMapper import Path, IntrospectionParser, PathTree
+from OpenBMCMapper import IntrospectionParser, PathTree
 import OpenBMCMapper
+
+class MapperNotFoundException(dbus.exceptions.DBusException):
+	_dbus_error_name = OpenBMCMapper.MAPPER_NOT_FOUND
+	def __init__(self, path):
+		super(MapperNotFoundException, self).__init__(
+				"path or object not found: %s" %(path))
 
 class ObjectMapper(dbus.service.Object):
 	def __init__(self, bus, path,
