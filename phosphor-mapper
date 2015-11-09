@@ -21,160 +21,20 @@ import dbus
 import dbus.service
 import dbus.mainloop.glib
 import gobject
-from OpenBMCMapper import Path, IntrospectionParser
+from OpenBMCMapper import Path, IntrospectionParser, PathTree
 import OpenBMCMapper
-
-class DictionaryCache:
-	def __init__(self):
-		self.items = {'/': {} }
-
-	def _merge_item(self, item):
-		path, bus, iface = item
-		if bus in self.items[path]:
-			self.items[path][bus].append(iface)
-		else:
-			self.items[path][bus] = [ iface ]
-
-	def add_item(self, item):
-		path, bus, iface = item
-		if path != '/':
-			parent = Path(path).fq(last = -1)
-			if parent not in self.items:
-				self.add_item((parent, None, None))
-
-		items = self.items.get(path, None)
-		if bus and items:
-			self._merge_item(item)
-		elif items:
-			pass
-		elif bus:
-			self.items[path] = { bus: [ iface ] }
-		else:
-			self.items[path] = {}
-
-	def add_items(self, items):
-		for i in items:
-			self.add_item(i)
-
-	def _has_children(self, path):
-		return len(self.get_subtree_paths(path, 1, 'fuzzy')) != 1
-
-	def _try_remove_path(self, path):
-		if path == '/':
-			return None
-
-		if not self._has_children(path):
-			del self.items[path]
-
-			# try and remove the parent
-			parent = Path(path).fq(last = -1)
-			if not self.items[parent]:
-				self._try_remove_path(parent)
-
-	def _remove_bus(self, path, bus):
-		del self.items[path][bus]
-		if not self.items[path]:
-			self._try_remove_path(path)
-
-	def _remove_iface(self, path, bus, iface):
-		self.items[path][bus].remove(iface)
-		if not self.items[path][bus]:
-			self._remove_bus(path, bus)
-
-	def remove_item(self, item):
-		self._remove_iface(*item)
-
-	def remove_items(self, items):
-		for x in items:
-			self.remove_item(x)
-
-	def remove_bus(self, name):
-		for path,x in self.items.items():
-			for bus,ifaces in x.items():
-				if name != bus:
-					continue
-				self.remove_items([ (path, bus, iface) \
-						for iface in ifaces ])
-
-	def remove_busses(self, names):
-		for x in names:
-			self.remove_bus(name)
-
-	def _get_busses(self):
-		busses = [ y.iterkeys() for y in [ x for x in self.items.itervalues() ] ]
-		return set( x for y in busses for x in y ) # flatten nested lists
-
-	def has_bus(self, bus):
-		return any(bus in b for b in self._get_busses())
-
-	def get_subtree_paths(self, root, depth, match_type):
-		return filter(PathMatch(root, depth, match_type),
-				self.items.iterkeys())
-
-	def get_subtree(self, root, depth, match_type):
-		return dict(filter(ObjectMatch(root, depth, match_type),
-				self.items.iteritems()))
-
-	@staticmethod
-	def _iface__str__(ifaces):
-		return '\n'.join(["    %s" %(x) for x in ifaces ])
-
-	@staticmethod
-	def _bus__str__(busses):
-		return '\n'.join([ "%s\n%s" %(x, DictionaryCache._iface__str__(y)) \
-				for x,y in busses.iteritems() ])
-
-	def __str__(self):
-		return '\n'.join([ "%s\n%s" %(x, DictionaryCache._bus__str__(y)) \
-				for x,y in self.items.iteritems() ])
-
-class PathMatch(object):
-	def __init__(self, path, depth, match_type):
-		p = Path(path)
-		self.path = p.fq()
-		self.depth = p.depth()
-		self.match_type = match_type
-		self.match_depth = None
-		if depth != -1:
-			self.match_depth = p.depth() + depth
-
-	def __call__(self, path):
-		p = Path(path)
-		depth = p.depth()
-
-		# 'is not None' is really needed because
-		# the match depth can be zero
-		if self.match_depth is not None and depth > self.match_depth:
-			return False
-
-		fuzzy_match = p.fq(last = self.depth) == self.path or \
-				not self.depth
-		depth_match = self.match_depth == depth
-
-		if self.match_type == 'fuzzy':
-			return fuzzy_match
-
-		return fuzzy_match and depth_match
-
-class ObjectMatch(PathMatch):
-	def __init__(self, path, depth, match_type):
-		super(ObjectMatch, self).__init__(path, depth, match_type)
-
-	def __call__(self, tup):
-		if not super(ObjectMatch, self).__call__(tup[0]):
-			return False
-		return tup[1]
 
 class ObjectMapper(dbus.service.Object):
 	def __init__(self, bus, path,
-			name_match = 'org.openbmc',
-			intf_match = 'org.openbmc'):
+			name_match = OpenBMCMapper.org_dot_openbmc_match,
+			intf_match = OpenBMCMapper.org_dot_openbmc_match):
 		super(ObjectMapper, self).__init__(bus.dbus, path)
-		self.cache = DictionaryCache()
+		self.cache = PathTree()
 		self.bus = bus
 		self.name_match = name_match
 		self.intf_match = intf_match
-		self.discovery_done = False
+		self.tag_match = OpenBMCMapper.ListMatch(['children', 'interface'])
+		self.service = None
 
 		gobject.idle_add(self.discover)
 		self.bus.dbus.add_signal_receiver(self.bus_handler,
@@ -189,26 +49,66 @@ class ObjectMapper(dbus.service.Object):
 			signal_name = 'InterfacesRemoved',
 			sender_keyword = 'sender')
 
+	def bus_match(self, name):
+		if name == OpenBMCMapper.MAPPER_NAME:
+			return False
+		return self.name_match(name)
+
+	def discovery_pending(self):
+		return not bool(self.service)
+
 	def interfaces_added_handler(self, path, iprops, **kw):
-		for x in iprops.iterkeys():
-			if self.intf_match in x:
-				self.cache.add_item((path, kw['sender'], x))
+		if self.discovery_pending() or \
+				not self.bus_match(kw['sender']):
+			return
+		matches = [ x for x in iprops.iterkeys() if self.intf_match(x) ]
+		d = self.cache.setdefault(path, {})
+		d[path].setdefault(kw['sender'], []).extend(matches)
+		self.cache[path] = d
 
 	def interfaces_removed_handler(self, path, interfaces, **kw):
+		if self.discovery_pending() or \
+				not self.bus_match(kw['sender']):
+			return
+		item = self.cache[path]
+		name = kw['sender']
 		for x in interfaces:
-			self.cache.remove_item((path, kw['sender'], x))
+			item[name].remove(x)
+
+		# remove the owner if there aren't any interfaces left
+		if not item[name]:
+			del item[name]
+
+		# update if interfaces remain
+		if item:
+			self.cache[path] = item
+		# mark for removal if no interfaces remain
+		elif self.cache.get_children(item):
+			self.cache.demote(item)
+		# delete the entire path if everything is gone
+		else:
+			del self.cache[path]
 
 	def process_new_owner(self, name):
 		# unique name
-		return self.discover([ IntrospectionParser(name, self.bus.dbus) ])
+		return self.discover([ IntrospectionParser(name,
+			self.bus.dbus, self.tag_match, self.intf_match) ])
 
 	def process_old_owner(self, name):
-		# unique name
-		self.cache.remove_bus(name)
+		for x,y in self.cache.dataitems():
+			if name not in y:
+				continue
+			del y[name]
+			if y:
+				self.cache[x] = y
+			elif self.cache.get_children(x):
+				self.cache.demote(x)
+			else:
+				del self.cache[x]
 
 	def bus_handler(self, service, old, new):
-		if not self.discovery_done or \
-				self.name_match not in service:
+		if self.discovery_pending() or \
+				not self.bus_match(service):
 			return
 
 		if new:
@@ -216,48 +116,48 @@ class ObjectMapper(dbus.service.Object):
 		if old:
 			self.process_old_owner(old)
 
-	def add_match_interfaces(self, owner, path, interfaces):
-		for x in interfaces:
-			if self.intf_match not in x:
-				continue
+	def add_interfaces(self, path, owner, interfaces):
+		d = self.cache.setdefault(path, { })
+		d.setdefault(owner, []).extend(interfaces)
+		self.cache[path] = d
 
-			self.cache.add_item((path, owner, x))
-
-	def add_match_items(self, owner, bus_items):
+	def add_items(self, owner, bus_items):
 		for x,y in bus_items.iteritems():
-			self.add_match_interfaces(owner, x, y['interfaces'])
+			self.add_interfaces(x, owner, y['interfaces'])
 
 	def discover(self, owners = None):
-		discovery = not self.discovery_done
 		if not owners:
-			owners = self.bus.get_owners(self.name_match)
-			self.discovery_done = True
+			owners = [ IntrospectionParser(x, self.bus.dbus,
+				self.tag_match, self.intf_match) \
+						for x in self.bus.get_owner_names(self.bus_match) ]
 		for o in owners:
+			self.add_items(o.name, o.introspect())
 
-			# this only happens when an app
-			# grabs more than one well known name
-			if self.cache.has_bus(o.name):
-				continue
-
-			self.add_match_items(o.name, o.introspect())
-
-		if discovery:
+		if self.discovery_pending():
 			print "ObjectMapper discovery complete..."
+			self.service = dbus.service.BusName(
+					OpenBMCMapper.MAPPER_NAME, self.bus.dbus)
 
-	@dbus.service.method(OpenBMCMapper.MAPPER_IFACE, 'sis', 'as')
-	def GetTreePaths(self, path, depth, match_type):
-		return self.cache.get_subtree_paths(path, depth, match_type)
+	@dbus.service.method(OpenBMCMapper.MAPPER_IFACE, 's', 'a{sas}')
+	def GetObject(self, path):
+		o = self.cache.get(path)
+		if not o:
+			raise MapperNotFoundException(path)
+		return o
 
-	@dbus.service.method(OpenBMCMapper.MAPPER_IFACE, 'sis', 'a{sa{sas}}')
-	def GetTree(self, path, depth, match_type):
-		return self.cache.get_subtree(path, depth, match_type)
+	@dbus.service.method(OpenBMCMapper.MAPPER_IFACE, 'si', 'as')
+	def GetSubTreePaths(self, path, depth):
+		try:
+			return self.cache.iterkeys(path, depth)
+		except KeyError:
+			raise MapperNotFoundException(path)
 
-	@dbus.service.method(OpenBMCMapper.MAPPER_IFACE, 'asis', 'a{sa{sas}}')
-	def GetTrees(self, paths, depth, match_type):
-		values = {}
-		for x in paths:
-			values.update(self.GetTree(x, depth, match_type))
-		return values
+	@dbus.service.method(OpenBMCMapper.MAPPER_IFACE, 'si', 'a{sa{sas}}')
+	def GetSubTree(self, path, depth):
+		try:
+			return { x:y for x, y in self.cache.dataitems(path, depth) }
+		except KeyError:
+			raise MapperNotFoundException(path)
 
 class BusWrapper:
 	def __init__(self, bus):
@@ -266,21 +166,16 @@ class BusWrapper:
 	def get_service_names(self, match):
 		# these are well known names
 		return [ x for x in self.dbus.list_names() \
-				if match in x and x != OpenBMCMapper.MAPPER_NAME ]
+				if match(x) ]
 
 	def get_owner_names(self, match):
 		# these are unique connection names
 		return list( set( [ self.dbus.get_name_owner(x) \
 				for x in self.get_service_names(match) ] ) )
 
-	def get_owners(self, match):
-		return [ IntrospectionParser(x, self.dbus) \
-				for x in self.get_owner_names(match) ]
-
 if __name__ == '__main__':
 	dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 	bus = dbus.SystemBus()
-	s = dbus.service.BusName(OpenBMCMapper.MAPPER_NAME, bus)
 	o = ObjectMapper(BusWrapper(bus), OpenBMCMapper.MAPPER_PATH)
 	loop = gobject.MainLoop()
 
