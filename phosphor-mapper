@@ -48,7 +48,7 @@ class ObjectMapper(dbus.service.Object):
 			signal_name = 'NameOwnerChanged')
 		self.bus.dbus.add_signal_receiver(self.interfaces_added_handler,
 			dbus_interface = dbus.BUS_DAEMON_IFACE + '.ObjectManager',
-			signal_name = 'InterfaceesAdded',
+			signal_name = 'InterfacesAdded',
 			sender_keyword = 'sender')
 		self.bus.dbus.add_signal_receiver(self.interfaces_removed_handler,
 			dbus_interface = dbus.BUS_DAEMON_IFACE + '.ObjectManager',
@@ -64,33 +64,40 @@ class ObjectMapper(dbus.service.Object):
 		return not bool(self.service)
 
 	def interfaces_added_handler(self, path, iprops, **kw):
+		name = self.bus.get_owned_name(self.bus_match, kw['sender'])
 		if self.discovery_pending() or \
-				not self.bus_match(kw['sender']):
+				not self.bus_match(name):
 			return
+
 		matches = [ x for x in iprops.iterkeys() if self.intf_match(x) ]
 		d = self.cache.setdefault(path, {})
-		d[path].setdefault(kw['sender'], []).extend(matches)
+		d.setdefault(kw['sender'], []).extend(matches)
 		self.cache[path] = d
 
 	def interfaces_removed_handler(self, path, interfaces, **kw):
+		name = self.bus.get_owned_name(self.bus_match, kw['sender'])
 		if self.discovery_pending() or \
-				not self.bus_match(kw['sender']):
+				not self.bus_match(name):
 			return
 		item = self.cache[path]
-		name = kw['sender']
+		sender = kw['sender']
 		for x in interfaces:
-			item[name].remove(x)
+			if self.intf_match(x):
+				try:
+					item[sender].remove(x)
+				except ValueError:
+					pass
 
 		# remove the owner if there aren't any interfaces left
-		if not item[name]:
-			del item[name]
+		if not item[sender]:
+			del item[sender]
 
 		# update if interfaces remain
 		if item:
 			self.cache[path] = item
 		# mark for removal if no interfaces remain
-		elif self.cache.get_children(item):
-			self.cache.demote(item)
+		elif self.cache.get_children(path):
+			self.cache.demote(path)
 		# delete the entire path if everything is gone
 		else:
 			del self.cache[path]
@@ -168,6 +175,11 @@ class ObjectMapper(dbus.service.Object):
 class BusWrapper:
 	def __init__(self, bus):
 		self.dbus = bus
+
+	def get_owned_name(self, match, bus):
+		for x in self.get_service_names(match):
+			if self.dbus.get_name_owner(x) == bus:
+				return x
 
 	def get_service_names(self, match):
 		# these are well known names
