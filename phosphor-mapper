@@ -70,9 +70,7 @@ class ObjectMapper(dbus.service.Object):
 			return
 
 		matches = [ x for x in iprops.iterkeys() if self.intf_match(x) ]
-		d = self.cache.setdefault(path, {})
-		d.setdefault(kw['sender'], []).extend(matches)
-		self.cache[path] = d
+		self.add_interfaces(path, kw['sender'], matches)
 
 	def interfaces_removed_handler(self, path, interfaces, **kw):
 		name = self.bus.get_owned_name(self.bus_match, kw['sender'])
@@ -130,9 +128,9 @@ class ObjectMapper(dbus.service.Object):
 			self.process_old_owner(old)
 
 	def add_interfaces(self, path, owner, interfaces):
-		d = self.cache.setdefault(path, { })
-		d.setdefault(owner, []).extend(interfaces)
-		self.cache[path] = d
+		d = self.cache.setdefault(path, {})
+		d = d.setdefault(owner, [])
+		self.cache[path][owner] = list(set(d + interfaces))
 
 	def add_items(self, owner, bus_items):
 		for x,y in bus_items.iteritems():
