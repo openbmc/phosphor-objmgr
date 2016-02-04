@@ -24,175 +24,188 @@ import gobject
 from OpenBMCMapper import IntrospectionParser, PathTree
 import OpenBMCMapper
 
+
 class MapperNotFoundException(dbus.exceptions.DBusException):
-	_dbus_error_name = OpenBMCMapper.MAPPER_NOT_FOUND
-	def __init__(self, path):
-		super(MapperNotFoundException, self).__init__(
-				"path or object not found: %s" %(path))
+    _dbus_error_name = OpenBMCMapper.MAPPER_NOT_FOUND
+
+    def __init__(self, path):
+        super(MapperNotFoundException, self).__init__(
+            "path or object not found: %s" % (path))
+
 
 class ObjectMapper(dbus.service.Object):
-	def __init__(self, bus, path,
-			name_match = OpenBMCMapper.org_dot_openbmc_match,
-			intf_match = OpenBMCMapper.org_dot_openbmc_match):
-		super(ObjectMapper, self).__init__(bus.dbus, path)
-		self.cache = PathTree()
-		self.bus = bus
-		self.name_match = name_match
-		self.intf_match = intf_match
-		self.tag_match = OpenBMCMapper.ListMatch(['children', 'interface'])
-		self.service = None
+    def __init__(self, bus, path,
+                 name_match=OpenBMCMapper.org_dot_openbmc_match,
+                 intf_match=OpenBMCMapper.org_dot_openbmc_match):
+        super(ObjectMapper, self).__init__(bus.dbus, path)
+        self.cache = PathTree()
+        self.bus = bus
+        self.name_match = name_match
+        self.intf_match = intf_match
+        self.tag_match = OpenBMCMapper.ListMatch(['children', 'interface'])
+        self.service = None
 
-		gobject.idle_add(self.discover)
-		self.bus.dbus.add_signal_receiver(self.bus_handler,
-			dbus_interface = dbus.BUS_DAEMON_IFACE,
-			signal_name = 'NameOwnerChanged')
-		self.bus.dbus.add_signal_receiver(self.interfaces_added_handler,
-			dbus_interface = dbus.BUS_DAEMON_IFACE + '.ObjectManager',
-			signal_name = 'InterfacesAdded',
-			sender_keyword = 'sender')
-		self.bus.dbus.add_signal_receiver(self.interfaces_removed_handler,
-			dbus_interface = dbus.BUS_DAEMON_IFACE + '.ObjectManager',
-			signal_name = 'InterfacesRemoved',
-			sender_keyword = 'sender')
+        gobject.idle_add(self.discover)
+        self.bus.dbus.add_signal_receiver(
+            self.bus_handler,
+            dbus_interface=
+            dbus.BUS_DAEMON_IFACE,
+            signal_name='NameOwnerChanged')
+        self.bus.dbus.add_signal_receiver(
+            self.interfaces_added_handler,
+            dbus_interface=
+            dbus.BUS_DAEMON_IFACE + '.ObjectManager',
+            signal_name='InterfacesAdded',
+            sender_keyword='sender')
+        self.bus.dbus.add_signal_receiver(
+            self.interfaces_removed_handler,
+            dbus_interface=dbus.BUS_DAEMON_IFACE + '.ObjectManager',
+            signal_name='InterfacesRemoved',
+            sender_keyword='sender')
 
-	def bus_match(self, name):
-		if name == OpenBMCMapper.MAPPER_NAME:
-			return False
-		return self.name_match(name)
+    def bus_match(self, name):
+        if name == OpenBMCMapper.MAPPER_NAME:
+            return False
+        return self.name_match(name)
 
-	def discovery_pending(self):
-		return not bool(self.service)
+    def discovery_pending(self):
+        return not bool(self.service)
 
-	def interfaces_added_handler(self, path, iprops, **kw):
-		name = self.bus.get_owned_name(self.bus_match, kw['sender'])
-		if self.discovery_pending() or \
-				not self.bus_match(name):
-			return
+    def interfaces_added_handler(self, path, iprops, **kw):
+        name = self.bus.get_owned_name(self.bus_match, kw['sender'])
+        if self.discovery_pending() or \
+                not self.bus_match(name):
+            return
 
-		matches = [ x for x in iprops.iterkeys() if self.intf_match(x) ]
-		self.add_interfaces(path, kw['sender'], matches)
+        matches = [x for x in iprops.iterkeys() if self.intf_match(x)]
+        self.add_interfaces(path, kw['sender'], matches)
 
-	def interfaces_removed_handler(self, path, interfaces, **kw):
-		name = self.bus.get_owned_name(self.bus_match, kw['sender'])
-		if self.discovery_pending() or \
-				not self.bus_match(name):
-			return
-		item = self.cache[path]
-		sender = kw['sender']
-		for x in interfaces:
-			if self.intf_match(x):
-				try:
-					item[sender].remove(x)
-				except ValueError:
-					pass
+    def interfaces_removed_handler(self, path, interfaces, **kw):
+        name = self.bus.get_owned_name(self.bus_match, kw['sender'])
+        if self.discovery_pending() or \
+                not self.bus_match(name):
+            return
+        item = self.cache[path]
+        sender = kw['sender']
+        for x in interfaces:
+            if self.intf_match(x):
+                try:
+                    item[sender].remove(x)
+                except ValueError:
+                    pass
 
-		# remove the owner if there aren't any interfaces left
-		if not item[sender]:
-			del item[sender]
+        # remove the owner if there aren't any interfaces left
+        if not item[sender]:
+            del item[sender]
 
-		# update if interfaces remain
-		if item:
-			self.cache[path] = item
-		# mark for removal if no interfaces remain
-		elif self.cache.get_children(path):
-			self.cache.demote(path)
-		# delete the entire path if everything is gone
-		else:
-			del self.cache[path]
+        # update if interfaces remain
+        if item:
+            self.cache[path] = item
+        # mark for removal if no interfaces remain
+        elif self.cache.get_children(path):
+            self.cache.demote(path)
+        # delete the entire path if everything is gone
+        else:
+            del self.cache[path]
 
-	def process_new_owner(self, name):
-		# unique name
-		return self.discover([ IntrospectionParser(name,
-			self.bus.dbus, self.tag_match, self.intf_match) ])
+    def process_new_owner(self, name):
+        # unique name
+        return self.discover([IntrospectionParser(name,
+                             self.bus.dbus,
+                             self.tag_match,
+                             self.intf_match)])
 
-	def process_old_owner(self, name):
-		for x,y in self.cache.dataitems():
-			if name not in y:
-				continue
-			del y[name]
-			if y:
-				self.cache[x] = y
-			elif self.cache.get_children(x):
-				self.cache.demote(x)
-			else:
-				del self.cache[x]
+    def process_old_owner(self, name):
+        for x, y in self.cache.dataitems():
+            if name not in y:
+                continue
+            del y[name]
+            if y:
+                self.cache[x] = y
+            elif self.cache.get_children(x):
+                self.cache.demote(x)
+            else:
+                del self.cache[x]
 
-	def bus_handler(self, service, old, new):
-		if self.discovery_pending() or \
-				not self.bus_match(service):
-			return
+    def bus_handler(self, service, old, new):
+        if self.discovery_pending() or \
+                not self.bus_match(service):
+            return
 
-		if new:
-			self.process_new_owner(new)
-		if old:
-			self.process_old_owner(old)
+        if new:
+            self.process_new_owner(new)
+        if old:
+            self.process_old_owner(old)
 
-	def add_interfaces(self, path, owner, interfaces):
-		d = self.cache.setdefault(path, {})
-		d = d.setdefault(owner, [])
-		self.cache[path][owner] = list(set(d + interfaces))
+    def add_interfaces(self, path, owner, interfaces):
+        d = self.cache.setdefault(path, {})
+        d = d.setdefault(owner, [])
+        self.cache[path][owner] = list(set(d + interfaces))
 
-	def add_items(self, owner, bus_items):
-		for x,y in bus_items.iteritems():
-			self.add_interfaces(x, owner, y['interfaces'])
+    def add_items(self, owner, bus_items):
+        for x, y in bus_items.iteritems():
+            self.add_interfaces(x, owner, y['interfaces'])
 
-	def discover(self, owners = None):
-		if not owners:
-			owners = [ IntrospectionParser(x, self.bus.dbus,
-				self.tag_match, self.intf_match) \
-						for x in self.bus.get_owner_names(self.bus_match) ]
-		for o in owners:
-			self.add_items(o.name, o.introspect())
+    def discover(self, owners=None):
+        if not owners:
+            owners = [IntrospectionParser(x, self.bus.dbus,
+                                          self.tag_match,
+                                          self.intf_match)
+                      for x in self.bus.get_owner_names(self.bus_match)]
+        for o in owners:
+            self.add_items(o.name, o.introspect())
 
-		if self.discovery_pending():
-			print "ObjectMapper discovery complete..."
-			self.service = dbus.service.BusName(
-					OpenBMCMapper.MAPPER_NAME, self.bus.dbus)
+        if self.discovery_pending():
+            print "ObjectMapper discovery complete..."
+            self.service = dbus.service.BusName(
+                OpenBMCMapper.MAPPER_NAME, self.bus.dbus)
 
-	@dbus.service.method(OpenBMCMapper.MAPPER_IFACE, 's', 'a{sas}')
-	def GetObject(self, path):
-		o = self.cache.get(path)
-		if not o:
-			raise MapperNotFoundException(path)
-		return o
+    @dbus.service.method(OpenBMCMapper.MAPPER_IFACE, 's', 'a{sas}')
+    def GetObject(self, path):
+        o = self.cache.get(path)
+        if not o:
+            raise MapperNotFoundException(path)
+        return o
 
-	@dbus.service.method(OpenBMCMapper.MAPPER_IFACE, 'si', 'as')
-	def GetSubTreePaths(self, path, depth):
-		try:
-			return self.cache.iterkeys(path, depth)
-		except KeyError:
-			raise MapperNotFoundException(path)
+    @dbus.service.method(OpenBMCMapper.MAPPER_IFACE, 'si', 'as')
+    def GetSubTreePaths(self, path, depth):
+        try:
+            return self.cache.iterkeys(path, depth)
+        except KeyError:
+            raise MapperNotFoundException(path)
 
-	@dbus.service.method(OpenBMCMapper.MAPPER_IFACE, 'si', 'a{sa{sas}}')
-	def GetSubTree(self, path, depth):
-		try:
-			return { x:y for x, y in self.cache.dataitems(path, depth) }
-		except KeyError:
-			raise MapperNotFoundException(path)
+    @dbus.service.method(OpenBMCMapper.MAPPER_IFACE, 'si', 'a{sa{sas}}')
+    def GetSubTree(self, path, depth):
+        try:
+            return {x: y for x, y in self.cache.dataitems(path, depth)}
+        except KeyError:
+            raise MapperNotFoundException(path)
+
 
 class BusWrapper:
-	def __init__(self, bus):
-		self.dbus = bus
+    def __init__(self, bus):
+        self.dbus = bus
 
-	def get_owned_name(self, match, bus):
-		for x in self.get_service_names(match):
-			if self.dbus.get_name_owner(x) == bus:
-				return x
+    def get_owned_name(self, match, bus):
+        for x in self.get_service_names(match):
+            if self.dbus.get_name_owner(x) == bus:
+                return x
 
-	def get_service_names(self, match):
-		# these are well known names
-		return [ x for x in self.dbus.list_names() \
-				if match(x) ]
+    def get_service_names(self, match):
+        # these are well known names
+        return [x for x in self.dbus.list_names()
+                if match(x)]
 
-	def get_owner_names(self, match):
-		# these are unique connection names
-		return list( set( [ self.dbus.get_name_owner(x) \
-				for x in self.get_service_names(match) ] ) )
+    def get_owner_names(self, match):
+        # these are unique connection names
+        return list(set(
+            [self.dbus.get_name_owner(x)
+                for x in self.get_service_names(match)]))
 
 if __name__ == '__main__':
-	dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-	bus = dbus.SystemBus()
-	o = ObjectMapper(BusWrapper(bus), OpenBMCMapper.MAPPER_PATH)
-	loop = gobject.MainLoop()
+    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+    bus = dbus.SystemBus()
+    o = ObjectMapper(BusWrapper(bus), OpenBMCMapper.MAPPER_PATH)
+    loop = gobject.MainLoop()
 
-	loop.run()
+    loop.run()
