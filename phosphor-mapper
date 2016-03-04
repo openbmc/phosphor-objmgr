@@ -21,12 +21,14 @@ import dbus.service
 import dbus.exceptions
 import dbus.mainloop.glib
 import gobject
-from OpenBMCMapper import IntrospectionParser, PathTree
-import OpenBMCMapper
+from obmc.dbuslib.introspection import IntrospectionParser
+import obmc.utils.pathtree
+import obmc.utils.misc
+import obmc.mapper
 
 
 class MapperNotFoundException(dbus.exceptions.DBusException):
-    _dbus_error_name = OpenBMCMapper.MAPPER_NOT_FOUND
+    _dbus_error_name = obmc.mapper.MAPPER_NOT_FOUND
 
     def __init__(self, path):
         super(MapperNotFoundException, self).__init__(
@@ -35,14 +37,14 @@ class MapperNotFoundException(dbus.exceptions.DBusException):
 
 class ObjectMapper(dbus.service.Object):
     def __init__(self, bus, path,
-                 name_match=OpenBMCMapper.org_dot_openbmc_match,
-                 intf_match=OpenBMCMapper.org_dot_openbmc_match):
+                 name_match=obmc.utils.misc.org_dot_openbmc_match,
+                 intf_match=obmc.utils.misc.org_dot_openbmc_match):
         super(ObjectMapper, self).__init__(bus.dbus, path)
-        self.cache = PathTree()
+        self.cache = obmc.utils.pathtree.PathTree()
         self.bus = bus
         self.name_match = name_match
         self.intf_match = intf_match
-        self.tag_match = OpenBMCMapper.ListMatch(['children', 'interface'])
+        self.tag_match = obmc.utils.misc.ListMatch(['children', 'interface'])
         self.service = None
 
         gobject.idle_add(self.discover)
@@ -64,7 +66,7 @@ class ObjectMapper(dbus.service.Object):
             sender_keyword='sender')
 
     def bus_match(self, name):
-        if name == OpenBMCMapper.MAPPER_NAME:
+        if name == obmc.mapper.MAPPER_NAME:
             return False
         return self.name_match(name)
 
@@ -158,23 +160,23 @@ class ObjectMapper(dbus.service.Object):
         if self.discovery_pending():
             print "ObjectMapper discovery complete..."
             self.service = dbus.service.BusName(
-                OpenBMCMapper.MAPPER_NAME, self.bus.dbus)
+                obmc.mapper.MAPPER_NAME, self.bus.dbus)
 
-    @dbus.service.method(OpenBMCMapper.MAPPER_IFACE, 's', 'a{sas}')
+    @dbus.service.method(obmc.mapper.MAPPER_IFACE, 's', 'a{sas}')
     def GetObject(self, path):
         o = self.cache.get(path)
         if not o:
             raise MapperNotFoundException(path)
         return o
 
-    @dbus.service.method(OpenBMCMapper.MAPPER_IFACE, 'si', 'as')
+    @dbus.service.method(obmc.mapper.MAPPER_IFACE, 'si', 'as')
     def GetSubTreePaths(self, path, depth):
         try:
             return self.cache.iterkeys(path, depth)
         except KeyError:
             raise MapperNotFoundException(path)
 
-    @dbus.service.method(OpenBMCMapper.MAPPER_IFACE, 'si', 'a{sa{sas}}')
+    @dbus.service.method(obmc.mapper.MAPPER_IFACE, 'si', 'a{sa{sas}}')
     def GetSubTree(self, path, depth):
         try:
             return {x: y for x, y in self.cache.dataitems(path, depth)}
@@ -205,7 +207,7 @@ class BusWrapper:
 if __name__ == '__main__':
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
     bus = dbus.SystemBus()
-    o = ObjectMapper(BusWrapper(bus), OpenBMCMapper.MAPPER_PATH)
+    o = ObjectMapper(BusWrapper(bus), obmc.mapper.MAPPER_PATH)
     loop = gobject.MainLoop()
 
     loop.run()
