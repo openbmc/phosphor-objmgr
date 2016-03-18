@@ -26,6 +26,7 @@ import obmc.utils.pathtree
 import obmc.utils.misc
 import obmc.mapper
 import obmc.dbuslib.bindings
+import obmc.dbuslib.enums
 
 
 class MapperNotFoundException(dbus.exceptions.DBusException):
@@ -34,6 +35,59 @@ class MapperNotFoundException(dbus.exceptions.DBusException):
     def __init__(self, path):
         super(MapperNotFoundException, self).__init__(
             "path or object not found: %s" % path)
+
+
+class Association(dbus.service.Object):
+    def __init__(self, bus, path, endpoints):
+        super(Association, self).__init__(bus, path)
+        self.endpoints = endpoints
+
+    def __getattr__(self, name):
+        if name == 'properties':
+            return {
+                obmc.dbuslib.enums.OBMC_ASSOC_IFACE: {
+                    'endpoints': self.endpoints}}
+        return super(Association, self).__getattr__(name)
+
+    def emit_signal(self, old):
+        if old != self.endpoints:
+            self.PropertiesChanged(
+                obmc.dbuslib.enums.OBMC_ASSOC_IFACE,
+                {'endpoints': self.endpoints}, ['endpoints'])
+
+    def append(self, endpoints):
+        old = self.endpoints
+        self.endpoints = list(set(endpoints).union(self.endpoints))
+        self.emit_signal(old)
+
+    def remove(self, endpoints):
+        old = self.endpoints
+        self.endpoints = list(set(self.endpoints).difference(endpoints))
+        self.emit_signal(old)
+
+    @dbus.service.method(dbus.PROPERTIES_IFACE, 'ss', 'as')
+    def Get(self, interface_name, property_name):
+        if property_name != 'endpoints':
+            raise dbus.exceptions.DBusException(name=DBUS_UNKNOWN_PROPERTY)
+        return self.GetAll(interface_name)[property_name]
+
+    @dbus.service.method(dbus.PROPERTIES_IFACE, 's', 'a{sas}')
+    def GetAll(self, interface_name):
+        if interface_name != obmc.dbuslib.enums.OBMC_ASSOC_IFACE:
+            raise dbus.exceptions.DBusException(DBUS_UNKNOWN_INTERFACE)
+        return {'endpoints': self.endpoints}
+
+    @dbus.service.signal(
+        dbus.PROPERTIES_IFACE, signature='sa{sas}as')
+    def PropertiesChanged(
+            self, interface_name, changed_properties, invalidated_properties):
+        pass
+
+
+class Manager(obmc.dbuslib.bindings.DbusObjectManager):
+    def __init__(self, bus, path):
+        obmc.dbuslib.bindings.DbusObjectManager.__init__(self)
+        dbus.service.Object.__init__(self, bus.dbus, path)
 
 
 class ObjectMapper(dbus.service.Object):
@@ -47,6 +101,9 @@ class ObjectMapper(dbus.service.Object):
         self.intf_match = intf_match
         self.tag_match = obmc.utils.misc.ListMatch(['children', 'interface'])
         self.service = None
+        self.index = {}
+        self.manager = Manager(bus, obmc.dbuslib.bindings.OBJ_PREFIX)
+        self.unique = bus.dbus.get_unique_name()
 
         gobject.idle_add(self.discover)
         self.bus.dbus.add_signal_receiver(
@@ -64,6 +121,12 @@ class ObjectMapper(dbus.service.Object):
             self.interfaces_removed_handler,
             dbus_interface=dbus.BUS_DAEMON_IFACE + '.ObjectManager',
             signal_name='InterfacesRemoved',
+            sender_keyword='sender')
+        self.bus.dbus.add_signal_receiver(
+            self.properties_changed_handler,
+            dbus_interface=dbus.PROPERTIES_IFACE,
+            signal_name='PropertiesChanged',
+            path_keyword='path',
             sender_keyword='sender')
 
     def bus_match(self, owner):
@@ -92,6 +155,23 @@ class ObjectMapper(dbus.service.Object):
         new = list(set(old).difference(interfaces))
         self.update_interfaces(path, owner, old, new)
 
+    def properties_changed_handler(self, interface, new, old, **kw):
+        owner = str(kw['sender'])
+        path = str(kw['path'])
+        interfaces = self.get_signal_interfaces(owner, [interface])
+        if not self.is_association(interfaces):
+            return
+        associations = new.get('associations', None)
+        if associations is None:
+            return
+
+        associations = [
+            (str(x), str(y), str(z)) for x, y, z in associations]
+        self.update_associations(
+            path, owner,
+            self.index_get_associations(path, [owner]),
+            associations)
+
     def process_new_owner(self, owner):
         # unique name
         return self.discover([IntrospectionParser(owner,
@@ -118,10 +198,22 @@ class ObjectMapper(dbus.service.Object):
 
     def update_interfaces(self, path, owner, old, new):
         cache_entry = self.cache.setdefault(path, {})
+        created = [] if self.has_interfaces(cache_entry) else [path]
         added = list(set(new).difference(old))
         removed = list(set(old).difference(new))
         self.interfaces_append(cache_entry, owner, added)
         self.interfaces_remove(cache_entry, owner, removed, path)
+        destroyed = [] if self.has_interfaces(cache_entry) else [path]
+
+        # react to anything that requires association updates
+        new_assoc = []
+        old_assoc = []
+        if self.is_association(added):
+            new_assoc = self.dbus_get_associations(path, owner)
+        if self.is_association(removed):
+            old_assoc = self.index_get_associations(path, [owner])
+        self.update_associations(
+            path, owner, old_assoc, new_assoc, created, destroyed)
 
     def add_items(self, owner, bus_items):
         for path, items in bus_items.iteritems():
@@ -130,17 +222,27 @@ class ObjectMapper(dbus.service.Object):
             self.update_interfaces(path, str(owner), old=[], new=interfaces)
 
     def discover(self, owners=[]):
+        def match(iface):
+            return iface == dbus.BUS_DAEMON_IFACE + '.ObjectManager' or \
+                self.intf_match(iface)
         if not owners:
             owners = [
                 IntrospectionParser(
                     x, self.bus.dbus,
                     self.tag_match,
-                    self.intf_match)
+                    match)
                 for x in self.bus.get_owner_names(self.bus_match)]
         for o in owners:
             self.add_items(o.name, o.introspect())
 
         if self.discovery_pending():
+            # add my object mananger instance
+            self.add_items(
+                self.unique,
+                {obmc.dbuslib.bindings.OBJ_PREFIX:
+                    {'interfaces':
+                        [dbus.BUS_DAEMON_IFACE + '.ObjectManager']}})
+
             print "ObjectMapper discovery complete..."
             self.service = dbus.service.BusName(
                 obmc.mapper.MAPPER_NAME, self.bus.dbus)
@@ -209,6 +311,168 @@ class ObjectMapper(dbus.service.Object):
             return {x: y for x, y in self.cache.dataitems(path, depth)}
         except KeyError:
             raise MapperNotFoundException(path)
+
+    @staticmethod
+    def has_interfaces(item):
+        for owner in item.iterkeys():
+            if ObjectMapper.interfaces_get(item, owner):
+                return True
+        return False
+
+    @staticmethod
+    def is_association(interfaces):
+        return obmc.dbuslib.enums.OBMC_ASSOCIATIONS_IFACE in interfaces
+
+    def index_get(self, index, path, owners):
+        items = []
+        item = self.index.get(index, {})
+        item = item.get(path, {})
+        for o in owners:
+            items.extend(item.get(o, []))
+        return items
+
+    def index_append(self, index, path, owner, assoc):
+        item = self.index.setdefault(index, {})
+        item = item.setdefault(path, {})
+        item = item.setdefault(owner, [])
+        item.append(assoc)
+
+    def index_remove(self, index, path, owner, assoc):
+        index = self.index.get(index, {})
+        owners = index.get(path, {})
+        items = owners.get(owner, [])
+        if assoc in items:
+            items.remove(assoc)
+        if not items:
+            del owners[owner]
+        if not owners:
+            del index[path]
+
+    def dbus_get_associations(self, path, owner):
+        obj = self.bus.dbus.get_object(owner, path, introspect=False)
+        iface = dbus.Interface(obj, dbus.PROPERTIES_IFACE)
+        return [(str(f), str(r), str(e)) for f, r, e in iface.Get(
+            obmc.dbuslib.enums.OBMC_ASSOCIATIONS_IFACE,
+            'associations')]
+
+    def index_get_associations(self, path, owners=[], direction='forward'):
+        forward = 'forward' if direction == 'forward' else 'reverse'
+        reverse = 'reverse' if direction == 'forward' else 'forward'
+
+        associations = []
+        if not owners:
+            index = self.index.get(forward, {})
+            owners = index.get(path, {}).keys()
+
+        # f: forward
+        # r: reverse
+        for rassoc in self.index_get(forward, path, owners):
+            elements = rassoc.split('/')
+            rtype = ''.join(elements[-1:])
+            fendpoint = '/'.join(elements[:-1])
+            for fassoc in self.index_get(reverse, fendpoint, owners):
+                elements = fassoc.split('/')
+                ftype = ''.join(elements[-1:])
+                rendpoint = '/'.join(elements[:-1])
+                if rendpoint != path:
+                    continue
+                associations.append((ftype, rtype, fendpoint))
+
+        return associations
+
+    def update_association(self, path, removed, added):
+        iface = obmc.dbuslib.enums.OBMC_ASSOC_IFACE
+        create = [] if self.manager.get(path, False) else [iface]
+
+        if added and create:
+            self.manager.add(
+                path, Association(self.bus.dbus, path, added))
+        elif added:
+            self.manager.get(path).append(added)
+
+        obj = self.manager.get(path, None)
+        if obj and removed:
+            obj.remove(removed)
+
+        if obj and not obj.endpoints:
+            self.manager.remove(path)
+
+        delete = [] if self.manager.get(path, False) else [iface]
+
+        if create != delete:
+            self.update_interfaces(
+                path, self.unique, delete, create)
+
+    def update_associations(
+            self, path, owner, old, new, created=[], destroyed=[]):
+        added = list(set(new).difference(old))
+        removed = list(set(old).difference(new))
+        for forward, reverse, endpoint in added:
+            # update the index
+            forward_path = str(path + '/' + forward)
+            reverse_path = str(endpoint + '/' + reverse)
+            self.index_append(
+                'forward', path, owner, reverse_path)
+            self.index_append(
+                'reverse', endpoint, owner, forward_path)
+
+            # create the association if the endpoint exists
+            if self.cache.get(endpoint, None) is None:
+                continue
+
+            self.update_association(forward_path, [], [endpoint])
+            self.update_association(reverse_path, [], [path])
+
+        for forward, reverse, endpoint in removed:
+            # update the index
+            forward_path = str(path + '/' + forward)
+            reverse_path = str(endpoint + '/' + reverse)
+            self.index_remove(
+                'forward', path, owner, reverse_path)
+            self.index_remove(
+                'reverse', endpoint, owner, forward_path)
+
+            # destroy the association if it exists
+            self.update_association(forward_path, [endpoint], [])
+            self.update_association(reverse_path, [path], [])
+
+        # If the associations interface endpoint comes
+        # or goes create or destroy the appropriate
+        # associations
+        for path in created:
+            for forward, reverse, endpoint in \
+                    self.index_get_associations(path, direction='reverse'):
+                forward_path = str(path + '/' + forward)
+                reverse_path = str(endpoint + '/' + reverse)
+                self.update_association(forward_path, [], [endpoint])
+                self.update_association(reverse_path, [], [path])
+
+        for path in destroyed:
+            for forward, reverse, endpoint in \
+                    self.index_get_associations(path, direction='reverse'):
+                forward_path = str(path + '/' + forward)
+                reverse_path = str(endpoint + '/' + reverse)
+                self.update_association(forward_path, [endpoint], [])
+                self.update_association(reverse_path, [path], [])
+
+    @dbus.service.method(obmc.mapper.MAPPER_IFACE, 's', 'a{sa{sas}}')
+    def GetAncestors(self, path):
+        elements = filter(bool, path.split('/'))
+        paths = []
+        objs = {}
+        while elements:
+            elements.pop()
+            paths.append('/' + '/'.join(elements))
+        if path != '/':
+            paths.append('/')
+
+        for path in paths:
+            obj = self.cache.get(path, None)
+            if obj is None:
+                continue
+            objs[path] = obj
+
+        return objs
 
 
 class BusWrapper:
