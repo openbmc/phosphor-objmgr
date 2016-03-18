@@ -33,7 +33,7 @@ class MapperNotFoundException(dbus.exceptions.DBusException):
 
     def __init__(self, path):
         super(MapperNotFoundException, self).__init__(
-            "path or object not found: %s" % (path))
+            "path or object not found: %s" % path)
 
 
 class ObjectMapper(dbus.service.Object):
@@ -66,10 +66,10 @@ class ObjectMapper(dbus.service.Object):
             signal_name='InterfacesRemoved',
             sender_keyword='sender')
 
-    def bus_match(self, name):
-        if name == obmc.mapper.MAPPER_NAME:
-            return False
-        return self.name_match(name)
+    def bus_match(self, owner):
+        # Ignore my own signals
+        return owner != obmc.mapper.MAPPER_NAME and \
+            self.name_match(owner)
 
     def discovery_pending(self):
         return not bool(self.service)
@@ -92,19 +92,19 @@ class ObjectMapper(dbus.service.Object):
         new = list(set(old).difference(interfaces))
         self.update_interfaces(path, owner, old, new)
 
-    def process_new_owner(self, name):
+    def process_new_owner(self, owner):
         # unique name
-        return self.discover([IntrospectionParser(name,
+        return self.discover([IntrospectionParser(owner,
                              self.bus.dbus,
                              self.tag_match,
                              self.intf_match)])
 
-    def process_old_owner(self, name):
+    def process_old_owner(self, owner):
         for path, item in self.cache.dataitems():
-            old = self.interfaces_get(item, name)
+            old = self.interfaces_get(item, owner)
             # remove all interfaces for this service
             self.update_interfaces(
-                path, name, old=old, new=[])
+                path, owner, old=old, new=[])
 
     def bus_handler(self, owner, old, new):
         valid = False
@@ -129,12 +129,14 @@ class ObjectMapper(dbus.service.Object):
             interfaces = [str(i) for i in items.get('interfaces', [])]
             self.update_interfaces(path, str(owner), old=[], new=interfaces)
 
-    def discover(self, owners=None):
+    def discover(self, owners=[]):
         if not owners:
-            owners = [IntrospectionParser(x, self.bus.dbus,
-                                          self.tag_match,
-                                          self.intf_match)
-                      for x in self.bus.get_owner_names(self.bus_match)]
+            owners = [
+                IntrospectionParser(
+                    x, self.bus.dbus,
+                    self.tag_match,
+                    self.intf_match)
+                for x in self.bus.get_owner_names(self.bus_match)]
         for o in owners:
             self.add_items(o.name, o.introspect())
 
