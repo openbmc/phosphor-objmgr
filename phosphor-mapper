@@ -116,12 +116,14 @@ class ObjectMapper(dbus.service.Object):
             dbus_interface=
             dbus.BUS_DAEMON_IFACE + '.ObjectManager',
             signal_name='InterfacesAdded',
-            sender_keyword='sender')
+            sender_keyword='sender',
+            path_keyword='sender_path')
         self.bus.dbus.add_signal_receiver(
             self.interfaces_removed_handler,
             dbus_interface=dbus.BUS_DAEMON_IFACE + '.ObjectManager',
             signal_name='InterfacesRemoved',
-            sender_keyword='sender')
+            sender_keyword='sender',
+            path_keyword='sender_path')
         self.bus.dbus.add_signal_receiver(
             self.properties_changed_handler,
             dbus_interface=dbus.PROPERTIES_IFACE,
@@ -137,9 +139,20 @@ class ObjectMapper(dbus.service.Object):
     def discovery_pending(self):
         return not bool(self.service)
 
+    def add_new_objmgr(self, path, owner):
+        # We don't get a signal for the ObjectManager
+        # interface itself, so if we see a signal from
+        # make sure its in our cache, and add it if not.
+        cache_entry = self.cache.get(path, {})
+        cache_entry = cache_entry if cache_entry is not None else {}
+        old = self.interfaces_get(cache_entry, owner)
+        new = list(set(old).union([dbus.BUS_DAEMON_IFACE + '.ObjectManager']))
+        self.update_interfaces(path, owner, old, new)
+
     def interfaces_added_handler(self, path, iprops, **kw):
         path = str(path)
         owner = str(kw['sender'])
+        self.add_new_objmgr(str(kw['sender_path']), owner)
         interfaces = self.get_signal_interfaces(owner, iprops.iterkeys())
         cache_entry = self.cache.get(path, {})
         old = self.interfaces_get(cache_entry, owner)
@@ -149,6 +162,7 @@ class ObjectMapper(dbus.service.Object):
     def interfaces_removed_handler(self, path, interfaces, **kw):
         path = str(path)
         owner = str(kw['sender'])
+        self.add_new_objmgr(str(kw['sender_path']), owner)
         interfaces = self.get_signal_interfaces(owner, interfaces)
         cache_entry = self.cache.get(path, {})
         old = self.interfaces_get(cache_entry, owner)
