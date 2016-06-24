@@ -174,13 +174,11 @@ class ObjectMapper(dbus.service.Object):
         gobject.idle_add(self.discover)
         self.bus.add_signal_receiver(
             self.bus_handler,
-            dbus_interface=
-            dbus.BUS_DAEMON_IFACE,
+            dbus_interface=dbus.BUS_DAEMON_IFACE,
             signal_name='NameOwnerChanged')
         self.bus.add_signal_receiver(
             self.interfaces_added_handler,
-            dbus_interface=
-            dbus.BUS_DAEMON_IFACE + '.ObjectManager',
+            dbus_interface=dbus.BUS_DAEMON_IFACE + '.ObjectManager',
             signal_name='InterfacesAdded',
             sender_keyword='sender',
             path_keyword='sender_path')
@@ -319,8 +317,8 @@ class ObjectMapper(dbus.service.Object):
             return iface == dbus.BUS_DAEMON_IFACE + '.ObjectManager' or \
                 self.intf_match(iface)
         if not owners:
-            owned_names = [x for x in self.bus.list_names()
-                if self.bus_match(x)]
+            owned_names = [
+                x for x in self.bus.list_names() if self.bus_match(x)]
             owners = [self.bus.get_name_owner(x) for x in owned_names]
             owners = zip(owned_names, owners)
         for owned_name, o in owners:
