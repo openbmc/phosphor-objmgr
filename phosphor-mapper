@@ -38,53 +38,53 @@ class MapperNotFoundException(dbus.exceptions.DBusException):
 
 
 def find_dbus_interfaces(conn, service, path, match):
-    class __FindInterfaces(object):
+    class _FindInterfaces(object):
         def __init__(self):
             self.results = {}
 
         @staticmethod
-        def __introspect(service, path):
+        def _introspect(service, path):
             obj = conn.get_object(service, path, introspect=False)
             iface = dbus.Interface(obj, dbus.INTROSPECTABLE_IFACE)
             return iface.Introspect()
 
         @staticmethod
-        def __get_managed_objects(service, om):
+        def _get_managed_objects(service, om):
             obj = conn.get_object(service, om, introspect=False)
             iface = dbus.Interface(
                 obj, dbus.BUS_DAEMON_IFACE + '.ObjectManager')
             return iface.GetManagedObjects()
 
         @staticmethod
-        def __to_path(elements):
+        def _to_path(elements):
             return '/' + '/'.join(elements)
 
         @staticmethod
-        def __to_path_elements(path):
+        def _to_path_elements(path):
             return filter(bool, path.split('/'))
 
         def __call__(self, service, path):
             self.results = {}
-            self.__find_interfaces(service, path)
+            self._find_interfaces(service, path)
             return self.results
 
         @staticmethod
-        def __match(iface):
+        def _match(iface):
             return iface == dbus.BUS_DAEMON_IFACE + '.ObjectManager' \
                 or match(iface)
 
-        def __find_interfaces(self, service, path):
-            path_elements = self.__to_path_elements(path)
-            path = self.__to_path(path_elements)
-            root = ET.fromstring(self.__introspect(service, path))
+        def _find_interfaces(self, service, path):
+            path_elements = self._to_path_elements(path)
+            path = self._to_path(path_elements)
+            root = ET.fromstring(self._introspect(service, path))
 
             ifaces = filter(
-                self.__match,
+                self._match,
                 [x.attrib.get('name') for x in root.findall('interface')])
             self.results[path] = ifaces
 
             if dbus.BUS_DAEMON_IFACE + '.ObjectManager' in ifaces:
-                objs = self.__get_managed_objects(service, path)
+                objs = self._get_managed_objects(service, path)
                 for k, v in objs.iteritems():
                     self.results[k] = v
             else:
@@ -92,14 +92,14 @@ def find_dbus_interfaces(conn, service, path, match):
                     bool,
                     [x.attrib.get('name') for x in root.findall('node')])
                 children = [
-                    self.__to_path(
-                        path_elements + self.__to_path_elements(x))
+                    self._to_path(
+                        path_elements + self._to_path_elements(x))
                     for x in sorted(children)]
                 for child in children:
                     if child not in self.results:
-                        self.__find_interfaces(service, child)
+                        self._find_interfaces(service, child)
 
-    return __FindInterfaces()(service, path)
+    return _FindInterfaces()(service, path)
 
 
 class Association(dbus.service.Object):
