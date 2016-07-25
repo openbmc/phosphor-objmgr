@@ -19,6 +19,7 @@ import obmc.dbuslib.enums
 import obmc.utils.misc
 import obmc.utils.pathtree
 
+
 MAPPER_NAME = 'org.openbmc.ObjectMapper'
 MAPPER_IFACE = MAPPER_NAME
 MAPPER_PATH = '/org/openbmc/ObjectMapper'
@@ -119,7 +120,7 @@ class Mapper:
         try:
             ancestors.update({path: self.get_object(path)})
         except dbus.exceptions.DBusException, e:
-            if e.get_dbus_name() != obmc.mapper.MAPPER_NOT_FOUND:
+            if e.get_dbus_name() != MAPPER_NOT_FOUND:
                 raise
 
         for path, bus_data in ancestors.iteritems():
