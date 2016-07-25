@@ -43,17 +43,51 @@ def find_dbus_interfaces(conn, service, path, match):
             self.results = {}
 
         @staticmethod
+        def _get_object(path):
+            try:
+                return conn.get_object(service, path, introspect=False)
+            except dbus.exceptions.DBusException, e:
+                if e.get_dbus_name() in [
+                        obmc.dbuslib.enums.DBUS_UNKNOWN_SERVICE,
+                        obmc.dbuslib.enums.DBUS_NO_REPLY]:
+                    print "Warning: Introspection failure: " \
+                        "service `%s` is not running" % (service)
+                    return None
+                raise
+
+        @staticmethod
+        def _invoke_method(path, iface, method, *args):
+            obj = _FindInterfaces._get_object(path)
+            if not obj:
+                return None
+
+            iface = dbus.Interface(obj, iface)
+            try:
+                f = getattr(iface, method)
+                return f(*args)
+            except dbus.exceptions.DBusException, e:
+                if e.get_dbus_name() in [
+                        obmc.dbuslib.enums.DBUS_UNKNOWN_SERVICE,
+                        obmc.dbuslib.enums.DBUS_NO_REPLY]:
+                    print "Warning: Introspection failure: " \
+                        "service `%s` did not reply to "\
+                        "method call on %s" % (service, path)
+                    return None
+                raise
+
+        @staticmethod
         def _introspect(path):
-            obj = conn.get_object(service, path, introspect=False)
-            iface = dbus.Interface(obj, dbus.INTROSPECTABLE_IFACE)
-            return iface.Introspect()
+            return _FindInterfaces._invoke_method(
+                path,
+                dbus.INTROSPECTABLE_IFACE,
+                'Introspect')
 
         @staticmethod
         def _get_managed_objects(om):
-            obj = conn.get_object(service, om, introspect=False)
-            iface = dbus.Interface(
-                obj, dbus.BUS_DAEMON_IFACE + '.ObjectManager')
-            return iface.GetManagedObjects()
+            return _FindInterfaces._invoke_method(
+                om,
+                dbus.BUS_DAEMON_IFACE + '.ObjectManager',
+                'GetManagedObjects')
 
         @staticmethod
         def _to_path(elements):
@@ -76,8 +110,11 @@ def find_dbus_interfaces(conn, service, path, match):
         def _find_interfaces(self, path):
             path_elements = self._to_path_elements(path)
             path = self._to_path(path_elements)
-            root = ET.fromstring(self._introspect(path))
+            data = self._introspect(path)
+            if data is None:
+                return
 
+            root = ET.fromstring(data)
             ifaces = filter(
                 self._match,
                 [x.attrib.get('name') for x in root.findall('interface')])
