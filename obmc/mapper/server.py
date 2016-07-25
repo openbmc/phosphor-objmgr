@@ -381,8 +381,7 @@ class ObjectMapper(dbus.service.Object):
             self.add_items(
                 self.unique,
                 {obmc.dbuslib.bindings.OBJ_PREFIX:
-                    {'interfaces':
-                        [dbus.BUS_DAEMON_IFACE + '.ObjectManager']}})
+                    [dbus.BUS_DAEMON_IFACE + '.ObjectManager']})
 
             print "ObjectMapper discovery complete..."
             self.service = dbus.service.BusName(
