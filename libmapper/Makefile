@@ -8,7 +8,8 @@ LIBMAPPER=$(SONAME).$(VERSION)
 INCLUDES=mapper.h
 
 LDLIBS+=$(shell pkg-config --libs $(PACKAGE_DEPS))
-ALL_CFLAGS+=$(shell pkg-config --cflags $(PACKAGE_DEPS)) -fPIC -Werror $(CFLAGS)
+ALL_CFLAGS+=$(shell pkg-config --cflags $(PACKAGE_DEPS)) \
+	-fPIC -Wall -Werror $(CFLAGS)
 
 all: $(SONAME)
 
