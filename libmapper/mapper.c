@@ -110,8 +110,7 @@ static int async_wait_getobject_callback(sd_bus_message *m,
 		void *userdata,
 		sd_bus_error *e)
 {
-	int i, r;
-	const char *msg;
+	int i;
 	struct async_wait_callback_data *data = userdata;
 	mapper_async_wait *wait = data->wait;
 
@@ -169,7 +168,7 @@ static int async_wait_get_objects(mapper_async_wait *wait)
 static int async_wait_match_name_owner_changed(sd_bus_message *m, void *w,
 		sd_bus_error *e)
 {
-	int i, r;
+	int r;
 
 	mapper_async_wait *wait = w;
 	if(wait->finished)
