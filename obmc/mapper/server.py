@@ -54,15 +54,14 @@ def find_dbus_interfaces(conn, service, path, match):
                 raise
 
         @staticmethod
-        def _invoke_method(path, iface, method, *args):
+        def _invoke_method(path, iface, method):
             obj = _FindInterfaces._get_object(path)
             if not obj:
                 return None
 
             iface = dbus.Interface(obj, iface)
             try:
-                f = getattr(iface, method)
-                return f(*args)
+                return method(iface)
             except dbus.exceptions.DBusException, e:
                 if e.get_dbus_name() in [
                         obmc.dbuslib.enums.DBUS_UNKNOWN_SERVICE,
@@ -78,14 +77,14 @@ def find_dbus_interfaces(conn, service, path, match):
             return _FindInterfaces._invoke_method(
                 path,
                 dbus.INTROSPECTABLE_IFACE,
-                'Introspect')
+                lambda x: x.Introspect())
 
         @staticmethod
         def _get_managed_objects(om):
             return _FindInterfaces._invoke_method(
                 om,
                 dbus.BUS_DAEMON_IFACE + '.ObjectManager',
-                'GetManagedObjects')
+                lambda x: x.GetManagedObjects())
 
         @staticmethod
         def _to_path(elements):
