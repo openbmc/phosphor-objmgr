@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Contributors Listed Below - COPYRIGHT 2016
 # [+] International Business Machines Corp.
 #
