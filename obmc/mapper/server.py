@@ -138,7 +138,7 @@ def find_dbus_interfaces(conn, service, path, match):
 
 class Association(dbus.service.Object):
     def __init__(self, bus, path, endpoints):
-        super(Association, self).__init__(bus, path)
+        super(Association, self).__init__(conn=bus, object_path=path)
         self.endpoints = endpoints
 
     def __getattr__(self, name):
@@ -185,8 +185,7 @@ class Association(dbus.service.Object):
 
 class Manager(obmc.dbuslib.bindings.DbusObjectManager):
     def __init__(self, bus, path):
-        obmc.dbuslib.bindings.DbusObjectManager.__init__(self)
-        dbus.service.Object.__init__(self, bus, path)
+        super(Manager, self).__init__(conn=bus, object_path=path)
 
 
 class ObjectMapper(dbus.service.Object):
