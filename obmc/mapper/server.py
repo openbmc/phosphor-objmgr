@@ -35,7 +35,9 @@ class MapperNotFoundException(dbus.exceptions.DBusException):
             "path or object not found: %s" % path)
 
 
-def find_dbus_interfaces(conn, service, path, match):
+def find_dbus_interfaces(conn, service, path, **kw):
+    iface_match = kw.pop('iface_match', bool)
+
     class _FindInterfaces(object):
         def __init__(self):
             self.results = {}
@@ -102,7 +104,7 @@ def find_dbus_interfaces(conn, service, path, match):
         @staticmethod
         def _match(iface):
             return iface == dbus.BUS_DAEMON_IFACE + '.ObjectManager' \
-                or match(iface)
+                or iface_match(iface)
 
         def _find_interfaces(self, path):
             path_elements = self._to_path_elements(path)
@@ -368,7 +370,8 @@ class ObjectMapper(dbus.service.Object):
         for owned_name, o in owners:
             self.add_items(
                 o,
-                find_dbus_interfaces(self.bus, o, '/', self.intf_match))
+                find_dbus_interfaces(
+                    self.bus, o, '/', iface_match=self.intf_match))
             self.bus_map[o] = owned_name
 
         if self.discovery_pending():
