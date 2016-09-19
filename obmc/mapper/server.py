@@ -193,12 +193,10 @@ class Manager(obmc.dbuslib.bindings.DbusObjectManager):
 
 class ObjectMapper(dbus.service.Object):
     def __init__(self, bus, path,
-                 name_match=obmc.utils.misc.org_dot_openbmc_match,
                  intf_match=obmc.utils.misc.org_dot_openbmc_match):
         super(ObjectMapper, self).__init__(bus, path)
         self.cache = obmc.utils.pathtree.PathTree()
         self.bus = bus
-        self.name_match = name_match
         self.intf_match = intf_match
         self.tag_match = obmc.utils.misc.ListMatch(['children', 'interface'])
         self.service = None
@@ -230,11 +228,6 @@ class ObjectMapper(dbus.service.Object):
             signal_name='PropertiesChanged',
             path_keyword='path',
             sender_keyword='sender')
-
-    def bus_match(self, owner):
-        # Ignore my own signals
-        return owner != obmc.mapper.MAPPER_NAME and \
-            self.name_match(owner)
 
     def discovery_pending(self):
         return not bool(self.service)
@@ -368,8 +361,9 @@ class ObjectMapper(dbus.service.Object):
             x, sep='/', prefix='/')
 
         if not owners:
-            owned_names = [
-                x for x in self.bus.list_names() if self.bus_match(x)]
+            owned_names = filter(
+                lambda x: not obmc.dbuslib.bindings.is_unique(x),
+                self.bus.list_names())
             owners = [self.bus.get_name_owner(x) for x in owned_names]
             owners = zip(owned_names, owners)
         for owned_name, o in owners:
@@ -400,8 +394,7 @@ class ObjectMapper(dbus.service.Object):
         if obmc.dbuslib.bindings.is_unique(name):
             name = self.bus_map.get(name)
 
-        return name is not None and \
-            self.bus_match(name)
+        return name is not None and name is not obmc.mapper.MAPPER_NAME
 
     def get_signal_interfaces(self, owner, interfaces):
         filtered = []
