@@ -37,6 +37,7 @@ class MapperNotFoundException(dbus.exceptions.DBusException):
 
 def find_dbus_interfaces(conn, service, path, **kw):
     iface_match = kw.pop('iface_match', bool)
+    subtree_match = kw.pop('subtree_match', bool)
 
     class _FindInterfaces(object):
         def __init__(self):
@@ -131,7 +132,7 @@ def find_dbus_interfaces(conn, service, path, **kw):
                     self._to_path(
                         path_elements + self._to_path_elements(x))
                     for x in sorted(children)]
-                for child in children:
+                for child in filter(subtree_match, children):
                     if child not in self.results:
                         self._find_interfaces(child)
 
@@ -362,6 +363,10 @@ class ObjectMapper(dbus.service.Object):
         def match(iface):
             return iface == dbus.BUS_DAEMON_IFACE + '.ObjectManager' or \
                 self.intf_match(iface)
+
+        subtree_match = lambda x: obmc.utils.misc.org_dot_openbmc_match(
+            x, sep='/', prefix='/')
+
         if not owners:
             owned_names = [
                 x for x in self.bus.list_names() if self.bus_match(x)]
@@ -371,7 +376,9 @@ class ObjectMapper(dbus.service.Object):
             self.add_items(
                 o,
                 find_dbus_interfaces(
-                    self.bus, o, '/', iface_match=self.intf_match))
+                    self.bus, o, '/',
+                    subtree_match=subtree_match,
+                    iface_match=self.intf_match))
             self.bus_map[o] = owned_name
 
         if self.discovery_pending():
