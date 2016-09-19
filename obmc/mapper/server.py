@@ -203,8 +203,11 @@ class ObjectMapper(dbus.service.Object):
         self.manager = Manager(bus, obmc.dbuslib.bindings.OBJ_PREFIX)
         self.unique = bus.get_unique_name()
         self.bus_map = {}
+        self.bus_map[self.unique] = obmc.mapper.MAPPER_NAME
 
-        gobject.idle_add(self.discover)
+        # add my object mananger instance
+        self.add_new_objmgr(obmc.dbuslib.bindings.OBJ_PREFIX, self.unique)
+
         self.bus.add_signal_receiver(
             self.bus_handler,
             dbus_interface=dbus.BUS_DAEMON_IFACE,
@@ -228,8 +231,12 @@ class ObjectMapper(dbus.service.Object):
             path_keyword='path',
             sender_keyword='sender')
 
-    def discovery_pending(self):
-        return not bool(self.service)
+        print "ObjectMapper startup complete.  Discovery in progress..."
+        self.discover()
+
+        print "ObjectMapper discovery complete"
+        self.service = dbus.service.BusName(
+            obmc.mapper.MAPPER_NAME, self.bus)
 
     def cache_get(self, path):
         cache_entry = self.cache.get(path, {})
@@ -374,22 +381,7 @@ class ObjectMapper(dbus.service.Object):
                     iface_match=self.intf_match))
             self.bus_map[o] = owned_name
 
-        if self.discovery_pending():
-            # add my object mananger instance
-            self.bus_map[self.unique] = obmc.mapper.MAPPER_NAME
-            self.add_items(
-                self.unique,
-                {obmc.dbuslib.bindings.OBJ_PREFIX:
-                    [dbus.BUS_DAEMON_IFACE + '.ObjectManager']})
-
-            print "ObjectMapper discovery complete..."
-            self.service = dbus.service.BusName(
-                obmc.mapper.MAPPER_NAME, self.bus)
-
     def valid_signal(self, name):
-        if self.discovery_pending():
-            return False
-
         if obmc.dbuslib.bindings.is_unique(name):
             name = self.bus_map.get(name)
 
