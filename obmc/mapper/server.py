@@ -83,6 +83,13 @@ def find_dbus_interfaces(conn, service, path, **kw):
                 lambda x: x.Introspect())
 
         @staticmethod
+        def _get(path, iface, prop):
+            return _FindInterfaces._invoke_method(
+                path,
+                dbus.PROPERTIES_IFACE,
+                lambda x: x.Get(iface, prop))
+
+        @staticmethod
         def _get_managed_objects(om):
             return _FindInterfaces._invoke_method(
                 om,
@@ -118,6 +125,15 @@ def find_dbus_interfaces(conn, service, path, **kw):
             ifaces = filter(
                 self._match,
                 [x.attrib.get('name') for x in root.findall('interface')])
+            ifaces = {x: {} for x in ifaces}
+
+            iface = obmc.dbuslib.enums.OBMC_ASSOCIATIONS_IFACE
+            if iface in ifaces:
+                associations = self._get(
+                    path, iface, 'associations')
+                if associations:
+                    ifaces[iface]['associations'] = associations
+
             self.results[path] = ifaces
 
             if dbus.BUS_DAEMON_IFACE + '.ObjectManager' in ifaces:
@@ -263,6 +279,7 @@ class ObjectMapper(dbus.service.Object):
             cache_entry = self.cache_get(path)
             old = self.interfaces_get(cache_entry, owner)
             new = list(set(interfaces).union(old))
+            new = {x: iprops[x] for x in new}
             self.update_interfaces(path, owner, old, new)
 
     def interfaces_removed_handler(self, path, interfaces, **kw):
@@ -348,7 +365,8 @@ class ObjectMapper(dbus.service.Object):
         new_assoc = []
         old_assoc = []
         if self.is_association(added):
-            new_assoc = self.dbus_get_associations(path, owner, new)
+            iface = obmc.dbuslib.enums.OBMC_ASSOCIATIONS_IFACE
+            new_assoc = new[iface]['associations']
         if self.is_association(removed):
             old_assoc = self.index_get_associations(path, [owner])
         self.update_associations(
@@ -480,18 +498,6 @@ class ObjectMapper(dbus.service.Object):
             del owners[owner]
         if not owners:
             del index[path]
-
-    def dbus_get_associations(self, path, owner, obj):
-        iface = obmc.dbuslib.enums.OBMC_ASSOCIATIONS_IFACE
-        if 'associations' in obj[iface]:
-            return obj[iface]['associations']
-
-        # fallback to dbus
-        obj = self.bus.get_object(owner, path, introspect=False)
-        iface = dbus.Interface(obj, dbus.PROPERTIES_IFACE)
-        return [(str(f), str(r), str(e)) for f, r, e in iface.Get(
-            obmc.dbuslib.enums.OBMC_ASSOCIATIONS_IFACE,
-            'associations')]
 
     def index_get_associations(self, path, owners=[], direction='forward'):
         forward = 'forward' if direction == 'forward' else 'reverse'
