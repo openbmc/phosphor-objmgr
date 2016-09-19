@@ -198,7 +198,6 @@ class ObjectMapper(dbus.service.Object):
         self.cache = obmc.utils.pathtree.PathTree()
         self.bus = bus
         self.intf_match = intf_match
-        self.tag_match = obmc.utils.misc.ListMatch(['children', 'interface'])
         self.service = None
         self.index = {}
         self.manager = Manager(bus, obmc.dbuslib.bindings.OBJ_PREFIX)
