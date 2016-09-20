@@ -4,7 +4,7 @@ includedir=/usr/include
 
 PACKAGE_DEPS=libsystemd
 SONAME=libmapper.so
-VERSION=1
+VERSION=2
 LIBMAPPER=$(SONAME).$(VERSION)
 BIN=mapper
 INCLUDES=mapper.h

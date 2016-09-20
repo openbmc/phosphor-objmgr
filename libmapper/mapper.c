@@ -17,7 +17,10 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#include <unistd.h>
+#include <sys/timerfd.h>
 #include <systemd/sd-bus.h>
+#include <systemd/sd-event.h>
 #include "mapper.h"
 
 static const char *async_wait_name_owner_match =
@@ -32,11 +35,15 @@ static const char *async_wait_interfaces_added_match =
 	"interface='org.freedesktop.DBus.ObjectManager',"
 	"member='InterfacesAdded'";
 
+static const int mapper_busy_retries = 5;
+static const uint64_t mapper_busy_delay_interval_usec = 1000000;
+
 struct mapper_async_wait
 {
 	char **objs;
 	void (*callback)(int, void *);
 	void *userdata;
+	sd_event *loop;
 	sd_bus *conn;
 	sd_bus_slot *name_owner_slot;
 	sd_bus_slot *intf_slot;
@@ -50,6 +57,8 @@ struct async_wait_callback_data
 {
 	mapper_async_wait *wait;
 	const char *path;
+	sd_event_source *event_source;
+	int retry;
 };
 
 static int async_wait_match_name_owner_changed(sd_bus_message *, void *,
@@ -59,6 +68,8 @@ static int async_wait_match_interfaces_added(sd_bus_message *, void *,
 static int async_wait_check_done(mapper_async_wait *);
 static void async_wait_done(int r, mapper_async_wait *);
 static int async_wait_get_objects(mapper_async_wait *);
+static int async_wait_getobject_callback(sd_bus_message *,
+		void *, sd_bus_error *);
 
 static int sarraylen(char *array[])
 {
@@ -106,18 +117,78 @@ error:
 	return NULL;
 }
 
+static int async_wait_timeout_callback(sd_event_source *s,
+		uint64_t usec, void *userdata)
+{
+	int r;
+	struct async_wait_callback_data *data = userdata;
+	mapper_async_wait *wait = data->wait;
+
+	sd_event_source_unref(data->event_source);
+	r = sd_bus_call_method_async(
+			wait->conn,
+			NULL,
+			"org.openbmc.ObjectMapper",
+			"/org/openbmc/ObjectMapper",
+			"org.openbmc.ObjectMapper",
+			"GetObject",
+			async_wait_getobject_callback,
+			data,
+			"s",
+			data->path);
+	if(r < 0) {
+		async_wait_done(r, wait);
+		free(data);
+	}
+
+	return 0;
+}
+
 static int async_wait_getobject_callback(sd_bus_message *m,
 		void *userdata,
 		sd_bus_error *e)
 {
-	int i;
+	int i, r;
 	struct async_wait_callback_data *data = userdata;
 	mapper_async_wait *wait = data->wait;
+	uint64_t now;
 
 	if(wait->finished)
+		goto exit;
+
+	r = sd_bus_message_get_errno(m);
+	if(r == EBUSY && data->retry < mapper_busy_retries) {
+		r = sd_event_now(wait->loop,
+				CLOCK_MONOTONIC,
+				&now);
+		if(r < 0) {
+			async_wait_done(r, wait);
+			goto exit;
+		}
+
+		++data->retry;
+		r = sd_event_add_time(wait->loop,
+				&data->event_source,
+				CLOCK_MONOTONIC,
+				now + mapper_busy_delay_interval_usec,
+				0,
+				async_wait_timeout_callback,
+				data);
+		if(r < 0) {
+			async_wait_done(r, wait);
+			goto exit;
+		}
+
 		return 0;
-	if(sd_bus_message_get_errno(m))
-		return 0;
+	}
+
+	if(r == EBUSY) {
+		async_wait_done(-r, wait);
+		goto exit;
+	}
+
+	if(r) // not found
+		goto exit;
 
 	for(i=0; i<wait->count; ++i) {
 		if(!strcmp(data->path, wait->objs[i])) {
@@ -125,10 +196,11 @@ static int async_wait_getobject_callback(sd_bus_message *m,
 		}
 	}
 
-	free(data);
 	if(async_wait_check_done(wait))
 		async_wait_done(0, wait);
 
+exit:
+	free(data);
 	return 0;
 }
 
@@ -143,6 +215,8 @@ static int async_wait_get_objects(mapper_async_wait *wait)
 		data = malloc(sizeof(*data));
 		data->wait = wait;
 		data->path = wait->objs[i];
+		data->retry = 0;
+		data->event_source = NULL;
 		r = sd_bus_call_method_async(
 				wait->conn,
 				NULL,
@@ -245,6 +319,7 @@ void mapper_wait_async_free(mapper_async_wait *w)
 }
 
 int mapper_wait_async(sd_bus *conn,
+		sd_event *loop,
 		char *objs[],
 		void (*callback)(int, void *),
 		void *userdata,
@@ -259,6 +334,7 @@ int mapper_wait_async(sd_bus *conn,
 
 	memset(wait, 0, sizeof(*wait));
 	wait->conn = conn;
+	wait->loop = loop;
 	wait->callback = callback;
 	wait->userdata = userdata;
 	wait->count = sarraylen(objs);
@@ -325,12 +401,11 @@ free_wait:
 	return r;
 }
 
-int mapper_get_service(sd_bus *conn, const char *obj, char **service)
+int mapper_get_object(sd_bus *conn, const char *obj, sd_bus_message **reply)
 {
 	sd_bus_error error = SD_BUS_ERROR_NULL;
-	sd_bus_message *request = NULL, *reply = NULL;
-	const char *tmp;
-	int r;
+	sd_bus_message *request = NULL;
+	int r, retry = 0;
 
 	r = sd_bus_message_new_method_call(
 			conn,
@@ -346,7 +421,36 @@ int mapper_get_service(sd_bus *conn, const char *obj, char **service)
 	if (r < 0)
 		goto exit;
 
-	r = sd_bus_call(conn, request, 0, &error, &reply);
+	while(retry < mapper_busy_retries) {
+		sd_bus_error_free(&error);
+		r = sd_bus_call(conn, request, 0, &error, reply);
+		if (r < 0 && sd_bus_error_get_errno(&error) == EBUSY) {
+			++retry;
+
+			if(retry != mapper_busy_retries)
+				usleep(mapper_busy_delay_interval_usec);
+			continue;
+		}
+		break;
+	}
+
+	if (r < 0)
+		goto exit;
+
+exit:
+	sd_bus_error_free(&error);
+	sd_bus_message_unref(request);
+
+	return r;
+}
+
+int mapper_get_service(sd_bus *conn, const char *obj, char **service)
+{
+	sd_bus_message *reply = NULL;
+	const char *tmp;
+	int r;
+
+	r = mapper_get_object(conn, obj, &reply);
 	if (r < 0)
 		goto exit;
 
@@ -365,8 +469,6 @@ int mapper_get_service(sd_bus *conn, const char *obj, char **service)
 	*service = strdup(tmp);
 
 exit:
-	sd_bus_error_free(&error);
-	sd_bus_message_unref(request);
 	sd_bus_message_unref(reply);
 
 	return r;

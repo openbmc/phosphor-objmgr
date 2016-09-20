@@ -118,7 +118,7 @@ static int wait_main(int argc, char *argv[])
 		goto finish;
 	}
 
-	r = mapper_wait_async(conn, argv+2, quit, loop, &wait);
+	r = mapper_wait_async(conn, loop, argv+2, quit, loop, &wait);
 	if(r < 0) {
 		fprintf(stderr, "Error configuring waitlist: %s\n",
 				strerror(-r));
