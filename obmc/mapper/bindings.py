@@ -33,17 +33,41 @@ class Mapper:
         self.iface = dbus.Interface(
             obj, dbus_interface=MAPPER_IFACE)
 
-    def get_object(self, path):
-        return self.iface.GetObject(path)
+    @staticmethod
+    def retry(func, retries):
+        e = None
+        count = 0
+        while count < retries:
+            try:
+                return func()
+            except dbus.exceptions.DBusException, e:
+                if e.get_dbus_name() is not \
+                        'org.freedesktop.DBus.Error.ObjectPathInUse':
+                    raise
 
-    def get_subtree_paths(self, path='/', depth=0):
-        return self.iface.GetSubTreePaths(path, depth)
+                count += 1
+        if e:
+            raise e
 
-    def get_subtree(self, path='/', depth=0):
-        return self.iface.GetSubTree(path, depth)
+    def get_object(self, path, retries=5):
+        return self.retry(
+            lambda: self.iface.GetObject(path),
+            retries)
 
-    def get_ancestors(self, path):
-        return self.iface.GetAncestors(path)
+    def get_subtree_paths(self, path='/', depth=0, retries=5):
+        return self.retry(
+            lambda: self.iface.GetSubTreePaths(path, depth),
+            retries)
+
+    def get_subtree(self, path='/', depth=0, retries=5):
+        return self.retry(
+            lambda: self.iface.GetSubTree(path, depth),
+            retries)
+
+    def get_ancestors(self, path, retries=5):
+        return self.retry(
+            lambda: self.iface.GetAncestors(path),
+            retries)
 
     @staticmethod
     def __try_properties_interface(f, *a):
