@@ -29,13 +29,15 @@ class Wait(object):
             obmc.mapper.MAPPER_NAME,
             obmc.mapper.MAPPER_PATH,
             introspect=False)
-        self.mapper_iface = dbus.Interface(
+        self.iface = dbus.Interface(
             mapper, dbus_interface=obmc.mapper.MAPPER_IFACE)
         self.done = False
         self.callback = kw.pop('callback', None)
-        self.callback_keyword = kw.pop('keyword', None)
-        self.callback_args = a
-        self.callback_kw = kw
+        self.error_callback = kw.pop('error_callback', self.default_error)
+        self.busy_retries = kw.pop('busy_retries', 5)
+        self.busy_retry_delay_milliseconds = kw.pop(
+            'busy_retry_delay_milliseconds', 1000)
+        self.waitlist_keyword = kw.pop('waitlist_keyword', None)
 
         self.bus.add_signal_receiver(
             self.name_owner_changed_handler,
@@ -46,10 +48,15 @@ class Wait(object):
             dbus_interface=dbus.BUS_DAEMON_IFACE + '.ObjectManager',
             sender_keyword='sender',
             signal_name='InterfacesAdded')
-        gobject.idle_add(self.name_owner_changed_handler)
 
-    def check_done(self):
-        if not all(self.waitlist.values()) or self.done:
+        self.name_owner_changed_handler()
+
+    @staticmethod
+    def default_error(e):
+        raise e
+
+    def force_done(self):
+        if self.done:
             return
 
         self.done = True
@@ -61,36 +68,65 @@ class Wait(object):
             self.interfaces_added_handler,
             dbus_interface=dbus.BUS_DAEMON_IFACE + '.ObjectManager',
             signal_name='InterfacesAdded')
+
+    def check_done(self):
+        if not all(self.waitlist.values()) or self.done:
+            return
+
+        self.force_done()
+
         if self.callback:
-            if self.callback_keyword:
-                self.callback_kw[self.callback_keyword] = self.waitlist
-            self.callback(*self.callback_args, **self.callback_kw)
+            kwargs = {}
+            if self.waitlist_keyword:
+                kwargs[waitlist_keyword] = self.waitlist
+            self.callback(**kwargs)
+
+    def get_object_async(self, path, retry):
+        method = getattr(self.iface, 'GetObject')
+        method.call_async(
+            path,
+            reply_handler=lambda x: self.get_object_callback(
+                path, x),
+            error_handler=lambda x: self.get_object_error(
+                path, retry, x))
+        return False
+
+    def get_object_error(self, path, retry, e):
+        if self.done:
+            return
+
+        if e.get_dbus_name() == 'org.freedesktop.DBus.Error.FileNotFound':
+            pass
+        elif e.get_dbus_name() == 'org.freedesktop.DBus.Error.ObjectPathInUse':
+            if retry > self.busy_retries:
+                self.force_done()
+                self.error_callback(e)
+            else:
+                gobject.timeout_add(
+                    self.busy_retry_delay_milliseconds,
+                    self.get_object_async,
+                    path,
+                    retry + 1)
+        else:
+            self.force_done()
+            self.error_callback(e)
 
     def get_object_callback(self, path, info):
         self.waitlist[path] = list(info)[0]
         self.check_done()
 
     def name_owner_changed_handler(self, *a, **kw):
-        class Callback(object):
-            def __init__(self, func, *args):
-                self.func = func
-                self.extra_args = args
-
-            def __call__(self, *a):
-                return self.func(*(self.extra_args + a))
-
         if self.done:
             return
 
-        for path in self.waitlist.keys():
-            method = getattr(self.mapper_iface, 'GetObject')
-            method.call_async(
-                path,
-                reply_handler=Callback(self.get_object_callback, path))
+        for path in filter(
+                lambda x: not self.waitlist[x], self.waitlist.keys()):
+            self.get_object_async(path, 0)
 
     def interfaces_added_handler(self, path, *a, **kw):
         if self.done:
             return
+
         if path in self.waitlist.keys():
             self.waitlist[path] = kw['sender']
         self.check_done()
