@@ -23,7 +23,7 @@ import obmc.utils.pathtree
 MAPPER_NAME = 'org.openbmc.ObjectMapper'
 MAPPER_IFACE = MAPPER_NAME
 MAPPER_PATH = '/org/openbmc/ObjectMapper'
-MAPPER_NOT_FOUND = MAPPER_NAME + '.Error.NotFound'
+MAPPER_NOT_FOUND = 'org.freedesktop.DBus.Error.FileNotFound'
 
 
 class Mapper:
