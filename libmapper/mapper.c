@@ -157,6 +157,9 @@ static int async_wait_getobject_callback(sd_bus_message *m,
 		goto exit;
 
 	r = sd_bus_message_get_errno(m);
+	if(r == ENOENT)
+		goto exit;
+
 	if(r == EBUSY && data->retry < mapper_busy_retries) {
 		r = sd_event_now(wait->loop,
 				CLOCK_MONOTONIC,
@@ -182,13 +185,10 @@ static int async_wait_getobject_callback(sd_bus_message *m,
 		return 0;
 	}
 
-	if(r == EBUSY) {
+	if(r) {
 		async_wait_done(-r, wait);
 		goto exit;
 	}
-
-	if(r) // not found
-		goto exit;
 
 	for(i=0; i<wait->count; ++i) {
 		if(!strcmp(data->path, wait->objs[i])) {
