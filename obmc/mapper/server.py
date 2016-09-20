@@ -275,6 +275,7 @@ class ObjectMapper(dbus.service.Object):
         print "ObjectMapper discovery complete"
         self.service = dbus.service.BusName(
             obmc.mapper.MAPPER_NAME, self.bus)
+        self.manager.unmask_signals()
         return False
 
     def discovery_callback(self, owner, items):
