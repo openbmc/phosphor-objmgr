@@ -43,66 +43,16 @@ class MapperNotFoundException(dbus.exceptions.DBusException):
             "path or object not found: %s" % path)
 
 
-def find_dbus_interfaces(conn, service, path, **kw):
+def find_dbus_interfaces(conn, service, path, callback, error_callback, **kw):
     iface_match = kw.pop('iface_match', bool)
     subtree_match = kw.pop('subtree_match', bool)
 
     class _FindInterfaces(object):
         def __init__(self):
             self.results = {}
-
-        @staticmethod
-        def _get_object(path):
-            try:
-                return conn.get_object(service, path, introspect=False)
-            except dbus.exceptions.DBusException, e:
-                if e.get_dbus_name() in [
-                        obmc.dbuslib.enums.DBUS_UNKNOWN_SERVICE,
-                        obmc.dbuslib.enums.DBUS_NO_REPLY]:
-                    print "Warning: Introspection failure: " \
-                        "service `%s` is not running" % (service)
-                    return None
-                raise
-
-        @staticmethod
-        def _invoke_method(path, iface, method):
-            obj = _FindInterfaces._get_object(path)
-            if not obj:
-                return None
-
-            iface = dbus.Interface(obj, iface)
-            try:
-                return method(iface)
-            except dbus.exceptions.DBusException, e:
-                if e.get_dbus_name() in [
-                        obmc.dbuslib.enums.DBUS_UNKNOWN_SERVICE,
-                        obmc.dbuslib.enums.DBUS_NO_REPLY]:
-                    print "Warning: Introspection failure: " \
-                        "service `%s` did not reply to "\
-                        "method call on %s" % (service, path)
-                    return None
-                raise
-
-        @staticmethod
-        def _introspect(path):
-            return _FindInterfaces._invoke_method(
-                path,
-                dbus.INTROSPECTABLE_IFACE,
-                lambda x: x.Introspect())
-
-        @staticmethod
-        def _get(path, iface, prop):
-            return _FindInterfaces._invoke_method(
-                path,
-                dbus.PROPERTIES_IFACE,
-                lambda x: x.Get(iface, prop))
-
-        @staticmethod
-        def _get_managed_objects(om):
-            return _FindInterfaces._invoke_method(
-                om,
-                dbus.BUS_DAEMON_IFACE + '.ObjectManager',
-                lambda x: x.GetManagedObjects())
+            self.introspect_pending = []
+            self.gmo_pending = []
+            self.assoc_pending = []
 
         @staticmethod
         def _to_path(elements):
@@ -113,52 +63,111 @@ def find_dbus_interfaces(conn, service, path, **kw):
             return filter(bool, path.split('/'))
 
         def __call__(self, path):
-            self.results = {}
-            self._find_interfaces(path)
-            return self.results
+            try:
+                self._find_interfaces(path)
+            except Exception, e:
+                error_callback(service, path, e)
 
         @staticmethod
         def _match(iface):
             return iface == dbus.BUS_DAEMON_IFACE + '.ObjectManager' \
                 or iface_match(iface)
 
+        def check_done(self):
+            if any([
+                    self.introspect_pending,
+                    self.gmo_pending,
+                    self.assoc_pending]):
+                return
+
+            callback(service, self.results)
+
+        def _assoc_callback(self, path, associations):
+            try:
+                iface = obmc.dbuslib.enums.OBMC_ASSOCIATIONS_IFACE
+                self.assoc_pending.remove(path)
+                if associations:
+                    self.results[path][iface]['associations'] = associations
+            except Exception, e:
+                error_callback(service, path, e)
+                return None
+
+            self.check_done()
+
+        def _gmo_callback(self, path, objs):
+            try:
+                self.gmo_pending.remove(path)
+                for k, v in objs.iteritems():
+                    self.results[k] = v
+            except Exception, e:
+                error_callback(service, path, e)
+                return None
+
+            self.check_done()
+
+        def _introspect_callback(self, path, data):
+            self.introspect_pending.remove(path)
+            if data is None:
+                self.check_done()
+                return
+
+            try:
+                path_elements = self._to_path_elements(path)
+                root = ET.fromstring(data)
+                ifaces = filter(
+                    self._match,
+                    [x.attrib.get('name') for x in root.findall('interface')])
+                ifaces = {x: {} for x in ifaces}
+                self.results[path] = ifaces
+
+                if obmc.dbuslib.enums.OBMC_ASSOCIATIONS_IFACE in ifaces:
+                    obj = conn.get_object(service, path, introspect=False)
+                    iface = dbus.Interface(obj, dbus.PROPERTIES_IFACE)
+                    self.assoc_pending.append(path)
+                    iface.Get.call_async(
+                        obmc.dbuslib.enums.OBMC_ASSOCIATIONS_IFACE,
+                        'associations',
+                        reply_handler=lambda x: self._assoc_callback(
+                            path, x),
+                        error_handler=lambda e: error_callback(
+                            service, path, e))
+
+                if dbus.BUS_DAEMON_IFACE + '.ObjectManager' in ifaces:
+                    obj = conn.get_object(service, path, introspect=False)
+                    iface = dbus.Interface(
+                        obj, dbus.BUS_DAEMON_IFACE + '.ObjectManager')
+                    self.gmo_pending.append(path)
+                    iface.GetManagedObjects.call_async(
+                        reply_handler=lambda x: self._gmo_callback(
+                            path, x),
+                        error_handler=lambda e: error_callback(
+                            service, path, e))
+                else:
+                    children = filter(
+                        bool,
+                        [x.attrib.get('name') for x in root.findall('node')])
+                    children = [
+                        self._to_path(
+                            path_elements + self._to_path_elements(x))
+                        for x in sorted(children)]
+                    for child in filter(subtree_match, children):
+                        if child not in self.results:
+                            self._find_interfaces(child)
+            except Exception, e:
+                error_callback(service, path, e)
+                return None
+
+            self.check_done()
+
         def _find_interfaces(self, path):
             path_elements = self._to_path_elements(path)
             path = self._to_path(path_elements)
-            data = self._introspect(path)
-            if data is None:
-                return
-
-            root = ET.fromstring(data)
-            ifaces = filter(
-                self._match,
-                [x.attrib.get('name') for x in root.findall('interface')])
-            ifaces = {x: {} for x in ifaces}
-
-            iface = obmc.dbuslib.enums.OBMC_ASSOCIATIONS_IFACE
-            if iface in ifaces:
-                associations = self._get(
-                    path, iface, 'associations')
-                if associations:
-                    ifaces[iface]['associations'] = associations
-
-            self.results[path] = ifaces
-
-            if dbus.BUS_DAEMON_IFACE + '.ObjectManager' in ifaces:
-                objs = self._get_managed_objects(path)
-                for k, v in objs.iteritems():
-                    self.results[k] = v
-            else:
-                children = filter(
-                    bool,
-                    [x.attrib.get('name') for x in root.findall('node')])
-                children = [
-                    self._to_path(
-                        path_elements + self._to_path_elements(x))
-                    for x in sorted(children)]
-                for child in filter(subtree_match, children):
-                    if child not in self.results:
-                        self._find_interfaces(child)
+            obj = conn.get_object(service, path, introspect=False)
+            iface = dbus.Interface(obj, dbus.INTROSPECTABLE_IFACE)
+            self.introspect_pending.append(path)
+            iface.Introspect.call_async(
+                reply_handler=lambda x: self._introspect_callback(path, x),
+                error_handler=lambda x: error_callback(service, path, x))
 
     return _FindInterfaces()(path)
 
@@ -258,10 +267,15 @@ class ObjectMapper(dbus.service.Object):
 
         print "ObjectMapper startup complete.  Discovery in progress..."
         self.discover()
+        gobject.idle_add(self.claim_name)
 
+    def claim_name(self):
+        if len(self.defer_signals):
+            return True
         print "ObjectMapper discovery complete"
         self.service = dbus.service.BusName(
             obmc.mapper.MAPPER_NAME, self.bus)
+        return False
 
     def discovery_callback(self, owner, items):
         if owner in self.defer_signals:
@@ -443,13 +457,14 @@ class ObjectMapper(dbus.service.Object):
             owners = [self.bus.get_name_owner(x) for x in owned_names]
             owners = zip(owned_names, owners)
         for owned_name, o in owners:
-            self.add_items(
-                o,
-                find_dbus_interfaces(
-                    self.bus, o, '/',
-                    subtree_match=subtree_match,
-                    iface_match=self.intf_match))
             self.bus_map[o] = owned_name
+            self.defer_signals[o] = []
+            find_dbus_interfaces(
+                self.bus, o, '/',
+                self.discovery_callback,
+                self.discovery_error,
+                subtree_match=subtree_match,
+                iface_match=self.intf_match)
 
     def valid_signal(self, name):
         if obmc.dbuslib.bindings.is_unique(name):
