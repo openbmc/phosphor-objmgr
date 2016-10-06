@@ -1,3 +1,3 @@
-#define MAPPER_BUSNAME "org.openbmc.ObjectMapper"
-#define MAPPER_INTERFACE "org.openbmc.ObjectMapper"
-#define MAPPER_PATH "/org/openbmc/ObjectMapper"
+#define MAPPER_BUSNAME "xyz.openbmc_project.ObjectMapper"
+#define MAPPER_INTERFACE "xyz.openbmc_project.ObjectMapper"
+#define MAPPER_PATH "/xyz/openbmc_project/ObjectMapper"
