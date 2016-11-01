@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "config.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -128,9 +129,9 @@ static int async_wait_timeout_callback(sd_event_source *s,
 	r = sd_bus_call_method_async(
 			wait->conn,
 			NULL,
-			"org.openbmc.ObjectMapper",
-			"/org/openbmc/ObjectMapper",
-			"org.openbmc.ObjectMapper",
+			BUSNAME,
+			PATH,
+			INTERFACE,
 			"GetObject",
 			async_wait_getobject_callback,
 			data,
@@ -220,9 +221,9 @@ static int async_wait_get_objects(mapper_async_wait *wait)
 		r = sd_bus_call_method_async(
 				wait->conn,
 				NULL,
-				"org.openbmc.ObjectMapper",
-				"/org/openbmc/ObjectMapper",
-				"org.openbmc.ObjectMapper",
+				BUSNAME,
+				PATH,
+				INTERFACE,
 				"GetObject",
 				async_wait_getobject_callback,
 				data,
@@ -410,9 +411,9 @@ int mapper_get_object(sd_bus *conn, const char *obj, sd_bus_message **reply)
 	r = sd_bus_message_new_method_call(
 			conn,
 			&request,
-			"org.openbmc.ObjectMapper",
-			"/org/openbmc/ObjectMapper",
-			"org.openbmc.ObjectMapper",
+			BUSNAME,
+			PATH,
+			INTERFACE,
 			"GetObject");
 	if (r < 0)
 		goto exit;
