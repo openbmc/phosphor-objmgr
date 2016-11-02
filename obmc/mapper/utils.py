@@ -85,6 +85,8 @@ class Wait(object):
         method = getattr(self.iface, 'GetObject')
         method.call_async(
             path,
+            [],
+            signature='sas',
             reply_handler=lambda x: self.get_object_callback(
                 path, x),
             error_handler=lambda x: self.get_object_error(

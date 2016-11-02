@@ -49,24 +49,28 @@ class Mapper:
         if e:
             raise e
 
-    def get_object(self, path, retries=5):
+    def get_object(self, path, retries=5, interfaces=[]):
         return self.retry(
-            lambda: self.iface.GetObject(path),
+            lambda: self.iface.GetObject(
+                path, interfaces, signature='sas'),
             retries)
 
-    def get_subtree_paths(self, path='/', depth=0, retries=5):
+    def get_subtree_paths(self, path='/', depth=0, retries=5, interfaces=[]):
         return self.retry(
-            lambda: self.iface.GetSubTreePaths(path, depth),
+            lambda: self.iface.GetSubTreePaths(
+                path, depth, interfaces, signature='sias'),
             retries)
 
-    def get_subtree(self, path='/', depth=0, retries=5):
+    def get_subtree(self, path='/', depth=0, retries=5, interfaces=[]):
         return self.retry(
-            lambda: self.iface.GetSubTree(path, depth),
+            lambda: self.iface.GetSubTree(
+                path, depth, interfaces, signature='sias'),
             retries)
 
-    def get_ancestors(self, path, retries=5):
+    def get_ancestors(self, path, retries=5, interfaces=[]):
         return self.retry(
-            lambda: self.iface.GetAncestors(path),
+            lambda: self.iface.GetAncestors(
+                path, interfaces, signature='sas'),
             retries)
 
     @staticmethod
