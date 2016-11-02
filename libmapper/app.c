@@ -43,8 +43,8 @@ static int call_main(int argc, char *argv[])
 
 	r = mapper_get_service(conn, argv[2], &service);
 	if(r < 0) {
-		fprintf(stderr, "Error finding service: %s\n",
-				strerror(-r));
+		fprintf(stderr, "Error finding '%s' service: %s\n",
+				argv[2], strerror(-r));
 		goto finish;
 	}
 
