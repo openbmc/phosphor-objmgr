@@ -510,33 +510,69 @@ class ObjectMapper(dbus.service.Object):
             # delete the entire path if everything is gone
             del self.cache[path]
 
-    @dbus.service.method(obmc.mapper.MAPPER_IFACE, 's', 'a{sas}')
-    def GetObject(self, path):
+    @staticmethod
+    def filter_interfaces(item, ifaces):
+        if isinstance(item, dict):
+            # Called with a single object.
+            if not ifaces:
+                return item
+
+            # Remove interfaces from a service that
+            # aren't in a filter.
+            svc_map = lambda svc: (
+                svc[0],
+                list(set(ifaces).intersection(svc[1])))
+
+            # Remove services where no interfaces remain after mapping.
+            svc_filter = lambda svc: svc[1]
+
+            obj_map = lambda o: (
+                tuple(*filter(svc_filter, map(svc_map, [o]))))
+
+            return dict(filter(lambda x: x, map(obj_map, item.iteritems())))
+
+        # Called with a list of path/object tuples.
+        if not ifaces:
+            return dict(item)
+
+        obj_map = lambda x: (
+            x[0],
+            ObjectMapper.filter_interfaces(
+                x[1],
+                ifaces))
+
+        return dict(filter(lambda x: x[1], map(obj_map, iter(item))))
+
+    @dbus.service.method(obmc.mapper.MAPPER_IFACE, 'sas', 'a{sas}')
+    def GetObject(self, path, interfaces):
         if len(self.defer_signals):
             raise MapperBusyException()
 
         o = self.cache_get(path)
         if not o:
             raise MapperNotFoundException(path)
-        return o
 
-    @dbus.service.method(obmc.mapper.MAPPER_IFACE, 'si', 'as')
-    def GetSubTreePaths(self, path, depth):
+        return self.filter_interfaces(o, interfaces)
+
+    @dbus.service.method(obmc.mapper.MAPPER_IFACE, 'sias', 'as')
+    def GetSubTreePaths(self, path, depth, interfaces):
         if len(self.defer_signals):
             raise MapperBusyException()
 
         try:
-            return self.cache.iterkeys(path, depth)
+            return self.GetSubTree(path, depth, interfaces).iterkeys()
         except KeyError:
             raise MapperNotFoundException(path)
 
-    @dbus.service.method(obmc.mapper.MAPPER_IFACE, 'si', 'a{sa{sas}}')
-    def GetSubTree(self, path, depth):
+    @dbus.service.method(obmc.mapper.MAPPER_IFACE, 'sias', 'a{sa{sas}}')
+    def GetSubTree(self, path, depth, interfaces):
         if len(self.defer_signals):
             raise MapperBusyException()
 
         try:
-            return {x: y for x, y in self.cache.dataitems(path, depth)}
+            return self.filter_interfaces(
+                self.cache.dataitems(path, depth),
+                interfaces)
         except KeyError:
             raise MapperNotFoundException(path)
 
@@ -676,8 +712,8 @@ class ObjectMapper(dbus.service.Object):
                 self.update_association(forward_path, [endpoint], [])
                 self.update_association(reverse_path, [path], [])
 
-    @dbus.service.method(obmc.mapper.MAPPER_IFACE, 's', 'a{sa{sas}}')
-    def GetAncestors(self, path):
+    @dbus.service.method(obmc.mapper.MAPPER_IFACE, 'sas', 'a{sa{sas}}')
+    def GetAncestors(self, path, interfaces):
         if len(self.defer_signals):
             raise MapperBusyException()
 
@@ -696,7 +732,7 @@ class ObjectMapper(dbus.service.Object):
                 continue
             objs[path] = obj
 
-        return objs
+        return self.filter_interfaces(list(objs.iteritems()), interfaces)
 
 
 def server_main():
