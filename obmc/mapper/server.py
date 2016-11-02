@@ -717,6 +717,9 @@ class ObjectMapper(dbus.service.Object):
         if len(self.defer_signals):
             raise MapperBusyException()
 
+        if not self.cache_get(path):
+            raise MapperNotFoundException(path)
+
         elements = filter(bool, path.split('/'))
         paths = []
         objs = {}
