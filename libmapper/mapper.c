@@ -135,8 +135,10 @@ static int async_wait_timeout_callback(sd_event_source *s,
 			"GetObject",
 			async_wait_getobject_callback,
 			data,
-			"s",
-			data->path);
+			"sas",
+			data->path,
+			0,
+			NULL);
 	if(r < 0) {
 		async_wait_done(r, wait);
 		free(data);
@@ -227,8 +229,10 @@ static int async_wait_get_objects(mapper_async_wait *wait)
 				"GetObject",
 				async_wait_getobject_callback,
 				data,
-				"s",
-				wait->objs[i]);
+				"sas",
+				wait->objs[i],
+				0,
+				NULL);
 		if(r < 0) {
 			free(data);
 			fprintf(stderr, "Error invoking method: %s\n",
@@ -419,6 +423,9 @@ int mapper_get_object(sd_bus *conn, const char *obj, sd_bus_message **reply)
 		goto exit;
 
 	r = sd_bus_message_append(request, "s", obj);
+	if (r < 0)
+		goto exit;
+	r = sd_bus_message_append(request, "as", 0, NULL);
 	if (r < 0)
 		goto exit;
 
