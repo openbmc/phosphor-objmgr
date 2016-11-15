@@ -56,6 +56,17 @@ AC_DEFINE([MAPPER_BUSNAME], ["xyz.openbmc_project.ObjectMapper"], [Object mapper
 AC_DEFINE([MAPPER_INTERFACE], ["xyz.openbmc_project.ObjectMapper"], [Object mapper interface])
 AC_DEFINE([MAPPER_PATH], ["/xyz/openbmc_project/ObjectMapper"], [Object mapper DBUS path])
 
+# Docker image workaround systemd sd_bus_message_append_cmdline
+AC_ARG_ENABLE([docker-img],
+    AS_HELP_STRING([--enable-docker-img], [Enable docker image workarounds]))
+AS_IF([test "x$enable_docker_img" == "xyes"],
+    AC_MSG_NOTICE([Enabling docker image workarounds])
+    [
+        AC_DEFINE([IS_DOCKER_IMG], ,[Enable workarounds for docker image])
+        AH_BOTTOM([#include "docker/workarounds.h"])
+    ]
+)
+
 # Create configured output
 AC_CONFIG_FILES([Makefile setup.py])
 AC_OUTPUT
