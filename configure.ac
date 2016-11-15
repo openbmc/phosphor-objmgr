@@ -6,6 +6,10 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([subdir-objects -Wall -Werror foreign dist-xz])
 AM_SILENT_RULES([yes])
 
+# Modify header template
+AH_TOP([#pragma once])
+AH_BOTTOM([#include "workaround/systemd.h"])
+
 # Checks for programs.
 AC_PROG_CC
 AM_PROG_AR
@@ -56,6 +60,16 @@ AS_IF([test "x$enable_oe_sdk" == "xyes"],
 AC_DEFINE([MAPPER_BUSNAME], ["xyz.openbmc_project.ObjectMapper"], [Object mapper bus name])
 AC_DEFINE([MAPPER_INTERFACE], ["xyz.openbmc_project.ObjectMapper"], [Object mapper interface])
 AC_DEFINE([MAPPER_PATH], ["/xyz/openbmc_project/ObjectMapper"], [Object mapper DBUS path])
+
+# Workaround for unpatched systemd installs
+AC_ARG_ENABLE([unpatched-systemd],
+    AS_HELP_STRING([--enable-unpatched-systemd], [Enable unpatched systemd workarounds]))
+AS_IF([test "x$enable_unpatched_systemd" == "xyes"],
+    AC_MSG_NOTICE([Enabling unpatched systemd workarounds])
+    [
+        AC_DEFINE([IS_UNPATCHED_SYSTEMD], ,[Enable unpatched systemd workarounds])
+    ]
+)
 
 # Create configured output
 AC_CONFIG_FILES([Makefile setup.py])
