@@ -31,6 +31,6 @@ install-exec-hook:
 
 uninstall-hook:
 	cat ${top_builddir}/python_install.log \
-	| awk '{print "$(DESTDIR)"$$1}' | xargs rm -fv
+	| $(AWK) '{print "$(DESTDIR)"$$1}' | xargs rm -fv
 
 endif
