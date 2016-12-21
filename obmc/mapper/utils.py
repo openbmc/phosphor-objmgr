@@ -34,9 +34,9 @@ class Wait(object):
         self.done = False
         self.callback = kw.pop('callback', None)
         self.error_callback = kw.pop('error_callback', self.default_error)
-        self.busy_retries = kw.pop('busy_retries', 5)
+        self.busy_retries = kw.pop('busy_retries', 20)
         self.busy_retry_delay_milliseconds = kw.pop(
-            'busy_retry_delay_milliseconds', 1000)
+            'busy_retry_delay_milliseconds', 500)
         self.waitlist_keyword = kw.pop('waitlist_keyword', None)
 
         self.bus.add_signal_receiver(
