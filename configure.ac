@@ -8,7 +8,7 @@ AM_SILENT_RULES([yes])
 
 # Modify header template
 AH_TOP([#pragma once])
-AH_BOTTOM([#include "workaround/systemd.h"])
+AH_BOTTOM([#include "libmapper/workaround/systemd.h"])
 
 # Checks for programs.
 AC_PROG_CC
