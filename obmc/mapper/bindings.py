@@ -41,8 +41,9 @@ class Mapper:
             try:
                 return func()
             except dbus.exceptions.DBusException, e:
-                if e.get_dbus_name() is not \
-                        'org.freedesktop.DBus.Error.ObjectPathInUse':
+                if e.get_dbus_name() not in \
+                    ['org.freedesktop.DBus.Error.ObjectPathInUse',
+                     'org.freedesktop.DBus.Error.LimitsExceeded']:
                     raise
 
                 count += 1
