@@ -99,7 +99,9 @@ class Wait(object):
 
         if e.get_dbus_name() == 'org.freedesktop.DBus.Error.FileNotFound':
             pass
-        elif e.get_dbus_name() == 'org.freedesktop.DBus.Error.ObjectPathInUse':
+        elif e.get_dbus_name() in \
+            ['org.freedesktop.DBus.Error.ObjectPathInUse',
+             'org.freedesktop.DBus.Error.LimitsExceeded']:
             if retry > self.busy_retries:
                 self.force_done()
                 self.error_callback(e)
