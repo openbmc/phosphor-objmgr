@@ -546,9 +546,6 @@ class ObjectMapper(dbus.service.Object):
 
     @dbus.service.method(obmc.mapper.MAPPER_IFACE, 'sas', 'a{sas}')
     def GetObject(self, path, interfaces):
-        if len(self.defer_signals):
-            raise MapperBusyException()
-
         o = self.cache_get(path)
         if not o:
             raise MapperNotFoundException(path)
@@ -557,9 +554,6 @@ class ObjectMapper(dbus.service.Object):
 
     @dbus.service.method(obmc.mapper.MAPPER_IFACE, 'sias', 'as')
     def GetSubTreePaths(self, path, depth, interfaces):
-        if len(self.defer_signals):
-            raise MapperBusyException()
-
         try:
             return self.GetSubTree(path, depth, interfaces).iterkeys()
         except KeyError:
@@ -567,9 +561,6 @@ class ObjectMapper(dbus.service.Object):
 
     @dbus.service.method(obmc.mapper.MAPPER_IFACE, 'sias', 'a{sa{sas}}')
     def GetSubTree(self, path, depth, interfaces):
-        if len(self.defer_signals):
-            raise MapperBusyException()
-
         try:
             return self.filter_interfaces(
                 self.cache.dataitems(path, depth),
@@ -715,9 +706,6 @@ class ObjectMapper(dbus.service.Object):
 
     @dbus.service.method(obmc.mapper.MAPPER_IFACE, 'sas', 'a{sa{sas}}')
     def GetAncestors(self, path, interfaces):
-        if len(self.defer_signals):
-            raise MapperBusyException()
-
         if not self.cache_get(path):
             raise MapperNotFoundException(path)
 
