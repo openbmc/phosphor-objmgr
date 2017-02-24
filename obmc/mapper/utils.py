@@ -40,16 +40,14 @@ class Wait(object):
         self.waitlist_keyword = kw.pop('waitlist_keyword', None)
 
         self.bus.add_signal_receiver(
-            self.name_owner_changed_handler,
-            dbus_interface=dbus.BUS_DAEMON_IFACE,
-            signal_name='NameOwnerChanged')
+            self.introspection_handler,
+            dbus_interface=obmc.mapper.MAPPER_IFACE + '.Private',
+            signal_name='IntrospectionComplete')
         self.bus.add_signal_receiver(
-            self.interfaces_added_handler,
-            dbus_interface=dbus.BUS_DAEMON_IFACE + '.ObjectManager',
-            sender_keyword='sender',
-            signal_name='InterfacesAdded')
+            self.introspection_handler,
+            dbus_interface=dbus.BUS_DAEMON_IFACE + '.ObjectManager')
 
-        self.name_owner_changed_handler()
+        self.introspection_handler()
 
     @staticmethod
     def default_error(e):
@@ -61,11 +59,11 @@ class Wait(object):
 
         self.done = True
         self.bus.remove_signal_receiver(
-            self.name_owner_changed_handler,
-            dbus_interface=dbus.BUS_DAEMON_IFACE,
-            signal_name='NameOwnerChanged')
+            self.introspection_handler,
+            dbus_interface=obmc.mapper.MAPPER_IFACE + '.Private',
+            signal_name='IntrospectionComplete')
         self.bus.remove_signal_receiver(
-            self.interfaces_added_handler,
+            self.introspection_handler,
             dbus_interface=dbus.BUS_DAEMON_IFACE + '.ObjectManager',
             signal_name='InterfacesAdded')
 
@@ -119,18 +117,10 @@ class Wait(object):
         self.waitlist[path] = list(info)[0]
         self.check_done()
 
-    def name_owner_changed_handler(self, *a, **kw):
+    def introspection_handler(self, *a, **kw):
         if self.done:
             return
 
         for path in filter(
                 lambda x: not self.waitlist[x], self.waitlist.keys()):
             self.get_object_async(path, 0)
-
-    def interfaces_added_handler(self, path, *a, **kw):
-        if self.done:
-            return
-
-        if path in self.waitlist.keys():
-            self.waitlist[path] = kw['sender']
-        self.check_done()

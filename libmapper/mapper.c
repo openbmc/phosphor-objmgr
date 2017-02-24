@@ -24,12 +24,11 @@
 #include <systemd/sd-event.h>
 #include "mapper.h"
 
-static const char *async_wait_name_owner_match =
+static const char *async_wait_introspection_match =
 	"type='signal',"
-	"sender='org.freedesktop.DBus',"
-	"interface='org.freedesktop.DBus',"
-	"member='NameOwnerChanged',"
-	"path='/org/freedesktop/DBus'";
+	"sender='xyz.openbmc_project.ObjectMapper',"
+	"interface='xyz.openbmc_project.ObjectMapper.Private',"
+	"member='IntrospectionComplete'";
 
 static const char *async_wait_interfaces_added_match =
 	"type='signal',"
@@ -46,7 +45,7 @@ struct mapper_async_wait
 	void *userdata;
 	sd_event *loop;
 	sd_bus *conn;
-	sd_bus_slot *name_owner_slot;
+	sd_bus_slot *introspection_slot;
 	sd_bus_slot *intf_slot;
 	int *status;
 	int count;
@@ -62,9 +61,7 @@ struct async_wait_callback_data
 	int retry;
 };
 
-static int async_wait_match_name_owner_changed(sd_bus_message *, void *,
-		sd_bus_error *);
-static int async_wait_match_interfaces_added(sd_bus_message *, void *,
+static int async_wait_match_introspection_complete(sd_bus_message *, void *,
 		sd_bus_error *);
 static int async_wait_check_done(mapper_async_wait *);
 static void async_wait_done(int r, mapper_async_wait *);
@@ -244,7 +241,7 @@ static int async_wait_get_objects(mapper_async_wait *wait)
 	return 0;
 }
 
-static int async_wait_match_name_owner_changed(sd_bus_message *m, void *w,
+static int async_wait_match_introspection_complete(sd_bus_message *m, void *w,
 		sd_bus_error *e)
 {
 	int r;
@@ -260,42 +257,13 @@ static int async_wait_match_name_owner_changed(sd_bus_message *m, void *w,
 	return 0;
 }
 
-static int async_wait_match_interfaces_added(sd_bus_message *m, void *w,
-		sd_bus_error *e)
-{
-	int i, r;
-	mapper_async_wait *wait = w;
-	const char *path;
-
-	if(wait->finished)
-		return 0;
-
-	r = sd_bus_message_read(m, "o", &path);
-	if (r < 0) {
-		fprintf(stderr, "Error reading message: %s\n",
-				strerror(-r));
-		goto finished;
-	}
-
-	for(i=0; i<wait->count; ++i) {
-		if(!strcmp(path, wait->objs[i]))
-			wait->status[i] = 1;
-	}
-
-finished:
-	if(r < 0 || async_wait_check_done(wait))
-		async_wait_done(r < 0 ? r : 0, wait);
-
-	return 0;
-}
-
 static void async_wait_done(int r, mapper_async_wait *w)
 {
 	if(w->finished)
 		return;
 
 	w->finished = 1;
-	sd_bus_slot_unref(w->name_owner_slot);
+	sd_bus_slot_unref(w->introspection_slot);
 	sd_bus_slot_unref(w->intf_slot);
 
 	if(w->callback)
@@ -360,10 +328,10 @@ int mapper_wait_async(sd_bus *conn,
 	memset(wait->status, 0, sizeof(*wait->status) * wait->count);
 
 	r = sd_bus_add_match(conn,
-                        &wait->name_owner_slot,
-			async_wait_name_owner_match,
-                        async_wait_match_name_owner_changed,
-                        wait);
+			&wait->introspection_slot,
+			async_wait_introspection_match,
+			async_wait_match_introspection_complete,
+			wait);
 	if(r < 0) {
 		fprintf(stderr, "Error adding match rule: %s\n",
 				strerror(-r));
@@ -373,7 +341,7 @@ int mapper_wait_async(sd_bus *conn,
 	r = sd_bus_add_match(conn,
                         &wait->intf_slot,
 			async_wait_interfaces_added_match,
-                        async_wait_match_interfaces_added,
+                        async_wait_match_introspection_complete,
                         wait);
 	if(r < 0) {
 		fprintf(stderr, "Error adding match rule: %s\n",
@@ -395,7 +363,7 @@ int mapper_wait_async(sd_bus *conn,
 unref_intf_slot:
 	sd_bus_slot_unref(wait->intf_slot);
 unref_name_slot:
-	sd_bus_slot_unref(wait->name_owner_slot);
+	sd_bus_slot_unref(wait->introspection_slot);
 free_status:
 	free(wait->status);
 free_objs:

@@ -286,6 +286,7 @@ class ObjectMapper(dbus.service.Object):
 
             for x in pending:
                 x()
+            self.IntrospectionComplete(owner)
 
     def discovery_error(self, owner, path, e):
         if owner in self.defer_signals:
@@ -736,6 +737,10 @@ class ObjectMapper(dbus.service.Object):
             objs[path] = obj
 
         return self.filter_interfaces(list(objs.iteritems()), interfaces)
+
+    @dbus.service.signal(obmc.mapper.MAPPER_IFACE + '.Private', 's')
+    def IntrospectionComplete(self, name):
+        pass
 
 
 def server_main():
