@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016 IBM Corporation
+ * Copyright 2016 IBM Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,13 +137,48 @@ finish:
 	exit(r < 0 ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
+static int get_service_main(int argc, char *argv[])
+{
+    int r;
+    sd_bus *conn = NULL;
+    char *service = NULL;
+
+    if(argc != 3) {
+        fprintf(stderr, "Usage: %s get-service OBJECTPATH\n",
+                argv[0]);
+        r = -1;
+        goto finish;
+    }
+
+    r = sd_bus_default_system(&conn);
+    if(r < 0) {
+        fprintf(stderr, "Error connecting to system bus: %s\n",
+                strerror(-r));
+        goto finish;
+    }
+
+    r = mapper_get_service(conn, argv[2], &service);
+    if(r < 0) {
+        fprintf(stderr, "Error finding '%s' service: %s\n",
+                argv[2], strerror(-r));
+        goto finish;
+    }
+
+    printf("%s\n",service);
+
+
+finish:
+    exit(r < 0 ? EXIT_FAILURE : EXIT_SUCCESS);
+}
+
 int main(int argc, char *argv[])
 {
 	static const char *usage =
 		"Usage: %s {COMMAND} ...\n"
 		"\nCOMMANDS:\n"
 		"  call           invoke the specified method\n"
-		"  wait           wait for the specified objects to appear on the DBus\n";
+		"  wait           wait for the specified objects to appear on the DBus\n"
+        "  get-service    return the service identifier for input path";
 
 	if(argc < 2) {
 		fprintf(stderr, usage, argv[0]);
@@ -154,6 +189,8 @@ int main(int argc, char *argv[])
 		call_main(argc, argv);
 	if(!strcmp(argv[1], "wait"))
 		wait_main(argc, argv);
+    if(!strcmp(argv[1], "get-service"))
+        get_service_main(argc, argv);
 
 	fprintf(stderr, usage, argv[0]);
 	exit(EXIT_FAILURE);
