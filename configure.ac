@@ -59,7 +59,7 @@ AS_IF([test "x$enable_oe_sdk" == "xyes"],
 # Add defines to config header
 AC_DEFINE([MAPPER_BUSNAME], ["xyz.openbmc_project.ObjectMapper"], [Object mapper bus name])
 AC_DEFINE([MAPPER_INTERFACE], ["xyz.openbmc_project.ObjectMapper"], [Object mapper interface])
-AC_DEFINE([MAPPER_PATH], ["/xyz/openbmc_project/ObjectMapper"], [Object mapper DBUS path])
+AC_DEFINE([MAPPER_PATH], ["/xyz/openbmc_project/object_mapper"], [Object mapper DBUS path])
 
 # Workaround for unpatched systemd installs
 AC_ARG_ENABLE([unpatched-systemd],
