@@ -26,8 +26,8 @@
 
 static const char *async_wait_introspection_match =
 	"type='signal',"
-	"sender='xyz.openbmc_project.ObjectMapper',"
-	"interface='xyz.openbmc_project.ObjectMapper.Private',"
+	"sender='xyz.openbmc_project.object_mapper',"
+	"interface='xyz.openbmc_project.object_mapper.Private',"
 	"member='IntrospectionComplete'";
 
 static const char *async_wait_interfaces_added_match =
