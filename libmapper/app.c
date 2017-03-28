@@ -119,7 +119,14 @@ static int wait_main(int argc, char *argv[])
 		goto finish;
 	}
 
-	r = mapper_wait_async(conn, loop, argv+2, quit, loop, &wait);
+	if (!strcmp(argv[1], "wait"))
+	{
+		r = mapper_wait_async(conn, loop, argv+2, quit, loop, &wait, true);
+	}
+	else if (!strcmp(argv[1], "wait-until-removed"))
+	{
+		r = mapper_wait_async(conn, loop, argv+2, quit, loop, &wait, false);
+	}
 	if(r < 0) {
 		fprintf(stderr, "Error configuring waitlist: %s\n",
 				strerror(-r));
@@ -178,6 +185,8 @@ int main(int argc, char *argv[])
 		"\nCOMMANDS:\n"
 		"  call           invoke the specified method\n"
 		"  wait           wait for the specified objects to appear on the DBus\n"
+		"  wait-until-removed"
+		"		wait until the specified objects are not present in the DBus\n"
 		"  get-service    return the service identifier for input path\n";
 
 	if(argc < 2) {
@@ -187,7 +196,8 @@ int main(int argc, char *argv[])
 
 	if(!strcmp(argv[1], "call"))
 		call_main(argc, argv);
-	if(!strcmp(argv[1], "wait"))
+	if(!strcmp(argv[1], "wait") ||
+	   !strcmp(argv[1], "wait-until-removed"))
 		wait_main(argc, argv);
 	if(!strcmp(argv[1], "get-service"))
 		get_service_main(argc, argv);
