@@ -30,10 +30,21 @@ static const char *async_wait_introspection_match =
 	"interface='xyz.openbmc_project.ObjectMapper.Private',"
 	"member='IntrospectionComplete'";
 
+static const char *async_wait_released_match =
+	"type='signal',"
+	"sender='org.freedesktop.systemd1',"
+	"interface='org.freedesktop.systemd1.Agent',"
+	"member='Released'";
+
 static const char *async_wait_interfaces_added_match =
 	"type='signal',"
 	"interface='org.freedesktop.DBus.ObjectManager',"
 	"member='InterfacesAdded'";
+
+static const char *async_wait_interfaces_removed_match =
+	"type='signal',"
+	"interface='org.freedesktop.DBus.ObjectManager',"
+	"member='InterfacesRemoved'";
 
 static const int mapper_busy_retries = 5;
 static const uint64_t mapper_busy_delay_interval_usec = 1000000;
@@ -51,6 +62,7 @@ struct mapper_async_wait
 	int count;
 	int finished;
 	int r;
+	bool added;
 };
 
 struct async_wait_callback_data
@@ -158,7 +170,16 @@ static int async_wait_getobject_callback(sd_bus_message *m,
 
 	r = sd_bus_message_get_errno(m);
 	if(r == ENOENT)
-		goto exit;
+	{
+		if (wait->added)
+		{
+			goto exit;
+		}
+		else
+		{
+			r = 0;
+		}
+	}
 
 	if(r == EBUSY && data->retry < mapper_busy_retries) {
 		r = sd_event_now(wait->loop,
@@ -296,7 +317,8 @@ int mapper_wait_async(sd_bus *conn,
 		char *objs[],
 		void (*callback)(int, void *),
 		void *userdata,
-		mapper_async_wait **w)
+		mapper_async_wait **w,
+		bool added)
 {
 	int r;
 	mapper_async_wait *wait = NULL;
@@ -313,6 +335,7 @@ int mapper_wait_async(sd_bus *conn,
 	wait->count = sarraylen(objs);
 	if(!wait->count)
 		return 0;
+	wait->added = added;
 
 	wait->objs = sarraydup(objs);
 	if(!wait->objs) {
@@ -327,26 +350,52 @@ int mapper_wait_async(sd_bus *conn,
 	}
 	memset(wait->status, 0, sizeof(*wait->status) * wait->count);
 
-	r = sd_bus_add_match(conn,
-			&wait->introspection_slot,
-			async_wait_introspection_match,
-			async_wait_match_introspection_complete,
-			wait);
-	if(r < 0) {
-		fprintf(stderr, "Error adding match rule: %s\n",
-				strerror(-r));
-		goto free_status;
-	}
+	if (wait->added)
+	{
+		r = sd_bus_add_match(conn,
+				&wait->introspection_slot,
+				async_wait_introspection_match,
+				async_wait_match_introspection_complete,
+				wait);
+		if(r < 0) {
+			fprintf(stderr, "Error adding match rule: %s\n",
+					strerror(-r));
+			goto free_status;
+		}
 
-	r = sd_bus_add_match(conn,
-                        &wait->intf_slot,
-			async_wait_interfaces_added_match,
-                        async_wait_match_introspection_complete,
-                        wait);
-	if(r < 0) {
-		fprintf(stderr, "Error adding match rule: %s\n",
+		r = sd_bus_add_match(conn,
+				   &wait->intf_slot,
+					async_wait_interfaces_added_match,
+					async_wait_match_introspection_complete,
+					wait);
+		if(r < 0) {
+			fprintf(stderr, "Error adding match rule: %s\n",
 				strerror(-r));
-		goto unref_name_slot;
+			goto unref_name_slot;
+		}
+	}
+	else
+	{
+		r = sd_bus_add_match(conn,
+				&wait->introspection_slot,
+				async_wait_released_match,
+				async_wait_match_introspection_complete,
+				wait);
+		if(r < 0) {
+			fprintf(stderr, "Error adding match rule: %s\n",
+				strerror(-r));
+			goto free_status;
+		}
+		r = sd_bus_add_match(conn,
+			   &wait->intf_slot,
+				async_wait_interfaces_removed_match,
+				async_wait_match_introspection_complete,
+				wait);
+		if(r < 0) {
+			fprintf(stderr, "Error adding match rule: %s\n",
+				strerror(-r));
+			goto unref_name_slot;
+		}
 	}
 
 	r = async_wait_get_objects(wait);
