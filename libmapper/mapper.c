@@ -35,6 +35,11 @@ static const char *async_wait_interfaces_added_match =
 	"interface='org.freedesktop.DBus.ObjectManager',"
 	"member='InterfacesAdded'";
 
+static const char *async_wait_interfaces_removed_match =
+	"type='signal',"
+	"interface='org.freedesktop.DBus.ObjectManager',"
+	"member='InterfacesRemoved'";
+
 static const int mapper_busy_retries = 5;
 static const uint64_t mapper_busy_delay_interval_usec = 1000000;
 
@@ -296,7 +301,8 @@ int mapper_wait_async(sd_bus *conn,
 		char *objs[],
 		void (*callback)(int, void *),
 		void *userdata,
-		mapper_async_wait **w)
+		mapper_async_wait **w,
+        bool added)
 {
 	int r;
 	mapper_async_wait *wait = NULL;
@@ -338,11 +344,31 @@ int mapper_wait_async(sd_bus *conn,
 		goto free_status;
 	}
 
-	r = sd_bus_add_match(conn,
-                        &wait->intf_slot,
-			async_wait_interfaces_added_match,
+    if (added)
+    {
+	    r = sd_bus_add_match(conn,
+                   &wait->intf_slot,
+                    async_wait_interfaces_added_match,
+                    async_wait_match_introspection_complete,
+                    wait);
+    }
+    else
+    {
+        for(int i = 0; i<wait->count; ++i)
+        {
+            sd_bus_message *reply = NULL;
+            r = mapper_get_object(conn, wait->objs[i], &reply);
+            if (r >= 0)
+            {
+                // Object found, wait for it to be removed
+                r = sd_bus_add_match(conn,
+                       &wait->intf_slot,
+                        async_wait_interfaces_removed_match,
                         async_wait_match_introspection_complete,
                         wait);
+            }
+        }
+    }
 	if(r < 0) {
 		fprintf(stderr, "Error adding match rule: %s\n",
 				strerror(-r));
