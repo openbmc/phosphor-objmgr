@@ -84,16 +84,57 @@ static void quit(int r, void *loop)
 	sd_event_exit((sd_event *)loop, r);
 }
 
+static char** split_args(char* arg)
+{
+	int i = 0;
+	int count = 0;
+	char* p = arg;
+
+	while((p = strchr(p, ' ')) != NULL) {
+		count++;
+		p++;
+	}
+	if (count == 0)
+		return NULL;
+
+	/* Need to allocate space for count+1 number of arguments */
+	count++;
+	char** args = (char**)malloc(sizeof(*args) * count);
+	if (args != NULL) {
+		i = 0;
+		p = strtok(arg, " ");
+		while((p != NULL) && (i < count)) {
+			args[i++] = p;
+			p = strtok(NULL, " ");
+		}
+	}
+
+	return args;
+}
+
 static int wait_main(int argc, char *argv[])
 {
 	int r;
+	bool free_args = false;
+	char** args = argv + 2;
 	sd_bus *conn = NULL;
 	sd_event *loop = NULL;
 	mapper_async_wait *wait = NULL;
 
-	if(argc < 3) {
+	if((!strcmp(argv[1], "wait")) && argc < 3) {
 		fprintf(stderr, "Usage: %s wait OBJECTPATH...\n", argv[0]);
 		exit(EXIT_FAILURE);
+	} else if((!strcmp(argv[1], "wait-until-removed")) && argc < 4) {
+		/* The arguments can be passed by a single string, ex: "intf obj1..." */
+		/* Try to split the single into the multiple arguments */
+		args = split_args(argv[2]);
+		if (args != NULL)
+			free_args = true;
+		else {
+			fprintf(stderr, "Usage: %s wait-until-removed \
+					INTERFACE OBJECTPATH...\n", argv[0]);
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	r = sd_bus_default_system(&conn);
@@ -120,9 +161,11 @@ static int wait_main(int argc, char *argv[])
 	}
 
 	if (!strcmp(argv[1], "wait"))
-		r = mapper_wait_async(conn, loop, argv+2, quit, loop, &wait, true);
+		r = mapper_wait_async(conn, loop, NULL, args, quit, loop, &wait,
+				true);
 	else if (!strcmp(argv[1], "wait-until-removed"))
-		r = mapper_wait_async(conn, loop, argv+2, quit, loop, &wait, false);
+		r = mapper_wait_async(conn, loop, args[0], args+1, quit, loop, &wait,
+				false);
 	if(r < 0) {
 		fprintf(stderr, "Error configuring waitlist: %s\n",
 				strerror(-r));
@@ -137,6 +180,8 @@ static int wait_main(int argc, char *argv[])
 	}
 
 finish:
+	if (free_args)
+		free(args);
 	exit(r < 0 ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
