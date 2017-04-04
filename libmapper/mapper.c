@@ -45,6 +45,7 @@ static const uint64_t mapper_busy_delay_interval_usec = 1000000;
 
 struct mapper_async_wait
 {
+	char *intf;
 	char **objs;
 	void (*callback)(int, void *);
 	void *userdata;
@@ -150,6 +151,49 @@ static int async_wait_timeout_callback(sd_event_source *s,
 	return 0;
 }
 
+static int get_interface(sd_bus_message *m,
+		mapper_async_wait *wait, char* interface)
+{
+	int r = 0;
+	char* tmp_intf = NULL;
+
+	for(int i = 0; i<wait->count; ++i) {
+		sd_bus_error error = SD_BUS_ERROR_NULL;
+		r = sd_bus_call_method(
+				wait->conn,
+				MAPPER_BUSNAME,
+				MAPPER_PATH,
+				MAPPER_INTERFACE,
+				"GetSubTreePaths",
+				&error,
+				&m,
+				"sias",
+				wait->objs[i],
+				0, 1,
+				wait->intf);
+		if (r < 0) {
+			fprintf(stderr, "Error invoking method: %s\n",
+					strerror(-r));
+			return r;
+		}
+
+		r = sd_bus_message_read(m, "as", 1, &tmp_intf);
+		if (r < 0) {
+			// Ignore the errno when the intf does not exist (ENXIO)
+			if (r == -ENXIO) {
+				r = 0;
+				continue;
+			}
+		} else
+			break;
+	}
+
+	if (tmp_intf)
+		strcpy(interface, tmp_intf);
+
+	return r;
+}
+
 static int async_wait_getobject_callback(sd_bus_message *m,
 		void *userdata,
 		sd_bus_error *e)
@@ -163,6 +207,18 @@ static int async_wait_getobject_callback(sd_bus_message *m,
 		goto exit;
 
 	r = sd_bus_message_get_errno(m);
+
+	if (!r && !wait->added) {
+		// Dbus object exists, need to check if it has the requested interface
+		char intf[256];
+		intf[0] = '\0';
+		r = get_interface(m, wait, intf);
+		if ((r < 0) || (strlen(intf) != 0))
+			goto exit;
+		else
+			r = 0;
+	}
+
 	if(r == ENOENT) {
 		if (wait->added)
 			goto exit;
@@ -303,6 +359,7 @@ void mapper_wait_async_free(mapper_async_wait *w)
 
 int mapper_wait_async(sd_bus *conn,
 		sd_event *loop,
+		const char *intf,
 		char *objs[],
 		void (*callback)(int, void *),
 		void *userdata,
@@ -325,6 +382,10 @@ int mapper_wait_async(sd_bus *conn,
 	if(!wait->count)
 		return 0;
 	wait->added = added;
+	if (intf != NULL)
+		wait->intf = strdup(intf);
+	else
+		wait->intf = NULL;
 
 	wait->objs = sarraydup(objs);
 	if(!wait->objs) {
