@@ -45,8 +45,8 @@ static const uint64_t mapper_busy_delay_interval_usec = 1000000;
 
 struct mapper_async_wait
 {
-	char *intf;
 	char **objs;
+	char **intfs;
 	void (*callback)(int, void *);
 	void *userdata;
 	sd_event *loop;
@@ -64,6 +64,7 @@ struct async_wait_callback_data
 {
 	mapper_async_wait *wait;
 	const char *path;
+	const char *intf;
 	sd_event_source *event_source;
 	int retry;
 };
@@ -74,6 +75,9 @@ static int async_wait_check_done(mapper_async_wait *);
 static void async_wait_done(int r, mapper_async_wait *);
 static int async_wait_get_objects(mapper_async_wait *);
 static int async_wait_getobject_callback(sd_bus_message *,
+		void *, sd_bus_error *);
+static int async_wait_get_intfs(mapper_async_wait *);
+static int async_wait_getintf_callback(sd_bus_message *,
 		void *, sd_bus_error *);
 
 static int sarraylen(char *array[])
@@ -130,19 +134,34 @@ static int async_wait_timeout_callback(sd_event_source *s,
 	mapper_async_wait *wait = data->wait;
 
 	sd_event_source_unref(data->event_source);
-	r = sd_bus_call_method_async(
-			wait->conn,
-			NULL,
-			MAPPER_BUSNAME,
-			MAPPER_PATH,
-			MAPPER_INTERFACE,
-			"GetObject",
-			async_wait_getobject_callback,
-			data,
-			"sas",
-			data->path,
-			0,
-			NULL);
+	if (wait->added)
+		r = sd_bus_call_method_async(
+				wait->conn,
+				NULL,
+				MAPPER_BUSNAME,
+				MAPPER_PATH,
+				MAPPER_INTERFACE,
+				"GetObject",
+				async_wait_getobject_callback,
+				data,
+				"sas",
+				data->path,
+				0,
+				NULL);
+	else
+		r = sd_bus_call_method_async(
+				wait->conn,
+				NULL,
+				MAPPER_BUSNAME,
+				MAPPER_PATH,
+				MAPPER_INTERFACE,
+				"GetSubTreePaths",
+				async_wait_getintf_callback,
+				data,
+				"sias",
+				data->path,
+				0, 1,
+				data->intf);
 	if(r < 0) {
 		async_wait_done(r, wait);
 		free(data);
@@ -151,47 +170,108 @@ static int async_wait_timeout_callback(sd_event_source *s,
 	return 0;
 }
 
-static int get_interface(sd_bus_message *m,
-		mapper_async_wait *wait, char* interface)
+/* Check that the specified interfaces do not exist. */
+static int async_wait_getintf_callback(sd_bus_message *m,
+		void *userdata,
+		sd_bus_error *e)
 {
-	int r = 0;
-	char* tmp_intf = NULL;
+	int i, r;
+	char *intf = NULL;
+	struct async_wait_callback_data *data = userdata;
+	mapper_async_wait *wait = data->wait;
+	uint64_t now;
 
-	for(int i = 0; i<wait->count; ++i) {
-		sd_bus_error error = SD_BUS_ERROR_NULL;
-		r = sd_bus_call_method(
+	if(wait->finished)
+		goto exit;
+
+	r = sd_bus_message_get_errno(m);
+
+	if(r == ENOENT)
+		r = 0;
+
+	if(r == EBUSY && data->retry < mapper_busy_retries) {
+		r = sd_event_now(wait->loop,
+				CLOCK_MONOTONIC,
+				&now);
+		if(r < 0) {
+			async_wait_done(r, wait);
+			goto exit;
+		}
+
+		++data->retry;
+		r = sd_event_add_time(wait->loop,
+				&data->event_source,
+				CLOCK_MONOTONIC,
+				now + mapper_busy_delay_interval_usec,
+				0,
+				async_wait_timeout_callback,
+				data);
+		if(r < 0) {
+			async_wait_done(r, wait);
+			goto exit;
+		}
+
+		return 0;
+	}
+
+	if(r) {
+		async_wait_done(-r, wait);
+		goto exit;
+	}
+
+	sd_bus_message_read(m, "as", 1, &intf);
+	if (intf == NULL) {
+		for(i=0; i<wait->count; ++i) {
+			if(!strcmp(data->intf, wait->intfs[i])) {
+				wait->status[i] = 1;
+			}
+		}
+	}
+
+	if(async_wait_check_done(wait))
+		async_wait_done(0, wait);
+
+exit:
+	free(data);
+	return 0;
+}
+
+static int async_wait_get_intfs(mapper_async_wait *wait)
+{
+	int i, r;
+	struct async_wait_callback_data *data = NULL;
+
+	for(i=0; i<wait->count; ++i) {
+		if(wait->status[i])
+			continue;
+		data = malloc(sizeof(*data));
+		data->wait = wait;
+		data->path = wait->objs[i];
+		data->intf = wait->intfs[i];
+		data->retry = 0;
+		data->event_source = NULL;
+		r = sd_bus_call_method_async(
 				wait->conn,
+				NULL,
 				MAPPER_BUSNAME,
 				MAPPER_PATH,
 				MAPPER_INTERFACE,
 				"GetSubTreePaths",
-				&error,
-				&m,
+				async_wait_getintf_callback,
+				data,
 				"sias",
 				wait->objs[i],
 				0, 1,
-				wait->intf);
+				wait->intfs[i]);
 		if (r < 0) {
+			free(data);
 			fprintf(stderr, "Error invoking method: %s\n",
 					strerror(-r));
 			return r;
 		}
 
-		r = sd_bus_message_read(m, "as", 1, &tmp_intf);
-		if (r < 0) {
-			// Ignore the errno when the intf does not exist (ENXIO)
-			if (r == -ENXIO) {
-				r = 0;
-				continue;
-			}
-		} else
-			break;
 	}
-
-	if (tmp_intf)
-		strcpy(interface, tmp_intf);
-
-	return r;
+	return 0;
 }
 
 static int async_wait_getobject_callback(sd_bus_message *m,
@@ -207,24 +287,8 @@ static int async_wait_getobject_callback(sd_bus_message *m,
 		goto exit;
 
 	r = sd_bus_message_get_errno(m);
-
-	if (!r && !wait->added) {
-		// Dbus object exists, need to check if it has the requested interface
-		char intf[256];
-		intf[0] = '\0';
-		r = get_interface(m, wait, intf);
-		if ((r < 0) || (strlen(intf) != 0))
-			goto exit;
-		else
-			r = 0;
-	}
-
-	if(r == ENOENT) {
-		if (wait->added)
-			goto exit;
-		else
-			r = 0;
-	}
+	if(r == ENOENT)
+		goto exit;
 
 	if(r == EBUSY && data->retry < mapper_busy_retries) {
 		r = sd_event_now(wait->loop,
@@ -316,7 +380,10 @@ static int async_wait_match_introspection_complete(sd_bus_message *m, void *w,
 	if(wait->finished)
 		return 0;
 
-	r = async_wait_get_objects(wait);
+	if (wait->added)
+		r = async_wait_get_objects(wait);
+	else
+		r = async_wait_get_intfs(wait);
 	if(r < 0)
 		async_wait_done(r, wait);
 
@@ -359,8 +426,8 @@ void mapper_wait_async_free(mapper_async_wait *w)
 
 int mapper_wait_async(sd_bus *conn,
 		sd_event *loop,
-		const char *intf,
 		char *objs[],
+		char *intfs[],
 		void (*callback)(int, void *),
 		void *userdata,
 		mapper_async_wait **w,
@@ -382,10 +449,13 @@ int mapper_wait_async(sd_bus *conn,
 	if(!wait->count)
 		return 0;
 	wait->added = added;
-	if (intf != NULL)
-		wait->intf = strdup(intf);
-	else
-		wait->intf = NULL;
+	if (intfs != NULL) {
+		wait->intfs = sarraydup(intfs);
+		if(!wait->intfs) {
+			r = -ENOMEM;
+			goto free_wait;
+		}
+	}
 
 	wait->objs = sarraydup(objs);
 	if(!wait->objs) {
@@ -422,6 +492,13 @@ int mapper_wait_async(sd_bus *conn,
 					strerror(-r));
 			goto unref_name_slot;
 		}
+
+		r = async_wait_get_objects(wait);
+		if(r < 0) {
+			fprintf(stderr, "Error calling method: %s\n",
+					strerror(-r));
+			goto unref_intf_slot;
+		}
 	} else {
 		r = sd_bus_add_match(conn,
 				&wait->intf_slot,
@@ -433,13 +510,13 @@ int mapper_wait_async(sd_bus *conn,
 					strerror(-r));
 			goto unref_name_slot;
 		}
-	}
 
-	r = async_wait_get_objects(wait);
-	if(r < 0) {
-		fprintf(stderr, "Error calling method: %s\n",
-				strerror(-r));
-		goto unref_intf_slot;
+		r = async_wait_get_intfs(wait);
+		if(r < 0) {
+			fprintf(stderr, "Error calling method: %s\n",
+					strerror(-r));
+			goto unref_intf_slot;
+		}
 	}
 
 	*w = wait;
@@ -454,6 +531,8 @@ free_status:
 	free(wait->status);
 free_objs:
 	sarrayfree(wait->objs);
+	if (wait->intfs != NULL)
+		sarrayfree(wait->intfs);
 free_wait:
 	free(wait);
 
