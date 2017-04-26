@@ -84,58 +84,38 @@ static void quit(int r, void *loop)
 	sd_event_exit((sd_event *)loop, r);
 }
 
-static char** split_args(char* arg)
+static char** split_args(int argc, char* args[])
 {
 	int i = 0;
-	int count = 0;
-	char* p = arg;
+	char** split = (char**)malloc(sizeof(*split) * argc);
 
-	while((p = strchr(p, ' ')) != NULL) {
-		count++;
-		p++;
-	}
-	if (count == 0)
-		return NULL;
-
-	/* Need to allocate space for count+1 number of arguments */
-	count++;
-	char** args = (char**)malloc(sizeof(*args) * count);
-	if (args != NULL) {
-		i = 0;
-		p = strtok(arg, " ");
-		while((p != NULL) && (i < count)) {
-			args[i++] = p;
-			p = strtok(NULL, " ");
-		}
+	// Use the first colon (:) to separate the args into two strings.
+	// Args will contain the first string, and the second one will be returned.
+	for (i = 0; i < argc; i++) {
+		args[i] = strtok(args[i], ":");
+		split[i] = strtok(NULL, ":");
 	}
 
-	return args;
+	return split;
 }
 
 static int wait_main(int argc, char *argv[])
 {
 	int r;
-	bool free_args = false;
-	char** args = argv + 2;
+	char** intfs = NULL;
 	sd_bus *conn = NULL;
 	sd_event *loop = NULL;
 	mapper_async_wait *wait = NULL;
 
-	if((!strcmp(argv[1], "wait")) && argc < 3) {
+	if (argc < 3) {
 		fprintf(stderr, "Usage: %s wait OBJECTPATH...\n", argv[0]);
+		fprintf(stderr, "Usage: %s wait-until-removed \
+					OBJECTPATH:INTERFACE...\n", argv[0]);
 		exit(EXIT_FAILURE);
-	} else if((!strcmp(argv[1], "wait-until-removed")) && argc < 4) {
-		/* The arguments can be passed by a single string, ex: "intf obj1..." */
-		/* Try to split the single into the multiple arguments */
-		args = split_args(argv[2]);
-		if (args != NULL)
-			free_args = true;
-		else {
-			fprintf(stderr, "Usage: %s wait-until-removed \
-					INTERFACE OBJECTPATH...\n", argv[0]);
-			exit(EXIT_FAILURE);
-		}
 	}
+
+	if (!strcmp(argv[1], "wait-until-removed"))
+		intfs = split_args(argc-2, argv+2);
 
 	r = sd_bus_default_system(&conn);
 	if(r < 0) {
@@ -161,10 +141,10 @@ static int wait_main(int argc, char *argv[])
 	}
 
 	if (!strcmp(argv[1], "wait"))
-		r = mapper_wait_async(conn, loop, NULL, args, quit, loop, &wait,
+		r = mapper_wait_async(conn, loop, argv+2, intfs, quit, loop, &wait,
 				true);
 	else if (!strcmp(argv[1], "wait-until-removed"))
-		r = mapper_wait_async(conn, loop, args[0], args+1, quit, loop, &wait,
+		r = mapper_wait_async(conn, loop, argv+2, intfs, quit, loop, &wait,
 				false);
 	if(r < 0) {
 		fprintf(stderr, "Error configuring waitlist: %s\n",
@@ -180,8 +160,8 @@ static int wait_main(int argc, char *argv[])
 	}
 
 finish:
-	if (free_args)
-		free(args);
+	if (intfs != NULL)
+		free(intfs);
 	exit(r < 0 ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
