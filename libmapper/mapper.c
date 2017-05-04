@@ -35,6 +35,11 @@ static const char *async_wait_interfaces_added_match =
 	"interface='org.freedesktop.DBus.ObjectManager',"
 	"member='InterfacesAdded'";
 
+static const char *interfaces_removed_match =
+	"type='signal',"
+	"interface='org.freedesktop.DBus.ObjectManager',"
+	"member='InterfacesRemoved'";
+
 static const int mapper_busy_retries = 5;
 static const uint64_t mapper_busy_delay_interval_usec = 1000000;
 
@@ -63,6 +68,14 @@ struct async_wait_callback_data
 
 struct mapper_async_subtree
 {
+	char *namespace;
+	char *interface;
+	void (*callback)(int, void *);
+	void *userdata;
+	sd_event *loop;
+	sd_bus *conn;
+	sd_bus_slot *slot;
+	int op;
 };
 
 static int async_wait_match_introspection_complete(sd_bus_message *, void *,
@@ -72,6 +85,9 @@ static void async_wait_done(int r, mapper_async_wait *);
 static int async_wait_get_objects(mapper_async_wait *);
 static int async_wait_getobject_callback(sd_bus_message *,
 		void *, sd_bus_error *);
+
+static int async_subtree_match_callback(sd_bus_message *, void *,
+		sd_bus_error *);
 
 static int sarraylen(char *array[])
 {
@@ -378,6 +394,13 @@ free_wait:
 	return r;
 }
 
+static int async_subtree_match_callback(sd_bus_message *m,
+		void *t,
+		sd_bus_error *e)
+{
+	return 0;
+}
+
 int mapper_subtree_async(sd_bus *conn,
 		sd_event *loop,
 		char *namespace,
@@ -388,6 +411,47 @@ int mapper_subtree_async(sd_bus *conn,
 		int op)
 {
 	int r = 0;
+	mapper_async_subtree *subtree = NULL;
+
+	subtree = malloc(sizeof(*subtree));
+	if(!subtree)
+		return -ENOMEM;
+
+	memset(subtree, 0, sizeof(*subtree));
+	subtree->conn = conn;
+	subtree->loop = loop;
+	subtree->namespace = namespace;
+	subtree->interface = interface;
+	subtree->callback = callback;
+	subtree->userdata = userdata;
+	subtree->op = op;
+
+	if (subtree->op == MAPPER_OP_REMOVE) {
+		r = sd_bus_add_match(
+				conn,
+				&subtree->slot,
+				interfaces_removed_match,
+				async_subtree_match_callback,
+				subtree);
+		if(r < 0) {
+			fprintf(stderr, "Error adding match rule: %s\n",
+					strerror(-r));
+			goto unref_slot;
+		}
+	} else {
+		/* Operation not supported */
+		r = -EINVAL;
+		goto free_subtree;
+	}
+
+	*t = subtree;
+
+	return 0;
+
+unref_slot:
+	sd_bus_slot_unref(subtree->slot);
+free_subtree:
+	free(subtree);
 
 	return r;
 }
