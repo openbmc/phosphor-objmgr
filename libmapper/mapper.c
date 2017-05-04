@@ -63,6 +63,19 @@ struct async_wait_callback_data
 
 struct mapper_async_subtree
 {
+	char **objs;
+	char **intfs;
+	void (*callback)(int, void *);
+	void *userdata;
+	sd_event *loop;
+	sd_bus *conn;
+	sd_bus_slot *introspection_slot;
+	sd_bus_slot *intf_slot;
+	int *status;
+	int count;
+	int finished;
+	int r;
+	int op;
 };
 
 static int async_wait_match_introspection_complete(sd_bus_message *, void *,
@@ -388,6 +401,47 @@ int mapper_subtree_async(sd_bus *conn,
 		int op)
 {
 	int r = 0;
+	mapper_async_subtree *subtree = NULL;
+
+	subtree = malloc(sizeof(*subtree));
+	if(!subtree)
+		return -ENOMEM;
+
+	memset(subtree, 0, sizeof(*subtree));
+	subtree->conn = conn;
+	subtree->loop = loop;
+	subtree->callback = callback;
+	subtree->userdata = userdata;
+	subtree->op = op;
+	subtree->count = sarraylen(objs);
+	if(!subtree->count)
+		return 0;
+
+	subtree->objs = sarraydup(objs);
+	if(!subtree->objs) {
+		r = -ENOMEM;
+		goto free_subtree;
+	}
+	subtree->intfs = sarraydup(intfs);
+	if(!subtree->intfs) {
+		r = -ENOMEM;
+		goto free_subtree;
+	}
+
+	subtree->status = malloc(sizeof(*subtree->status) * subtree->count);
+	if(!subtree->status) {
+		r = -ENOMEM;
+		goto free_objs;
+	}
+	memset(subtree->status, 0, sizeof(*subtree->status) * subtree->count);
+
+	return 0;
+
+free_objs:
+	sarrayfree(subtree->objs);
+	sarrayfree(subtree->intfs);
+free_subtree:
+	free(subtree);
 
 	return r;
 }
