@@ -137,6 +137,19 @@ finish:
 	exit(r < 0 ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
+static int subtree_main(int argc, char *argv[])
+{
+	int r = 0;
+
+	if (argc < 3) {
+		fprintf(stderr, "Usage: %s subtree-remove "
+				"OBJECTPATH:INTERFACE...\n", argv[0]);
+		exit(EXIT_FAILURE);
+	}
+
+	exit(r < 0 ? EXIT_FAILURE : EXIT_SUCCESS);
+}
+
 /* print out the distinct dbus service name for the input dbus path */
 static int get_service_main(int argc, char *argv[])
 {
@@ -178,6 +191,9 @@ int main(int argc, char *argv[])
 		"\nCOMMANDS:\n"
 		"  call           invoke the specified method\n"
 		"  wait           wait for the specified objects to appear on the DBus\n"
+		"  subtree-remove\n"
+		"                 wait until the specified interface is not present\n"
+		"                 in any of the subtree paths of the specified object\n"
 		"  get-service    return the service identifier for input path\n";
 
 	if(argc < 2) {
@@ -189,6 +205,8 @@ int main(int argc, char *argv[])
 		call_main(argc, argv);
 	if(!strcmp(argv[1], "wait"))
 		wait_main(argc, argv);
+	if(!strcmp(argv[1], "subtree-remove"))
+		subtree_main(argc, argv);
 	if(!strcmp(argv[1], "get-service"))
 		get_service_main(argc, argv);
 
