@@ -35,6 +35,11 @@ static const char *async_wait_interfaces_added_match =
 	"interface='org.freedesktop.DBus.ObjectManager',"
 	"member='InterfacesAdded'";
 
+static const char *interfaces_removed_match =
+	"type='signal',"
+	"interface='org.freedesktop.DBus.ObjectManager',"
+	"member='InterfacesRemoved'";
+
 static const int mapper_busy_retries = 5;
 static const uint64_t mapper_busy_delay_interval_usec = 1000000;
 
@@ -85,6 +90,9 @@ static void async_wait_done(int r, mapper_async_wait *);
 static int async_wait_get_objects(mapper_async_wait *);
 static int async_wait_getobject_callback(sd_bus_message *,
 		void *, sd_bus_error *);
+
+static int async_subtree_match_callback(sd_bus_message *, void *,
+		sd_bus_error *);
 
 static int sarraylen(char *array[])
 {
@@ -391,6 +399,13 @@ free_wait:
 	return r;
 }
 
+static int async_subtree_match_callback(sd_bus_message *m,
+		void *t,
+		sd_bus_error *e)
+{
+	return 0;
+}
+
 int mapper_subtree_async(sd_bus *conn,
 		sd_event *loop,
 		char *objs[],
@@ -435,8 +450,29 @@ int mapper_subtree_async(sd_bus *conn,
 	}
 	memset(subtree->status, 0, sizeof(*subtree->status) * subtree->count);
 
+	if (subtree->op == MAPPER_OP_REMOVE) {
+		r = sd_bus_add_match(conn,
+							&subtree->intf_slot,
+							interfaces_removed_match,
+							async_subtree_match_callback,
+							subtree);
+		if(r < 0) {
+			fprintf(stderr, "Error adding match rule: %s\n",
+					strerror(-r));
+			goto unref_name_slot;
+		}
+	} else {
+		/* Operation not supported */
+		r = -EINVAL;
+		goto free_objs;
+	}
+
+	*t = subtree;
+
 	return 0;
 
+unref_name_slot:
+	sd_bus_slot_unref(subtree->introspection_slot);
 free_objs:
 	sarrayfree(subtree->objs);
 	sarrayfree(subtree->intfs);
