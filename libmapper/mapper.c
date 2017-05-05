@@ -61,6 +61,10 @@ struct async_wait_callback_data
 	int retry;
 };
 
+struct mapper_async_subtree
+{
+};
+
 static int async_wait_match_introspection_complete(sd_bus_message *, void *,
 		sd_bus_error *);
 static int async_wait_check_done(mapper_async_wait *);
@@ -370,6 +374,20 @@ free_objs:
 	sarrayfree(wait->objs);
 free_wait:
 	free(wait);
+
+	return r;
+}
+
+int mapper_subtree_async(sd_bus *conn,
+		sd_event *loop,
+		char *objs[],
+		char *intfs[],
+		void (*callback)(int, void *),
+		void *userdata,
+		mapper_async_subtree **t,
+		int op)
+{
+	int r = 0;
 
 	return r;
 }
