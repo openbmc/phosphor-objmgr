@@ -83,6 +83,15 @@ struct mapper_async_subtree
 	int op;
 };
 
+struct async_subtree_callback_data
+{
+	mapper_async_subtree *subtree;
+	const char *path;
+	const char *intf;
+	sd_event_source *event_source;
+	int retry;
+};
+
 static int async_wait_match_introspection_complete(sd_bus_message *, void *,
 		sd_bus_error *);
 static int async_wait_check_done(mapper_async_wait *);
@@ -93,6 +102,9 @@ static int async_wait_getobject_callback(sd_bus_message *,
 
 static int async_subtree_match_callback(sd_bus_message *, void *,
 		sd_bus_error *);
+static int async_subtree_get_intfs(mapper_async_subtree *);
+static int async_subtree_getintf_callback(sd_bus_message *,
+		void *, sd_bus_error *);
 
 static int sarraylen(char *array[])
 {
@@ -399,6 +411,51 @@ free_wait:
 	return r;
 }
 
+static int async_subtree_getintf_callback(sd_bus_message *m,
+		void *userdata,
+		sd_bus_error *e)
+{
+	return 0;
+}
+
+static int async_subtree_get_intfs(mapper_async_subtree *subtree)
+{
+	int i, r;
+	struct async_subtree_callback_data *data = NULL;
+
+	for(i=0; i<subtree->count; ++i) {
+		if(subtree->status[i])
+			continue;
+		data = malloc(sizeof(*data));
+		data->subtree = subtree;
+		data->path = subtree->objs[i];
+		data->intf = subtree->intfs[i];
+		data->retry = 0;
+		data->event_source = NULL;
+		r = sd_bus_call_method_async(
+				subtree->conn,
+				NULL,
+				MAPPER_BUSNAME,
+				MAPPER_PATH,
+				MAPPER_INTERFACE,
+				"GetSubTreePaths",
+				async_subtree_getintf_callback,
+				data,
+				"sias",
+				subtree->objs[i],
+				0, 1,
+				subtree->intfs[i]);
+		if (r < 0) {
+			free(data);
+			fprintf(stderr, "Error invoking method: %s\n",
+					strerror(-r));
+			return r;
+		}
+
+	}
+	return 0;
+}
+
 static int async_subtree_match_callback(sd_bus_message *m,
 		void *t,
 		sd_bus_error *e)
@@ -467,10 +524,19 @@ int mapper_subtree_async(sd_bus *conn,
 		goto free_objs;
 	}
 
+	r = async_subtree_get_intfs(subtree);
+	if(r < 0) {
+		fprintf(stderr, "Error calling method: %s\n",
+				strerror(-r));
+		goto unref_intf_slot;
+	}
+
 	*t = subtree;
 
 	return 0;
 
+unref_intf_slot:
+	sd_bus_slot_unref(subtree->intf_slot);
 unref_name_slot:
 	sd_bus_slot_unref(subtree->introspection_slot);
 free_objs:
