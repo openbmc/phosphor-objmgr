@@ -20,6 +20,21 @@
 #include <systemd/sd-event.h>
 #include "mapper.h"
 
+static char** split_args(int argc, char* args[])
+{
+	int i = 0;
+	char** split = (char**)malloc(sizeof(*split) * argc);
+
+	/* Use the first colon (:) to separate the args into two strings. */
+	/* Store the the first string in args, and the second string in split. */
+	for (i = 0; i < argc; i++) {
+		args[i] = strtok(args[i], ":");
+		split[i] = strtok(NULL, ":");
+	}
+
+	return split;
+}
+
 static int call_main(int argc, char *argv[])
 {
 	int r;
@@ -140,6 +155,7 @@ finish:
 static int subtree_main(int argc, char *argv[])
 {
 	int r = 0;
+	char** intfs = NULL;
 
 	if (argc < 3) {
 		fprintf(stderr, "Usage: %s subtree-remove "
@@ -147,6 +163,10 @@ static int subtree_main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	intfs = split_args(argc-2, argv+2);
+
+	if (intfs != NULL)
+		free(intfs);
 	exit(r < 0 ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
