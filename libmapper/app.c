@@ -140,10 +140,20 @@ finish:
 static int subtree_main(int argc, char *argv[])
 {
 	int r = 0;
+	char* token = ":";
+	char* namespace = NULL;
+	char* interface = NULL;
 
 	if (argc != 3) {
 		fprintf(stderr, "Usage: %s subtree-remove "
-				"NAMESPACE:INTERFACE\n", argv[0]);
+				"NAMESPACE%sINTERFACE\n", argv[0], token);
+		exit(EXIT_FAILURE);
+	}
+
+	namespace = strtok(argv[2], token);
+	interface = strtok(NULL, token);
+	if ((namespace == NULL) || (interface == NULL)) {
+		fprintf(stderr, "Token '%s' was not found in '%s'\n", token, argv[2]);
 		exit(EXIT_FAILURE);
 	}
 
