@@ -75,7 +75,9 @@ struct mapper_async_subtree
 	sd_event *loop;
 	sd_bus *conn;
 	sd_bus_slot *slot;
+	sd_event_source *event_source;
 	int op;
+	int retry;
 };
 
 static int async_wait_match_introspection_complete(sd_bus_message *, void *,
@@ -88,6 +90,9 @@ static int async_wait_getobject_callback(sd_bus_message *,
 
 static int async_subtree_match_callback(sd_bus_message *, void *,
 		sd_bus_error *);
+static int async_subtree_getpaths(mapper_async_subtree *);
+static int async_subtree_getpaths_callback(sd_bus_message *,
+		void *, sd_bus_error *);
 
 static int sarraylen(char *array[])
 {
@@ -394,6 +399,40 @@ free_wait:
 	return r;
 }
 
+static int async_subtree_getpaths_callback(sd_bus_message *m,
+		void *userdata,
+		sd_bus_error *e)
+{
+	return 0;
+}
+
+static int async_subtree_getpaths(mapper_async_subtree *subtree)
+{
+	int r = 0;
+
+	subtree->retry = 0;
+	subtree->event_source = NULL;
+	r = sd_bus_call_method_async(
+			subtree->conn,
+			NULL,
+			MAPPER_BUSNAME,
+			MAPPER_PATH,
+			MAPPER_INTERFACE,
+			"GetSubTreePaths",
+			async_subtree_getpaths_callback,
+			subtree,
+			"sias",
+			subtree->namespace,
+			0, 1,
+			subtree->interface);
+	if (r < 0) {
+		fprintf(stderr, "Error invoking method: %s\n", strerror(-r));
+		return r;
+	}
+
+	return 0;
+}
+
 static int async_subtree_match_callback(sd_bus_message *m,
 		void *t,
 		sd_bus_error *e)
@@ -442,6 +481,13 @@ int mapper_subtree_async(sd_bus *conn,
 		/* Operation not supported */
 		r = -EINVAL;
 		goto free_subtree;
+	}
+
+	r = async_subtree_getpaths(subtree);
+	if(r < 0) {
+		fprintf(stderr, "Error calling method: %s\n",
+				strerror(-r));
+		goto unref_slot;
 	}
 
 	*t = subtree;
