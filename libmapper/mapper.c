@@ -76,6 +76,7 @@ struct mapper_async_subtree
 	sd_bus *conn;
 	sd_bus_slot *slot;
 	sd_event_source *event_source;
+	int finished;
 	int op;
 	int retry;
 };
@@ -90,6 +91,7 @@ static int async_wait_getobject_callback(sd_bus_message *,
 
 static int async_subtree_match_callback(sd_bus_message *, void *,
 		sd_bus_error *);
+static void async_subtree_done(int r, mapper_async_subtree *);
 static int async_subtree_getpaths(mapper_async_subtree *);
 static int async_subtree_getpaths_callback(sd_bus_message *,
 		void *, sd_bus_error *);
@@ -399,10 +401,91 @@ free_wait:
 	return r;
 }
 
+static int async_subtree_timeout_callback(sd_event_source *s,
+		uint64_t usec, void *userdata)
+{
+	int r;
+	struct mapper_async_subtree *subtree = userdata;
+
+	sd_event_source_unref(subtree->event_source);
+	r = sd_bus_call_method_async(
+			subtree->conn,
+			NULL,
+			MAPPER_BUSNAME,
+			MAPPER_PATH,
+			MAPPER_INTERFACE,
+			"GetSubTreePaths",
+			async_subtree_getpaths_callback,
+			subtree,
+			"sias",
+			subtree->namespace,
+			0, 1,
+			subtree->interface);
+	if(r < 0)
+		async_subtree_done(r, subtree);
+
+	return 0;
+}
+
 static int async_subtree_getpaths_callback(sd_bus_message *m,
 		void *userdata,
 		sd_bus_error *e)
 {
+	int r;
+	char *intf = NULL;
+	struct mapper_async_subtree *subtree = userdata;
+	uint64_t now;
+
+	if(subtree->finished)
+		goto exit;
+
+	r = sd_bus_message_get_errno(m);
+
+	if(r == ENOENT) {
+		if (subtree->op == MAPPER_OP_REMOVE)
+			r = 0;
+		else
+			goto exit;
+	}
+
+	if(r == EBUSY && subtree->retry < mapper_busy_retries) {
+		r = sd_event_now(subtree->loop,
+				CLOCK_MONOTONIC,
+				&now);
+		if(r < 0) {
+			async_subtree_done(r, subtree);
+			goto exit;
+		}
+
+		++subtree->retry;
+		r = sd_event_add_time(subtree->loop,
+				&subtree->event_source,
+				CLOCK_MONOTONIC,
+				now + mapper_busy_delay_interval_usec,
+				0,
+				async_subtree_timeout_callback,
+				subtree);
+		if(r < 0) {
+			async_subtree_done(r, subtree);
+			goto exit;
+		}
+
+		return 0;
+	}
+
+	if(r) {
+		async_subtree_done(-r, subtree);
+		goto exit;
+	}
+
+	sd_bus_message_read(m, "as", 1, &intf);
+	if (subtree->op == MAPPER_OP_REMOVE) {
+		/* For remove, operation is complete when the interface is not present */
+		if (intf == NULL)
+			async_subtree_done(0, subtree);
+	}
+
+exit:
 	return 0;
 }
 
@@ -437,7 +520,29 @@ static int async_subtree_match_callback(sd_bus_message *m,
 		void *t,
 		sd_bus_error *e)
 {
+	int r;
+
+	mapper_async_subtree *subtree = t;
+	if(subtree->finished)
+		return 0;
+
+	r = async_subtree_getpaths(subtree);
+	if(r < 0)
+		async_subtree_done(r, subtree);
+
 	return 0;
+}
+
+static void async_subtree_done(int r, mapper_async_subtree *t)
+{
+	if(t->finished)
+		return;
+
+	t->finished = 1;
+	sd_bus_slot_unref(t->slot);
+
+	if(t->callback)
+		t->callback(r, t->userdata);
 }
 
 int mapper_subtree_async(sd_bus *conn,
