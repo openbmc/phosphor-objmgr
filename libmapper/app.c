@@ -140,16 +140,22 @@ finish:
 static int subtree_main(int argc, char *argv[])
 {
 	int r = 0;
+	int op = 0;
 	static const char* token = ":";
 	char* tmp = NULL;
 	char* namespace = NULL;
 	char* interface = NULL;
+	sd_bus *conn = NULL;
+	sd_event *loop = NULL;
+	mapper_async_subtree *subtree = NULL;
 
 	if (argc != 3) {
 		fprintf(stderr, "Usage: %s subtree-remove "
 				"NAMESPACE%sINTERFACE\n", argv[0], token);
 		exit(EXIT_FAILURE);
 	}
+
+	op = MAPPER_OP_REMOVE;
 
 	namespace = strtok_r(argv[2], token, &tmp);
 	interface = strtok_r(NULL, token, &tmp);
@@ -158,6 +164,43 @@ static int subtree_main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	r = sd_bus_default_system(&conn);
+	if(r < 0) {
+		fprintf(stderr, "Error connecting to system bus: %s\n",
+				strerror(-r));
+		goto finish;
+	}
+
+	r = sd_event_default(&loop);
+	if (r < 0) {
+		fprintf(stderr, "Error obtaining event loop: %s\n",
+				strerror(-r));
+		goto finish;
+	}
+
+	r = sd_bus_attach_event(conn, loop, SD_EVENT_PRIORITY_NORMAL);
+	if (r < 0) {
+		fprintf(stderr, "Failed to attach system bus to event loop: %s\n",
+				strerror(-r));
+		goto finish;
+	}
+
+	r = mapper_subtree_async(conn, loop, namespace, interface, quit, loop,
+				&subtree, op);
+	if(r < 0) {
+		fprintf(stderr, "Error configuring subtree list: %s\n",
+				strerror(-r));
+		goto finish;
+	}
+
+	r = sd_event_loop(loop);
+	if(r < 0) {
+		fprintf(stderr, "Error starting event loop: %s\n",
+				strerror(-r));
+		goto finish;
+	}
+
+finish:
 	exit(r < 0 ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
