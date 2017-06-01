@@ -11,7 +11,7 @@ libmapper_la_SOURCES = libmapper/mapper.c
 libmapper_la_LDFLAGS = $(SYSTEMD_LIBS) -version-info 1:0:0 -shared
 libmapper_la_CFLAGS = $(SYSTEMD_CFLAGS)
 
-oldinclude_HEADERS = libmapper/mapper.h
+include_HEADERS = libmapper/mapper.h
 
 if HAVE_PYTHON
 
