@@ -12,6 +12,7 @@ AH_BOTTOM([#include "libmapper/workaround/systemd.h"])
 
 # Checks for programs.
 AC_PROG_CC
+AC_PROG_CXX
 AM_PROG_AR
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
@@ -72,5 +73,5 @@ AS_IF([test "x$enable_unpatched_systemd" == "xyes"],
 )
 
 # Create configured output
-AC_CONFIG_FILES([Makefile setup.py])
+AC_CONFIG_FILES([Makefile setup.py fail-monitor/Makefile])
 AC_OUTPUT

@@ -34,3 +34,5 @@ uninstall-hook:
 	| $(AWK) '{print "$(DESTDIR)"$$1}' | xargs rm -fv
 
 endif
+
+SUBDIRS = fail-monitor
