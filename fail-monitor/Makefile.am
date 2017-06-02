@@ -4,6 +4,7 @@ sbin_PROGRAMS = \
 	phosphor-unit-failure-monitor
 
 phosphor_unit_failure_monitor_SOURCES = \
+	argument.cpp \
 	main.cpp \
 	monitor.cpp
 
