@@ -1,0 +1,7 @@
+- name: DBusFailure
+  level: ERR
+  meta:
+    - str: "FAIL=%s"
+      type: string
+    - str: "PATH=%s"
+      type: string
