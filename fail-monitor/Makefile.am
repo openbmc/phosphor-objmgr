@@ -4,4 +4,13 @@ sbin_PROGRAMS = \
 	phosphor-unit-failure-monitor
 
 phosphor_unit_failure_monitor_SOURCES = \
-	main.cpp
+	main.cpp \
+	monitor.cpp
+
+phosphor_unit_failure_monitor_LDADD = \
+	$(PHOSPHOR_LOGGING_LIBS) \
+	$(SDBUSPLUS_LIBS)
+
+phosphor_unit_failure_monitor_CXXFLAGS = \
+	$(PHOSPHOR_LOGGING_CFLAGS) \
+	$(SDBUSPLUS_CFLAGS)
