@@ -20,11 +20,57 @@
  * then it will either stop or start the target unit, depending
  * on the command line arguments.
  */
+#include <iostream>
+#include <map>
+#include "argument.hpp"
+#include "monitor.hpp"
 
+using namespace phosphor::unit::failure;
+
+/**
+ * Prints usage and exits the program
+ *
+ * @param[in] err - the error message to print
+ * @param[in] argv - argv from main()
+ */
+void exitWithError(const char* err, char** argv)
+{
+    std::cerr << "ERROR: " << err << "\n";
+    ArgumentParser::usage(argv);
+    exit(EXIT_FAILURE);
+}
+
+static const std::map<std::string, Monitor::Action> actions =
+{
+    {"start", Monitor::Action::start},
+    {"stop", Monitor::Action::stop}
+};
 
 int main(int argc, char** argv)
 {
+    ArgumentParser args(argc, argv);
 
+    auto source = args["source"];
+    if (source == ArgumentParser::emptyString)
+    {
+        exitWithError("Source not specified", argv);
+    }
+
+    auto target = args["target"];
+    if (target == ArgumentParser::emptyString)
+    {
+        exitWithError("Target not specified", argv);
+    }
+
+    auto a = actions.find(args["action"]);
+    if (a == actions.end())
+    {
+        exitWithError("Missing or invalid action specified", argv);
+    }
+
+    Monitor monitor{source, target, a->second};
+
+    monitor.analyze();
 
     return 0;
 }
