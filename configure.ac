@@ -5,6 +5,7 @@ AC_CONFIG_HEADERS([libmapper/config.h])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([subdir-objects -Wall -Werror foreign dist-xz])
 AM_SILENT_RULES([yes])
+AC_LANG([C++])
 
 # Modify header template
 AH_TOP([#pragma once])
@@ -12,6 +13,7 @@ AH_BOTTOM([#include "libmapper/workaround/systemd.h"])
 
 # Checks for programs.
 AC_PROG_CC
+AC_PROG_CXX
 AM_PROG_AR
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
@@ -29,7 +31,8 @@ PKG_CHECK_MODULES([SYSTEMD], [libsystemd >= 221])
 AC_CHECK_HEADER(systemd/sd-bus.h, ,[AC_MSG_ERROR([Could not find systemd/sd-bus.h...systemd development package required])])
 
 # Checks for typedefs, structures, and compiler characteristics.
-AX_APPEND_COMPILE_FLAGS([-fpic -Wall -Werror], [CFLAGS])
+AX_CXX_COMPILE_STDCXX_14([noext])
+AX_APPEND_COMPILE_FLAGS([-fpic -Wall -Werror], [CFLAGS CXXFLAGS])
 
 # Checks for library functions.
 LT_INIT([disable-static shared])
@@ -72,5 +75,5 @@ AS_IF([test "x$enable_unpatched_systemd" == "xyes"],
 )
 
 # Create configured output
-AC_CONFIG_FILES([Makefile setup.py])
+AC_CONFIG_FILES([Makefile setup.py fail-monitor/Makefile])
 AC_OUTPUT
