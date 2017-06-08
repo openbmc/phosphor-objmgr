@@ -323,7 +323,7 @@ class ObjectMapper(dbus.service.Object):
             cache_entry = self.cache_get(path)
             old = self.interfaces_get(cache_entry, owner)
             new = list(set(interfaces).union(old))
-            new = {x: iprops[x] for x in new}
+            new = {x: iprops.get(x, {}) for x in new}
             self.update_interfaces(path, owner, old, new)
         else:
             self.defer_signal(
