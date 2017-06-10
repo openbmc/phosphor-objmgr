@@ -85,3 +85,26 @@ target/
 
 *.swo
 *.swp
+
+.deps*
+.libs*
+Makefile
+Makefile.in
+aclocal.m4
+ar-lib
+*-libtool
+autom4te.cache*
+compile
+config.*
+configure
+depcomp
+install-sh
+ltmain.sh
+missing
+stamp-h1
+*.la
+*.lo
+*.o
+m4/
+mapper
+setup.py
