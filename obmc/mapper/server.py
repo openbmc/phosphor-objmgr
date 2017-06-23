@@ -555,7 +555,9 @@ class ObjectMapper(dbus.service.Object):
     @dbus.service.method(obmc.mapper.MAPPER_IFACE, 'sias', 'as')
     def GetSubTreePaths(self, path, depth, interfaces):
         try:
-            return self.GetSubTree(path, depth, interfaces).iterkeys()
+            return self.filter_interfaces(
+                self.cache.iteritems(path, depth),
+                interfaces)
         except KeyError:
             raise MapperNotFoundException(path)
 
