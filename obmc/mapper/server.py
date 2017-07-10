@@ -225,12 +225,12 @@ class Manager(obmc.dbuslib.bindings.DbusObjectManager):
 
 
 class ObjectMapper(dbus.service.Object):
-    def __init__(self, bus, path,
-                 intf_match=obmc.utils.misc.org_dot_openbmc_match):
+    def __init__(
+            self, bus, path, namespaces, interface_namespaces,
+            blacklist, interface_blacklist):
         super(ObjectMapper, self).__init__(bus, path)
         self.cache = obmc.utils.pathtree.PathTree()
         self.bus = bus
-        self.intf_match = intf_match
         self.service = None
         self.index = {}
         self.manager = Manager(bus, obmc.dbuslib.bindings.OBJ_PREFIX)
@@ -238,6 +238,11 @@ class ObjectMapper(dbus.service.Object):
         self.bus_map = {}
         self.defer_signals = {}
         self.bus_map[self.unique] = obmc.mapper.MAPPER_NAME
+        self.namespaces = namespaces
+        self.interface_namespaces = interface_namespaces
+        self.blacklist = blacklist
+        self.blacklist.append(obmc.mapper.MAPPER_PATH)
+        self.interface_blacklist = interface_blacklist
 
         # add my object mananger instance
         self.add_new_objmgr(obmc.dbuslib.bindings.OBJ_PREFIX, self.unique)
@@ -444,14 +449,34 @@ class ObjectMapper(dbus.service.Object):
         for path, items in bus_items.iteritems():
             self.update_interfaces(path, str(owner), old=[], new=items)
 
+    def path_match(self, path):
+        match = False
+
+        if not any([x for x in self.blacklist if x in path]):
+            # not blacklisted
+
+            if any([x for x in self.namespaces if x in path]):
+                # a watched namespace contains the path
+                match = True
+            elif any([path for x in self.namespaces if path in x]):
+                # the path contains a watched namespace
+                match = True
+
+        return match
+
+    def interface_match(self, interface):
+        match = True
+
+        if any([x for x in self.interface_blacklist if x in interface]):
+            # not blacklisted
+            match = False
+        elif not any([x for x in self.interface_namespaces if x in interface]):
+            # the interface contains a watched interface namespace
+            match = False
+
+        return match
+
     def discover(self, owners=[]):
-        def match(iface):
-            return iface == dbus.BUS_DAEMON_IFACE + '.ObjectManager' or \
-                self.intf_match(iface)
-
-        subtree_match = lambda x: obmc.utils.misc.org_dot_openbmc_match(
-            x, sep='/', prefix='/')
-
         if not owners:
             owned_names = filter(
                 lambda x: not obmc.dbuslib.bindings.is_unique(x),
@@ -465,8 +490,8 @@ class ObjectMapper(dbus.service.Object):
                 self.bus, o, '/',
                 self.discovery_callback,
                 self.discovery_error,
-                subtree_match=subtree_match,
-                iface_match=self.intf_match)
+                subtree_match=self.path_match,
+                iface_match=self.interface_match)
 
     def valid_signal(self, name):
         if obmc.dbuslib.bindings.is_unique(name):
@@ -477,7 +502,7 @@ class ObjectMapper(dbus.service.Object):
     def get_signal_interfaces(self, owner, interfaces):
         filtered = []
         if self.valid_signal(owner):
-            filtered = [str(x) for x in interfaces if self.intf_match(x)]
+            filtered = [str(x) for x in interfaces if self.interface_match(x)]
 
         return filtered
 
@@ -733,10 +758,20 @@ class ObjectMapper(dbus.service.Object):
         pass
 
 
-def server_main():
+def server_main(
+        path_namespaces,
+        interface_namespaces,
+        blacklists,
+        interface_blacklists):
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
     bus = dbus.SystemBus()
-    o = ObjectMapper(bus, obmc.mapper.MAPPER_PATH)
+    o = ObjectMapper(
+        bus,
+        obmc.mapper.MAPPER_PATH,
+        path_namespaces,
+        interface_namespaces,
+        blacklists,
+        interface_blacklists)
     loop = gobject.MainLoop()
 
     loop.run()
