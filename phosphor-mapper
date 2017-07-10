@@ -18,6 +18,28 @@
 
 import sys
 import obmc.mapper.server
+from argparse import ArgumentParser
 
 if __name__ == '__main__':
-    sys.exit(obmc.mapper.server.server_main())
+    parser = ArgumentParser()
+    parser.add_argument(
+        '-p', '--path_namespaces',
+        required=True)
+    parser.add_argument(
+        '-i', '--interface_namespaces',
+        required=True)
+    parser.add_argument(
+        '-b', '--blacklists',
+        default="")
+    parser.add_argument(
+        '-n', '--interface_blacklists',
+        default="")
+
+    args = parser.parse_args()
+
+    sys.exit(
+        obmc.mapper.server.server_main(
+            path_namespaces=args.path_namespaces.split(),
+            interface_namespaces=args.interface_namespaces.split(),
+            blacklists=args.blacklists.split(),
+            interface_blacklists=args.interface_blacklists.split()))
