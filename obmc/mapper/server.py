@@ -492,7 +492,7 @@ class ObjectMapper(dbus.service.Object):
 
     def interfaces_remove(self, item, owner, remove, path):
         interfaces = item.get(owner, [])
-        item[owner] = list(set(interfaces).difference(remove))
+        item[owner] = list(set(interfaces).union(remove))
 
         if not item[owner]:
             # remove the owner if there aren't any interfaces left
