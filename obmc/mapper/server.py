@@ -24,6 +24,8 @@ import obmc.utils.pathtree
 import obmc.mapper
 import obmc.dbuslib.bindings
 import obmc.dbuslib.enums
+import sys
+import traceback
 
 
 class MapperBusyException(dbus.exceptions.DBusException):
@@ -293,8 +295,17 @@ class ObjectMapper(dbus.service.Object):
             self.IntrospectionComplete(owner)
 
     def discovery_error(self, owner, path, e):
+        '''Log a message and remove all traces of the service
+        we were attempting to introspect.'''
+
         if owner in self.defer_signals:
-            raise e
+            sys.stderr.write(
+                '{} discovery failure on {}\n'.format(
+                    self.bus_map.get(owner, owner),
+                    path))
+            traceback.print_exception(*sys.exc_info())
+            del self.defer_signals[owner]
+            del self.bus_map[owner]
 
     def cache_get(self, path):
         cache_entry = self.cache.get(path, {})
