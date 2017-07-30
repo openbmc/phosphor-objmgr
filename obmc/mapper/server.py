@@ -487,12 +487,17 @@ class ObjectMapper(dbus.service.Object):
         return match
 
     def discover(self, owners=[]):
+        def get_owner(name):
+            try:
+                return (name, self.bus.get_name_owner(name))
+            except:
+                traceback.print_exception(*sys.exc_info())
+
         if not owners:
             owned_names = filter(
                 lambda x: not obmc.dbuslib.bindings.is_unique(x),
                 self.bus.list_names())
-            owners = [self.bus.get_name_owner(x) for x in owned_names]
-            owners = zip(owned_names, owners)
+            owners = filter(bool, [get_owner(name) for name in owned_names])
         for owned_name, o in owners:
             self.bus_map[o] = owned_name
             self.defer_signals[o] = []
