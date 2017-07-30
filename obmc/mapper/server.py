@@ -499,6 +499,8 @@ class ObjectMapper(dbus.service.Object):
                 self.bus.list_names())
             owners = filter(bool, [get_owner(name) for name in owned_names])
         for owned_name, o in owners:
+            if not self.valid_signal(owned_name):
+                continue
             self.bus_map[o] = owned_name
             self.defer_signals[o] = []
             find_dbus_interfaces(
@@ -512,7 +514,7 @@ class ObjectMapper(dbus.service.Object):
         if obmc.dbuslib.bindings.is_unique(name):
             name = self.bus_map.get(name)
 
-        return name is not None and name is not obmc.mapper.MAPPER_NAME
+        return name is not None and name != obmc.mapper.MAPPER_NAME
 
     def get_signal_interfaces(self, owner, interfaces):
         filtered = []
