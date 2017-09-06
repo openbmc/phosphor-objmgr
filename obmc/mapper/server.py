@@ -449,7 +449,8 @@ class ObjectMapper(dbus.service.Object):
         old_assoc = []
         if self.is_association(added):
             iface = obmc.dbuslib.enums.OBMC_ASSOCIATIONS_IFACE
-            new_assoc = new[iface]['associations']
+            if 'associations' in iface:
+                new_assoc = new[iface]['associations']
         if self.is_association(removed):
             old_assoc = self.index_get_associations(path, [owner])
         self.update_associations(
