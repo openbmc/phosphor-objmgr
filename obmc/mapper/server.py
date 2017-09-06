@@ -87,8 +87,7 @@ def find_dbus_interfaces(conn, service, path, callback, error_callback, **kw):
             try:
                 iface = obmc.dbuslib.enums.OBMC_ASSOCIATIONS_IFACE
                 self.assoc_pending.remove(path)
-                if associations:
-                    self.results[path][iface]['associations'] = associations
+                self.results[path][iface]['associations'] = associations
             except Exception, e:
                 error_callback(service, path, e)
                 return None
