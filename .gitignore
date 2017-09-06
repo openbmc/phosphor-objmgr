@@ -107,4 +107,5 @@ stamp-h1
 *.o
 m4/
 mapper
+!mapper/
 setup.py
