@@ -583,7 +583,7 @@ class ObjectMapper(dbus.service.Object):
                 x[1],
                 ifaces))
 
-        return dict(filter(lambda x: x[1], map(obj_map, iter(item))))
+        return dict(filter(lambda x: x[1], map(obj_map, iter(item or []))))
 
     @dbus.service.method(obmc.mapper.MAPPER_IFACE, 'sas', 'a{sas}')
     def GetObject(self, path, interfaces):
