@@ -16,7 +16,6 @@
 
 import dbus
 import obmc.dbuslib.enums
-import obmc.utils.misc
 import obmc.utils.pathtree
 
 
@@ -105,7 +104,7 @@ class Mapper:
         properties_iface = dbus.Interface(
             obj, dbus_interface=dbus.PROPERTIES_IFACE)
         for i in interfaces:
-            if not match(i):
+            if match and not match(i):
                 continue
             properties.update(self.__get_properties_on_iface(
                 properties_iface, i))
@@ -114,7 +113,7 @@ class Mapper:
 
     def enumerate_object(
             self, path,
-            match=obmc.utils.misc.org_dot_openbmc_match,
+            match=lambda x: x != dbus.BUS_DAEMON_IFACE + '.ObjectManager',
             mapper_data=None):
         if mapper_data is None:
             mapper_data = {path: self.get_object(path)}
@@ -130,7 +129,7 @@ class Mapper:
 
     def enumerate_subtree(
             self, path='/',
-            match=obmc.utils.misc.org_dot_openbmc_match,
+            match=lambda x: x != dbus.BUS_DAEMON_IFACE + '.ObjectManager',
             mapper_data=None):
         if mapper_data is None:
             mapper_data = self.get_subtree(path)
