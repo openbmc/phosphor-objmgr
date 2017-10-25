@@ -234,10 +234,9 @@ class ObjectMapper(dbus.service.Object):
         self.service = None
         self.index = {}
         self.manager = Manager(bus, obmc.dbuslib.bindings.OBJ_PREFIX)
-        self.unique = bus.get_unique_name()
         self.bus_map = {}
         self.defer_signals = {}
-        self.bus_map[self.unique] = obmc.mapper.MAPPER_NAME
+        self.bus_map[bus.get_unique_name()] = obmc.mapper.MAPPER_NAME
         self.namespaces = namespaces
         self.interface_namespaces = interface_namespaces
         self.blacklist = blacklist
@@ -245,7 +244,8 @@ class ObjectMapper(dbus.service.Object):
         self.interface_blacklist = interface_blacklist
 
         # add my object mananger instance
-        self.add_new_objmgr(obmc.dbuslib.bindings.OBJ_PREFIX, self.unique)
+        self.add_new_objmgr(
+            obmc.dbuslib.bindings.OBJ_PREFIX, obmc.mapper.MAPPER_NAME)
 
         self.bus.add_signal_receiver(
             self.bus_handler,
@@ -501,10 +501,10 @@ class ObjectMapper(dbus.service.Object):
         for owned_name, o in owners:
             if not self.valid_signal(owned_name):
                 continue
-            self.bus_map[o] = owned_name
-            self.defer_signals[o] = []
+            self.bus_map[owned_name] = o
+            self.defer_signals[owned_name] = []
             find_dbus_interfaces(
-                self.bus, o, '/',
+                self.bus, owned_name, '/',
                 self.discovery_callback,
                 self.discovery_error,
                 subtree_match=self.path_match,
@@ -694,7 +694,7 @@ class ObjectMapper(dbus.service.Object):
 
         if create != delete:
             self.update_interfaces(
-                path, self.unique, delete, create)
+                path, obmc.mapper.MAPPER_NAME, delete, create)
 
     def update_associations(
             self, path, owner, old, new, created=[], destroyed=[]):
