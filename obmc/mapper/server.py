@@ -172,51 +172,35 @@ def find_dbus_interfaces(conn, service, path, callback, error_callback, **kw):
     return _FindInterfaces()(path)
 
 
-class Association(dbus.service.Object):
+@obmc.dbuslib.bindings.add_interfaces([obmc.dbuslib.enums.OBMC_ASSOC_IFACE])
+class Association(obmc.dbuslib.bindings.DbusProperties):
+    assoc_iface = obmc.dbuslib.enums.OBMC_ASSOC_IFACE
+
     def __init__(self, bus, path, endpoints):
         super(Association, self).__init__(conn=bus, object_path=path)
-        self.endpoints = endpoints
-
-    def __getattr__(self, name):
-        if name == 'properties':
-            return {
-                obmc.dbuslib.enums.OBMC_ASSOC_IFACE: {
-                    'endpoints': self.endpoints}}
-        return super(Association, self).__getattr__(name)
+        iface = obmc.dbuslib.enums.OBMC_ASSOC_IFACE
+        self.properties[self.assoc_iface] = {}
+        self.properties[self.assoc_iface]['endpoints'] = endpoints
+        self.unmask_signals()
 
     def emit_signal(self, old):
-        if old != self.endpoints:
+        new = self.properties[self.assoc_iface]['endpoints']
+        if old != new:
             self.PropertiesChanged(
                 obmc.dbuslib.enums.OBMC_ASSOC_IFACE,
-                {'endpoints': self.endpoints}, ['endpoints'])
+                {'endpoints': new}, ['endpoints'])
 
     def append(self, endpoints):
-        old = self.endpoints
-        self.endpoints = list(set(endpoints).union(self.endpoints))
+        old = self.properties[self.assoc_iface]['endpoints']
+        new = list(set(endpoints).union(old))
+        self.properties[self.assoc_iface]['endpoints'] = new
         self.emit_signal(old)
 
     def remove(self, endpoints):
-        old = self.endpoints
-        self.endpoints = list(set(self.endpoints).difference(endpoints))
+        old = self.properties[self.assoc_iface]['endpoints']
+        new = list(set(old).difference(endpoints))
+        self.properties[self.assoc_iface]['endpoints'] = new
         self.emit_signal(old)
-
-    @dbus.service.method(dbus.PROPERTIES_IFACE, 'ss', 'as')
-    def Get(self, interface_name, property_name):
-        if property_name != 'endpoints':
-            raise dbus.exceptions.DBusException(name=DBUS_UNKNOWN_PROPERTY)
-        return self.GetAll(interface_name)[property_name]
-
-    @dbus.service.method(dbus.PROPERTIES_IFACE, 's', 'a{sas}')
-    def GetAll(self, interface_name):
-        if interface_name != obmc.dbuslib.enums.OBMC_ASSOC_IFACE:
-            raise dbus.exceptions.DBusException(DBUS_UNKNOWN_INTERFACE)
-        return {'endpoints': self.endpoints}
-
-    @dbus.service.signal(
-        dbus.PROPERTIES_IFACE, signature='sa{sas}as')
-    def PropertiesChanged(
-            self, interface_name, changed_properties, invalidated_properties):
-        pass
 
 
 class Manager(obmc.dbuslib.bindings.DbusObjectManager):
@@ -686,7 +670,9 @@ class ObjectMapper(dbus.service.Object):
         if obj and removed:
             obj.remove(removed)
 
-        if obj and not obj.endpoints:
+        endpoints = obj.properties.setdefault(iface, {})
+        endpoints = endpoints.setdefault('endpoints', [])
+        if obj and not endpoints:
             self.manager.remove(path)
 
         delete = [] if self.manager.get(path, False) else [iface]
