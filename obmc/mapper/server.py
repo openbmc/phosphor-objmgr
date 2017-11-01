@@ -173,7 +173,16 @@ def find_dbus_interfaces(conn, service, path, callback, error_callback, **kw):
 
 
 class Association(dbus.service.Object):
+    """Implementation of org.openbmc.Association."""
+
     def __init__(self, bus, path, endpoints):
+        """Construct an Association.
+
+        Arguments:
+        bus -- The python-dbus connection to host the interface
+        path -- The D-Bus object path on which to implement the interface
+        endpoints -- A list of the initial association endpoints
+        """
         super(Association, self).__init__(conn=bus, object_path=path)
         self.endpoints = endpoints
 
