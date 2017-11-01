@@ -701,6 +701,10 @@ class ObjectMapper(dbus.service.Object):
         added = list(set(new).difference(old))
         removed = list(set(old).difference(new))
         for forward, reverse, endpoint in added:
+            if not endpoint:
+                # skip associations without an endpoint
+                continue
+
             # update the index
             forward_path = str(path + '/' + forward)
             reverse_path = str(endpoint + '/' + reverse)
