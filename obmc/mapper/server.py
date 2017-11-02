@@ -175,6 +175,8 @@ def find_dbus_interfaces(conn, service, path, callback, error_callback, **kw):
 class Association(dbus.service.Object):
     """Implementation of org.openbmc.Association."""
 
+    iface = obmc.dbuslib.enums.OBMC_ASSOC_IFACE
+
     def __init__(self, bus, path, endpoints):
         """Construct an Association.
 
@@ -184,20 +186,13 @@ class Association(dbus.service.Object):
         endpoints -- A list of the initial association endpoints
         """
         super(Association, self).__init__(conn=bus, object_path=path)
-        self.endpoints = endpoints
-
-    def __getattr__(self, name):
-        if name == 'properties':
-            return {
-                obmc.dbuslib.enums.OBMC_ASSOC_IFACE: {
-                    'endpoints': self.endpoints}}
-        return super(Association, self).__getattr__(name)
+        self.properties = {self.iface: {'endpoints': endpoints}}
 
     def emit_signal(self, old):
-        if old != self.endpoints:
+        new = self.properties[self.iface]['endpoints']
+        if old != new:
             self.PropertiesChanged(
-                obmc.dbuslib.enums.OBMC_ASSOC_IFACE,
-                {'endpoints': self.endpoints}, ['endpoints'])
+                self.iface, self.properties[self.iface], ['endpoints'])
 
     def append(self, endpoints):
         old = self.endpoints
@@ -697,7 +692,8 @@ class ObjectMapper(dbus.service.Object):
             assoc.remove(removed)
 
         delete = []
-        if assoc and not assoc.endpoints:
+        endpoints = assoc.properties[iface]['endpoints']
+        if assoc and not endpoints:
             self.manager.remove(path)
             delete = [iface]
 
