@@ -674,22 +674,23 @@ class ObjectMapper(dbus.service.Object):
 
     def update_association(self, path, removed, added):
         iface = obmc.dbuslib.enums.OBMC_ASSOC_IFACE
-        create = [] if self.manager.get(path, False) else [iface]
+        assoc = self.manager.get(path, None)
+        create = [] if assoc else [iface]
 
         if added and create:
             self.manager.add(
                 path, Association(self.bus, path, added))
+            assoc = self.manager.get(path)
         elif added:
-            self.manager.get(path).append(added)
+            assoc.append(added)
 
-        obj = self.manager.get(path, None)
-        if obj and removed:
-            obj.remove(removed)
+        if assoc and removed:
+            assoc.remove(removed)
 
-        if obj and not obj.endpoints:
+        delete = []
+        if assoc and not assoc.endpoints:
             self.manager.remove(path)
-
-        delete = [] if self.manager.get(path, False) else [iface]
+            delete = [iface]
 
         if create != delete:
             self.update_interfaces(
