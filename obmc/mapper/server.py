@@ -172,7 +172,8 @@ def find_dbus_interfaces(conn, service, path, callback, error_callback, **kw):
     return _FindInterfaces()(path)
 
 
-class Association(dbus.service.Object):
+@obmc.dbuslib.bindings.add_interfaces([obmc.dbuslib.enums.OBMC_ASSOC_IFACE])
+class Association(obmc.dbuslib.bindings.DbusProperties):
     """Implementation of org.openbmc.Association."""
 
     iface = obmc.dbuslib.enums.OBMC_ASSOC_IFACE
@@ -187,24 +188,6 @@ class Association(dbus.service.Object):
         """
         super(Association, self).__init__(conn=bus, object_path=path)
         self.properties = {self.iface: {'endpoints': endpoints}}
-
-    @dbus.service.method(dbus.PROPERTIES_IFACE, 'ss', 'as')
-    def Get(self, interface_name, property_name):
-        if property_name != 'endpoints':
-            raise dbus.exceptions.DBusException(name=DBUS_UNKNOWN_PROPERTY)
-        return self.GetAll(interface_name)[property_name]
-
-    @dbus.service.method(dbus.PROPERTIES_IFACE, 's', 'a{sas}')
-    def GetAll(self, interface_name):
-        if interface_name != obmc.dbuslib.enums.OBMC_ASSOC_IFACE:
-            raise dbus.exceptions.DBusException(DBUS_UNKNOWN_INTERFACE)
-        return {'endpoints': self.endpoints}
-
-    @dbus.service.signal(
-        dbus.PROPERTIES_IFACE, signature='sa{sas}as')
-    def PropertiesChanged(
-            self, interface_name, changed_properties, invalidated_properties):
-        pass
 
 
 class Manager(obmc.dbuslib.bindings.DbusObjectManager):
@@ -665,7 +648,7 @@ class ObjectMapper(dbus.service.Object):
         iface = obmc.dbuslib.enums.OBMC_ASSOC_IFACE
         assoc = self.manager.get(path, None)
 
-        old_endpoints = assoc.properties[iface]['endpoints'] if assoc else []
+        old_endpoints = assoc.Get(iface, 'endpoints') if assoc else []
         new_endpoints = list(
             set(old_endpoints).union(added).difference(removed))
 
@@ -681,9 +664,7 @@ class ObjectMapper(dbus.service.Object):
         elif delete:
             self.manager.remove(path)
         else:
-            assoc.properties[iface]['endpoints'] = new_endpoints
-            assoc.PropertiesChanged(
-                iface, {'endpoints': new_endpoints}, ['endpoints'])
+            assoc.Set(iface, 'endpoints', new_endpoints)
 
         if create != delete:
             self.update_interfaces(
