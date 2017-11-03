@@ -302,6 +302,7 @@ class ObjectMapper(dbus.service.Object):
                 '{} discovery failure on {}\n'.format(
                     self.bus_map.get(owner, owner),
                     path))
+            sys.stderr.write('{}'.format(e))
             traceback.print_exception(*sys.exc_info())
             del self.defer_signals[owner]
             del self.bus_map[owner]
@@ -407,9 +408,7 @@ class ObjectMapper(dbus.service.Object):
                 path, owner, old=old, new=[])
 
     def bus_handler(self, owned_name, old, new):
-        valid = False
-        if not obmc.dbuslib.bindings.is_unique(owned_name):
-            valid = self.valid_signal(owned_name)
+        valid = self.valid_signal(owned_name)
 
         if valid and new:
             self.process_new_owner(owned_name, new)
@@ -486,17 +485,21 @@ class ObjectMapper(dbus.service.Object):
         return match
 
     def discover(self, owners=[]):
-        def get_owner(name):
-            try:
-                return (name, self.bus.get_name_owner(name))
-            except:
-                traceback.print_exception(*sys.exc_info())
 
         if not owners:
             owned_names = filter(
                 lambda x: not obmc.dbuslib.bindings.is_unique(x),
                 self.bus.list_names())
-            owners = filter(bool, [get_owner(name) for name in owned_names])
+            unique_names = filter(
+                lambda x: obmc.dbuslib.bindings.is_unique(x),
+                self.bus.list_names())
+            owners = filter(bool, [self.get_owner(name) for name in owned_names])
+            for _, o in owners:
+                if o in unique_names:
+                    unique_names.remove(o)
+            for u in unique_names:
+                owners.append((u, u))
+
         for owned_name, o in owners:
             if not self.valid_signal(owned_name):
                 continue
@@ -509,11 +512,19 @@ class ObjectMapper(dbus.service.Object):
                 subtree_match=self.path_match,
                 iface_match=self.interface_match)
 
-    def valid_signal(self, name):
-        if obmc.dbuslib.bindings.is_unique(name):
-            name = self.bus_map.get(name)
+    def get_owner(self, name):
+        try:
+            return name, self.bus.get_name_owner(name)
+        except dbus.DBusException:
+            traceback.print_exception(*sys.exc_info())
 
-        return name is not None and name != obmc.mapper.MAPPER_NAME
+    def valid_signal(self, name):
+        unique_name = name
+        if not obmc.dbuslib.bindings.is_unique(name):
+            name_tuple = self.get_owner(name)
+            unique_name = name_tuple[1] if name_tuple else None
+
+        return unique_name is not None and unique_name != self.unique
 
     def get_signal_interfaces(self, owner, interfaces):
         filtered = []
