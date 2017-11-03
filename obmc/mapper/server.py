@@ -188,22 +188,6 @@ class Association(dbus.service.Object):
         super(Association, self).__init__(conn=bus, object_path=path)
         self.properties = {self.iface: {'endpoints': endpoints}}
 
-    def emit_signal(self, old):
-        new = self.properties[self.iface]['endpoints']
-        if old != new:
-            self.PropertiesChanged(
-                self.iface, self.properties[self.iface], ['endpoints'])
-
-    def append(self, endpoints):
-        old = self.endpoints
-        self.endpoints = list(set(endpoints).union(self.endpoints))
-        self.emit_signal(old)
-
-    def remove(self, endpoints):
-        old = self.endpoints
-        self.endpoints = list(set(self.endpoints).difference(endpoints))
-        self.emit_signal(old)
-
     @dbus.service.method(dbus.PROPERTIES_IFACE, 'ss', 'as')
     def Get(self, interface_name, property_name):
         if property_name != 'endpoints':
@@ -679,23 +663,26 @@ class ObjectMapper(dbus.service.Object):
     def update_association(self, path, removed, added):
         iface = obmc.dbuslib.enums.OBMC_ASSOC_IFACE
         assoc = self.manager.get(path, None)
-        create = [] if assoc else [iface]
 
-        if added and create:
+        old_endpoints = assoc.properties[iface]['endpoints'] if assoc else []
+        new_endpoints = list(
+            set(old_endpoints).union(added).difference(removed))
+
+        if old_endpoints == new_endpoints:
+            return
+
+        create = [] if old_endpoints else [iface]
+        delete = [] if new_endpoints else [iface]
+
+        if create:
             self.manager.add(
-                path, Association(self.bus, path, added))
-            assoc = self.manager.get(path)
-        elif added:
-            assoc.append(added)
-
-        if assoc and removed:
-            assoc.remove(removed)
-
-        delete = []
-        endpoints = assoc.properties[iface]['endpoints']
-        if assoc and not endpoints:
+                path, Association(self.bus, path, new_endpoints))
+        elif delete:
             self.manager.remove(path)
-            delete = [iface]
+        else:
+            assoc.properties[iface]['endpoints'] = new_endpoints
+            assoc.PropertiesChanged(
+                iface, {'endpoints': new_endpoints}, ['endpoints'])
 
         if create != delete:
             self.update_interfaces(
