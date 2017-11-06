@@ -263,12 +263,6 @@ class ObjectMapper(dbus.service.Object):
             signal_name='InterfacesRemoved',
             sender_keyword='sender',
             path_keyword='sender_path')
-        self.bus.add_signal_receiver(
-            self.properties_changed_handler,
-            dbus_interface=dbus.PROPERTIES_IFACE,
-            signal_name='PropertiesChanged',
-            path_keyword='path',
-            sender_keyword='sender')
 
         print "ObjectMapper startup complete.  Discovery in progress..."
         self.discover()
@@ -363,29 +357,6 @@ class ObjectMapper(dbus.service.Object):
                 owner,
                 lambda: self.interfaces_removed_handler(
                     path, interfaces, **kw))
-
-    def properties_changed_handler(self, interface, new, old, **kw):
-        owner = str(kw['sender'])
-        path = str(kw['path'])
-        interfaces = self.get_signal_interfaces(owner, [interface])
-        if not self.is_association(interfaces):
-            return
-        associations = new.get('associations', None)
-        if associations is None:
-            return
-
-        if owner not in self.defer_signals:
-            associations = [
-                (str(x), str(y), str(z)) for x, y, z in associations]
-            self.update_associations(
-                path, owner,
-                self.index_get_associations(path, [owner]),
-                associations)
-        else:
-            self.defer_signal(
-                owner,
-                lambda: self.properties_changed_handler(
-                    interface, new, old, **kw))
 
     def process_new_owner(self, owned_name, owner):
         # unique name
