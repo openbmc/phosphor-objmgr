@@ -61,12 +61,12 @@ def find_dbus_interfaces(conn, service, path, callback, error_callback, **kw):
 
         @staticmethod
         def _to_path_elements(path):
-            return filter(bool, path.split('/'))
+            return list(filter(bool, path.split('/')))
 
         def __call__(self, path):
             try:
                 self._find_interfaces(path)
-            except Exception, e:
+            except Exception as e:
                 error_callback(service, path, e)
 
         @staticmethod
@@ -88,7 +88,7 @@ def find_dbus_interfaces(conn, service, path, callback, error_callback, **kw):
                 iface = obmc.dbuslib.enums.OBMC_ASSOCIATIONS_IFACE
                 self.assoc_pending.remove(path)
                 self.results[path][iface]['associations'] = associations
-            except Exception, e:
+            except Exception as e:
                 error_callback(service, path, e)
                 return None
 
@@ -97,9 +97,9 @@ def find_dbus_interfaces(conn, service, path, callback, error_callback, **kw):
         def _gmo_callback(self, path, objs):
             try:
                 self.gmo_pending.remove(path)
-                for k, v in objs.iteritems():
+                for k, v in objs.items():
                     self.results[k] = v
-            except Exception, e:
+            except Exception as e:
                 error_callback(service, path, e)
                 return None
 
@@ -114,9 +114,9 @@ def find_dbus_interfaces(conn, service, path, callback, error_callback, **kw):
             try:
                 path_elements = self._to_path_elements(path)
                 root = ET.fromstring(data)
-                ifaces = filter(
+                ifaces = list(filter(
                     self._match,
-                    [x.attrib.get('name') for x in root.findall('interface')])
+                    [x.attrib.get('name') for x in root.findall('interface')]))
                 ifaces = {x: {} for x in ifaces}
                 self.results[path] = ifaces
 
@@ -143,9 +143,9 @@ def find_dbus_interfaces(conn, service, path, callback, error_callback, **kw):
                         error_handler=lambda e: error_callback(
                             service, path, e))
                 else:
-                    children = filter(
+                    children = list(filter(
                         bool,
-                        [x.attrib.get('name') for x in root.findall('node')])
+                        [x.attrib.get('name') for x in root.findall('node')]))
                     children = [
                         self._to_path(
                             path_elements + self._to_path_elements(x))
@@ -153,7 +153,7 @@ def find_dbus_interfaces(conn, service, path, callback, error_callback, **kw):
                     for child in filter(subtree_match, children):
                         if child not in self.results:
                             self._find_interfaces(child)
-            except Exception, e:
+            except Exception as e:
                 error_callback(service, path, e)
                 return None
 
@@ -242,14 +242,14 @@ class ObjectMapper(dbus.service.Object):
             path_keyword='path',
             sender_keyword='sender')
 
-        print "ObjectMapper startup complete.  Discovery in progress..."
+        print("ObjectMapper startup complete.  Discovery in progress...")
         self.discover()
         gobject.idle_add(self.claim_name)
 
     def claim_name(self):
         if len(self.defer_signals):
             return True
-        print "ObjectMapper discovery complete"
+        print("ObjectMapper discovery complete")
         self.service = dbus.service.BusName(
             obmc.mapper.MAPPER_NAME, self.bus)
         self.manager.unmask_signals()
@@ -308,7 +308,7 @@ class ObjectMapper(dbus.service.Object):
     def interfaces_added_handler(self, path, iprops, **kw):
         path = str(path)
         owner = str(kw['sender'])
-        interfaces = self.get_signal_interfaces(owner, iprops.iterkeys())
+        interfaces = self.get_signal_interfaces(owner, iter(iprops.keys()))
         if not interfaces:
             return
 
@@ -371,7 +371,7 @@ class ObjectMapper(dbus.service.Object):
         # unique name
         try:
             return self.discover([(owned_name, owner)])
-        except dbus.exceptions.DBusException, e:
+        except dbus.exceptions.DBusException as e:
             if obmc.dbuslib.enums.DBUS_UNKNOWN_SERVICE \
                     not in e.get_dbus_name():
                 raise
@@ -405,12 +405,12 @@ class ObjectMapper(dbus.service.Object):
         # __xx -> intf list
         # xx -> intf dict
         if isinstance(old, dict):
-            __old = old.keys()
+            __old = list(old.keys())
         else:
             __old = old
             old = {x: {} for x in old}
         if isinstance(new, dict):
-            __new = new.keys()
+            __new = list(new.keys())
         else:
             __new = new
             new = {x: {} for x in new}
@@ -435,7 +435,7 @@ class ObjectMapper(dbus.service.Object):
             path, owner, old_assoc, new_assoc, created, destroyed)
 
     def add_items(self, owner, bus_items):
-        for path, items in bus_items.iteritems():
+        for path, items in bus_items.items():
             self.update_interfaces(path, str(owner), old=[], new=items)
 
     def path_match(self, path):
@@ -473,10 +473,8 @@ class ObjectMapper(dbus.service.Object):
                 traceback.print_exception(*sys.exc_info())
 
         if not owners:
-            owned_names = filter(
-                lambda x: not obmc.dbuslib.bindings.is_unique(x),
-                self.bus.list_names())
-            owners = filter(bool, [get_owner(name) for name in owned_names])
+            owned_names = [x for x in self.bus.list_names() if not obmc.dbuslib.bindings.is_unique(x)]
+            owners = list(filter(bool, [get_owner(name) for name in owned_names]))
         for owned_name, o in owners:
             if not self.valid_signal(owned_name):
                 continue
@@ -549,9 +547,9 @@ class ObjectMapper(dbus.service.Object):
             svc_filter = lambda svc: svc[1]
 
             obj_map = lambda o: (
-                tuple(*filter(svc_filter, map(svc_map, [o]))))
+                tuple(*list(filter(svc_filter, list(map(svc_map, [o]))))))
 
-            return dict(filter(lambda x: x, map(obj_map, item.iteritems())))
+            return dict([x for x in map(obj_map, iter(item.items())) if x])
 
         # Called with a list of path/object tuples.
         if not ifaces:
@@ -563,7 +561,7 @@ class ObjectMapper(dbus.service.Object):
                 x[1],
                 ifaces))
 
-        return dict(filter(lambda x: x[1], map(obj_map, iter(item or []))))
+        return dict([x for x in map(obj_map, iter(item or [])) if x[1]])
 
     @dbus.service.method(obmc.mapper.MAPPER_IFACE, 'sas', 'a{sas}')
     def GetObject(self, path, interfaces):
@@ -593,7 +591,7 @@ class ObjectMapper(dbus.service.Object):
 
     @staticmethod
     def has_interfaces(item):
-        for owner in item.iterkeys():
+        for owner in item.keys():
             if ObjectMapper.interfaces_get(item, owner):
                 return True
         return False
@@ -634,7 +632,7 @@ class ObjectMapper(dbus.service.Object):
         associations = []
         if not owners:
             index = self.index.get(forward, {})
-            owners = index.get(path, {}).keys()
+            owners = list(index.get(path, {}).keys())
 
         # f: forward
         # r: reverse
@@ -739,7 +737,7 @@ class ObjectMapper(dbus.service.Object):
         if not self.cache_get(path):
             raise MapperNotFoundException(path)
 
-        elements = filter(bool, path.split('/'))
+        elements = list(filter(bool, path.split('/')))
         paths = []
         objs = {}
         while elements:
@@ -754,7 +752,7 @@ class ObjectMapper(dbus.service.Object):
                 continue
             objs[path] = obj
 
-        return self.filter_interfaces(list(objs.iteritems()), interfaces)
+        return self.filter_interfaces(list(objs.items()), interfaces)
 
     @dbus.service.signal(obmc.mapper.MAPPER_IFACE + '.Private', 's')
     def IntrospectionComplete(self, name):
