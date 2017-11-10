@@ -39,7 +39,7 @@ class Mapper:
         while count < retries:
             try:
                 return func()
-            except dbus.exceptions.DBusException, e:
+            except dbus.exceptions.DBusException as e:
                 if e.get_dbus_name() not in \
                     ['org.freedesktop.DBus.Error.ObjectPathInUse',
                      'org.freedesktop.DBus.Error.LimitsExceeded']:
@@ -80,7 +80,7 @@ class Mapper:
     def __try_properties_interface(f, *a):
         try:
             return f(*a)
-        except dbus.exceptions.DBusException, e:
+        except dbus.exceptions.DBusException as e:
             if obmc.dbuslib.enums.DBUS_UNKNOWN_INTERFACE in \
                     e.get_dbus_message():
                 # interface doesn't have any properties
@@ -120,7 +120,7 @@ class Mapper:
 
         obj = {}
 
-        for owner, interfaces in mapper_data[path].iteritems():
+        for owner, interfaces in mapper_data[path].items():
             obj.update(
                 self.__get_properties_on_bus(
                     path, owner, interfaces, match))
@@ -138,8 +138,8 @@ class Mapper:
 
         # look for objectmanager implementations as they result
         # in fewer dbus calls
-        for path, bus_data in mapper_data.iteritems():
-            for owner, interfaces in bus_data.iteritems():
+        for path, bus_data in mapper_data.items():
+            for owner, interfaces in bus_data.items():
                 owners.append(owner)
                 if dbus.BUS_DAEMON_IFACE + '.ObjectManager' in interfaces:
                     managers[owner] = path
@@ -150,18 +150,18 @@ class Mapper:
         # finally check the root for one too
         try:
             ancestors.update({path: self.get_object(path)})
-        except dbus.exceptions.DBusException, e:
+        except dbus.exceptions.DBusException as e:
             if e.get_dbus_name() != MAPPER_NOT_FOUND:
                 raise
 
-        for path, bus_data in ancestors.iteritems():
-            for owner, interfaces in bus_data.iteritems():
+        for path, bus_data in ancestors.items():
+            for owner, interfaces in bus_data.items():
                 if dbus.BUS_DAEMON_IFACE + '.ObjectManager' in interfaces:
                     managers[owner] = path
 
         # make all the manager gmo (get managed objects) calls
         results = {}
-        for owner, path in managers.iteritems():
+        for owner, path in managers.items():
             if owner not in owners:
                 continue
             obj = self.bus.get_object(owner, path, introspect=False)
@@ -169,17 +169,17 @@ class Mapper:
                 obj, dbus.BUS_DAEMON_IFACE + '.ObjectManager')
 
             # flatten (remove interface names) gmo results
-            for path, interfaces in iface.GetManagedObjects().iteritems():
-                if path not in mapper_data.iterkeys():
+            for path, interfaces in iface.GetManagedObjects().items():
+                if path not in iter(mapper_data.keys()):
                     continue
                 properties = {}
-                for iface, props in interfaces.iteritems():
+                for iface, props in interfaces.items():
                     properties.update(props)
                 results.setdefault(path, {}).setdefault(owner, properties)
 
         # make dbus calls for any remaining objects
-        for path, bus_data in mapper_data.iteritems():
-            for owner, interfaces in bus_data.iteritems():
+        for path, bus_data in mapper_data.items():
+            for owner, interfaces in bus_data.items():
                 if results.setdefault(path, {}).setdefault(owner, {}):
                     continue
                 results[path][owner].update(
@@ -187,8 +187,8 @@ class Mapper:
                         path, owner, interfaces, match))
 
         objs = obmc.utils.pathtree.PathTree()
-        for path, owners in results.iteritems():
-            for owner, properties in owners.iteritems():
+        for path, owners in results.items():
+            for owner, properties in owners.items():
                 objs.setdefault(path, {}).update(properties)
 
         return objs
