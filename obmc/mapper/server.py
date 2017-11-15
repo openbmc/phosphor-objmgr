@@ -267,6 +267,7 @@ class ObjectMapper(dbus.service.Object):
             self.properties_changed_handler,
             dbus_interface=dbus.PROPERTIES_IFACE,
             signal_name='PropertiesChanged',
+            arg0=obmc.dbuslib.enums.OBMC_ASSOCIATIONS_IFACE,
             path_keyword='path',
             sender_keyword='sender')
 
