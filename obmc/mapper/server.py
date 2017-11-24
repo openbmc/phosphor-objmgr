@@ -472,7 +472,7 @@ class ObjectMapper(dbus.service.Object):
         for owned_name, o in owners:
             if not self.valid_signal(owned_name):
                 continue
-            self.bus_map[o] = owned_name
+            self.bus_map[owned_name] = o
             self.defer_signals[owned_name] = []
             find_dbus_interfaces(
                 self.bus, owned_name, '/',
