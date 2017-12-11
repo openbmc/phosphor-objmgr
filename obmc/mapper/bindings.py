@@ -82,7 +82,11 @@ class Mapper:
             return f(*a)
         except dbus.exceptions.DBusException, e:
             if obmc.dbuslib.enums.DBUS_UNKNOWN_INTERFACE in \
-                    e.get_dbus_message():
+                    e.get_dbus_name():
+                # interface doesn't have any properties
+                return None
+            if obmc.dbuslib.enums.DBUS_UNKNOWN_INTERFACE_ERROR in \
+                    e.get_dbus_name():
                 # interface doesn't have any properties
                 return None
             if obmc.dbuslib.enums.DBUS_UNKNOWN_METHOD == e.get_dbus_name():
