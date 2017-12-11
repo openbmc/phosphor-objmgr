@@ -83,12 +83,12 @@ class Mapper:
         except dbus.exceptions.DBusException, e:
             if obmc.dbuslib.enums.DBUS_UNKNOWN_INTERFACE in \
                     e.get_dbus_message():
-                # interface doesn't have any properties
+                # interface doesn't have any properties, ignore
                 return None
             if obmc.dbuslib.enums.DBUS_UNKNOWN_METHOD == e.get_dbus_name():
-                # properties interface not implemented at all
+                # properties interface not implemented at all, raise error
                 return None
-            raise
+                raise
 
     @staticmethod
     def __get_properties_on_iface(properties_iface, iface):
