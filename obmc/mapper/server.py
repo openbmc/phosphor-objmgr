@@ -270,11 +270,18 @@ class ObjectMapper(dbus.service.Object):
         we were attempting to introspect.'''
 
         if owner in self.defer_signals:
+            # Safe to add a reference to the traceback here,
+            # since it cannot contain the discovery_error frame.
+            exctype, value, tb = sys.exc_info()
             sys.stderr.write(
                 '{} discovery failure on {}\n'.format(
                     self.bus_map.get(owner, owner),
                     path))
-            traceback.print_exception(*sys.exc_info(), file=sys.stderr)
+            if tb:
+                traceback.print_exception(exctype, value, tb, file=sys.stderr)
+            else:
+                sys.stderr.write('{}: {}\n'.format(e.__class__.__name__, e))
+
             del self.defer_signals[owner]
             del self.bus_map[owner]
 
