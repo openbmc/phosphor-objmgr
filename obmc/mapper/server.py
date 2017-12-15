@@ -274,7 +274,7 @@ class ObjectMapper(dbus.service.Object):
                 '{} discovery failure on {}\n'.format(
                     self.bus_map.get(owner, owner),
                     path))
-            traceback.print_exception(*sys.exc_info())
+            traceback.print_exception(*sys.exc_info(), file=sys.stderr)
             del self.defer_signals[owner]
             del self.bus_map[owner]
 
