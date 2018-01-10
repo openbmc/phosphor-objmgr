@@ -58,13 +58,15 @@ class Mapper:
                 path, interfaces, signature='sas'),
             retries, interval)
 
-    def get_subtree_paths(self, path='/', depth=0, retries=5, interfaces=[], interval=0.2):
+    def get_subtree_paths(
+            self, path='/', depth=0, retries=5, interfaces=[], interval=0.2):
         return self.retry(
             lambda: self.iface.GetSubTreePaths(
                 path, depth, interfaces, signature='sias'),
             retries, interval)
 
-    def get_subtree(self, path='/', depth=0, retries=5, interfaces=[], interval=0.2):
+    def get_subtree(
+            self, path='/', depth=0, retries=5, interfaces=[], interval=0.2):
         return self.retry(
             lambda: self.iface.GetSubTree(
                 path, depth, interfaces, signature='sias'),
