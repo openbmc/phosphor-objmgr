@@ -541,14 +541,14 @@ class ObjectMapper(dbus.service.Object):
 
             # Remove interfaces from a service that
             # aren't in a filter.
-            svc_map = def svc: (
+            svc_map = lambda svc: (
                 svc[0],
                 list(set(ifaces).intersection(svc[1])))
 
             # Remove services where no interfaces remain after mapping.
-            svc_filter = def svc: svc[1]
+            svc_filter = lambda svc: svc[1]
 
-            obj_map = def o: (
+            obj_map = lambda o: (
                 tuple(*filter(svc_filter, map(svc_map, [o]))))
 
             return dict(filter(lambda x: x, map(obj_map, item.iteritems())))
@@ -557,7 +557,7 @@ class ObjectMapper(dbus.service.Object):
         if not ifaces:
             return dict(item)
 
-        obj_map = def x: (
+        obj_map = lambda x: (
             x[0],
             ObjectMapper.filter_interfaces(
                 x[1],
