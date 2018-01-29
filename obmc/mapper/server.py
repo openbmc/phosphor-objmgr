@@ -188,6 +188,7 @@ class Association(obmc.dbuslib.bindings.DbusProperties):
         """
         super(Association, self).__init__(conn=bus, object_path=path)
         self.properties = {self.iface: {'endpoints': endpoints}}
+        self.unmask_signals()
 
 
 class Manager(obmc.dbuslib.bindings.DbusObjectManager):
