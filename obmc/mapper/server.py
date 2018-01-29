@@ -394,13 +394,14 @@ class ObjectMapper(dbus.service.Object):
                 path, owner, old=old, new=[])
 
     def bus_handler(self, owned_name, old, new):
-        valid = False
-        if not obmc.dbuslib.bindings.is_unique(owned_name):
-            valid = self.bus_normalize(owned_name)
+        if obmc.dbuslib.bindings.is_unique(owned_name):
+            return
+        if owned_name == obmc.mapper.MAPPER_NAME:
+            return
 
-        if valid and new:
+        if new:
             self.process_new_owner(owned_name, new)
-        if valid and old:
+        if old:
             # discard any unhandled signals
             # or in progress discovery
             if old in self.defer_signals:
