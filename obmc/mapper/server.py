@@ -390,7 +390,7 @@ class ObjectMapper(dbus.service.Object):
     def bus_handler(self, owned_name, old, new):
         valid = False
         if not obmc.dbuslib.bindings.is_unique(owned_name):
-            valid = self.valid_signal(owned_name)
+            valid = self.bus_normalize(owned_name)
 
         if valid and new:
             self.process_new_owner(owned_name, new)
@@ -479,7 +479,7 @@ class ObjectMapper(dbus.service.Object):
                 self.bus.list_names())
             owners = filter(bool, [get_owner(name) for name in owned_names])
         for owned_name, o in owners:
-            if not self.valid_signal(owned_name):
+            if not self.bus_normalize(owned_name):
                 continue
             self.bus_map[o] = owned_name
             self.defer_signals[o] = []
@@ -490,15 +490,23 @@ class ObjectMapper(dbus.service.Object):
                 subtree_match=self.path_match,
                 iface_match=self.interface_match)
 
-    def valid_signal(self, name):
+    def bus_normalize(self, name):
+        '''
+        Normalize on well-known names and filter signals
+        originating from the mapper.
+        '''
+
         if obmc.dbuslib.bindings.is_unique(name):
             name = self.bus_map.get(name)
 
-        return name is not None and name != obmc.mapper.MAPPER_NAME
+        if name == obmc.mapper.MAPPER_NAME:
+            return None
+
+        return name
 
     def get_signal_interfaces(self, owner, interfaces):
         filtered = []
-        if self.valid_signal(owner):
+        if self.bus_normalize(owner):
             filtered = [str(x) for x in interfaces if self.interface_match(x)]
 
         return filtered
