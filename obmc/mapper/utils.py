@@ -24,7 +24,7 @@ import obmc.mapper
 class Wait(object):
     def __init__(self, bus, waitlist, *a, **kw):
         self.bus = bus
-        self.waitlist = dict(list(zip(waitlist, [None]*len(waitlist))))
+        self.waitlist = dict(list(zip(waitlist, [None] * len(waitlist))))
         mapper = bus.get_object(
             obmc.mapper.MAPPER_NAME,
             obmc.mapper.MAPPER_PATH,
@@ -121,5 +121,6 @@ class Wait(object):
         if self.done:
             return
 
-        for path in [x for x in list(self.waitlist.keys()) if not self.waitlist[x]]:
+        for path in [
+                x for x in list(self.waitlist.keys()) if not self.waitlist[x]]:
             self.get_object_async(path, 0)

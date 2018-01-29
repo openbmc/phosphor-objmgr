@@ -473,8 +473,11 @@ class ObjectMapper(dbus.service.Object):
                 traceback.print_exception(*sys.exc_info())
 
         if not owners:
-            owned_names = [x for x in self.bus.list_names() if not obmc.dbuslib.bindings.is_unique(x)]
-            owners = list(filter(bool, [get_owner(name) for name in owned_names]))
+            owned_names = [
+                x for x in self.bus.list_names()
+                if not obmc.dbuslib.bindings.is_unique(x)]
+            owners = list(
+                filter(bool, [get_owner(name) for name in owned_names]))
         for owned_name, o in owners:
             if not self.valid_signal(owned_name):
                 continue
