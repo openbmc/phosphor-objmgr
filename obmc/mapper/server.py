@@ -309,7 +309,9 @@ class ObjectMapper(dbus.service.Object):
     def interfaces_added_handler(self, path, iprops, **kw):
         path = str(path)
         owner = str(kw['sender'])
-        interfaces = self.get_signal_interfaces(owner, iter(iprops.keys()))
+        if not self.bus_normalize(owner):
+            return
+        interfaces = self.filter_signal_interfaces(iter(iprops.keys()))
         if not interfaces:
             return
 
@@ -329,7 +331,9 @@ class ObjectMapper(dbus.service.Object):
     def interfaces_removed_handler(self, path, interfaces, **kw):
         path = str(path)
         owner = str(kw['sender'])
-        interfaces = self.get_signal_interfaces(owner, interfaces)
+        if not self.bus_normalize(owner):
+            return
+        interfaces = self.filter_signal_interfaces(interfaces)
         if not interfaces:
             return
 
@@ -348,7 +352,9 @@ class ObjectMapper(dbus.service.Object):
     def properties_changed_handler(self, interface, new, old, **kw):
         owner = str(kw['sender'])
         path = str(kw['path'])
-        interfaces = self.get_signal_interfaces(owner, [interface])
+        if not self.bus_normalize(owner):
+            return
+        interfaces = self.filter_signal_interfaces([interface])
         if not self.is_association(interfaces):
             return
         associations = new.get('associations', None)
@@ -502,12 +508,8 @@ class ObjectMapper(dbus.service.Object):
 
         return name
 
-    def get_signal_interfaces(self, owner, interfaces):
-        filtered = []
-        if self.bus_normalize(owner):
-            filtered = [str(x) for x in interfaces if self.interface_match(x)]
-
-        return filtered
+    def filter_signal_interfaces(self, interfaces):
+        return [str(x) for x in interfaces if self.interface_match(x)]
 
     @staticmethod
     def interfaces_get(item, owner, default=[]):
