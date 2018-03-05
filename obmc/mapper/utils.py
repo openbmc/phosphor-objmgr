@@ -17,7 +17,11 @@
 import sys
 import dbus
 import dbus.mainloop.glib
-import gobject
+# TODO: openbmc/openbmc#2994 remove python 2 support
+try:  # python 2
+    import gobject
+except ImportError:  # python 3
+    from gi.repository import GObject as gobject
 import obmc.mapper
 
 
