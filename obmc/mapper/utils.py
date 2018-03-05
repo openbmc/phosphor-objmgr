@@ -17,7 +17,11 @@
 import sys
 import dbus
 import dbus.mainloop.glib
-import gobject
+# TODO: remove support for python 2 once we're at yocto 2.4
+try:  # python 2
+    import gobject
+except ImportError:  # python 3
+    from gi.repository import GObject as gobject
 import obmc.mapper
 
 

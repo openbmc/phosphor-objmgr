@@ -36,6 +36,7 @@ if __name__ == '__main__':
         default="")
 
     args = parser.parse_args()
+    print("CamVan: phosphor-mapper main") #DEBUG
 
     sys.exit(
         obmc.mapper.server.server_main(
