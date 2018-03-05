@@ -18,7 +18,11 @@ import dbus
 import dbus.service
 import dbus.exceptions
 import dbus.mainloop.glib
-import gobject
+# TODO: remove support for python 2 once we're at yocto 2.4
+try: # python 2
+    import gobject
+except ImportError: # python 3
+    from gi.repository import GObject as gobject
 import xml.etree.ElementTree as ET
 import obmc.utils.pathtree
 import obmc.mapper
@@ -97,7 +101,7 @@ def find_dbus_interfaces(conn, service, path, callback, error_callback, **kw):
         def _gmo_callback(self, path, objs):
             try:
                 self.gmo_pending.remove(path)
-                for k, v in objs.items():
+                for k, v in list(objs.items()):
                     self.results[k] = v
             except Exception as e:
                 error_callback(service, path, e)
@@ -308,7 +312,7 @@ class ObjectMapper(dbus.service.Object):
         owner = self.bus_normalize(str(kw['sender']))
         if not owner:
             return
-        interfaces = self.filter_signal_interfaces(iter(iprops.keys()))
+        interfaces = self.filter_signal_interfaces(iter(list(iprops.keys())))
         if not interfaces:
             return
 
@@ -439,7 +443,7 @@ class ObjectMapper(dbus.service.Object):
             path, owner, old_assoc, new_assoc, created, destroyed)
 
     def add_items(self, owner, bus_items):
-        for path, items in bus_items.items():
+        for path, items in list(bus_items.items()):
             self.update_interfaces(path, str(owner), old=[], new=items)
 
     def path_match(self, path):
@@ -569,7 +573,7 @@ class ObjectMapper(dbus.service.Object):
             obj_map = lambda o: (
                 tuple(*list(filter(svc_filter, list(map(svc_map, [o]))))))
 
-            return dict([x for x in map(obj_map, iter(item.items())) if x])
+            return dict([x for x in map(obj_map, iter(list(item.items()))) if x])
 
         # Called with a list of path/object tuples.
         if not ifaces:
@@ -611,7 +615,7 @@ class ObjectMapper(dbus.service.Object):
 
     @staticmethod
     def has_interfaces(item):
-        for owner in item.keys():
+        for owner in list(item.keys()):
             if ObjectMapper.interfaces_get(item, owner):
                 return True
         return False
