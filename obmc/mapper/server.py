@@ -102,7 +102,9 @@ def find_dbus_interfaces(conn, service, path, callback, error_callback, **kw):
             try:
                 self.gmo_pending.remove(path)
                 for k, v in list(objs.items()):
-                    self.results[k] = v
+                    ifaces = {iface: properties for iface, properties in list(
+                        filter(lambda x: iface_match(x[0]), v.items()))}
+                    self.results[k] = ifaces
             except Exception as e:
                 error_callback(service, path, e)
                 return None
