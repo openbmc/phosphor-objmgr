@@ -73,20 +73,18 @@ void ArgumentParser::usage(char** argv)
     std::cerr << std::flush;
 }
 
-const option ArgumentParser::options[] =
-{
-    { "source",  required_argument, NULL, 's' },
-    { "action", required_argument, NULL, 'a' },
-    { "target", required_argument, NULL, 't' },
-    { "help",   no_argument,       NULL, 'h' },
-    { 0, 0, 0, 0},
+const option ArgumentParser::options[] = {
+    {"source", required_argument, NULL, 's'},
+    {"action", required_argument, NULL, 'a'},
+    {"target", required_argument, NULL, 't'},
+    {"help", no_argument, NULL, 'h'},
+    {0, 0, 0, 0},
 };
 
 const char* ArgumentParser::optionStr = "s:a:t:h?";
 
 const std::string ArgumentParser::trueString = "true";
 const std::string ArgumentParser::emptyString = "";
-
 }
 }
 }

@@ -40,11 +40,8 @@ void exitWithError(const char* err, char** argv)
     exit(EXIT_FAILURE);
 }
 
-static const std::map<std::string, Monitor::Action> actions =
-{
-    {"start", Monitor::Action::start},
-    {"stop", Monitor::Action::stop}
-};
+static const std::map<std::string, Monitor::Action> actions = {
+    {"start", Monitor::Action::start}, {"stop", Monitor::Action::stop}};
 
 int main(int argc, char** argv)
 {

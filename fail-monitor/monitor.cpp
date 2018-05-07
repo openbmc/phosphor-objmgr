@@ -29,12 +29,11 @@ constexpr auto FAILED_STATE = "failed";
 constexpr auto START_METHOD = "StartUnit";
 constexpr auto STOP_METHOD = "StopUnit";
 
-constexpr auto SYSTEMD_SERVICE   = "org.freedesktop.systemd1";
-constexpr auto SYSTEMD_OBJ_PATH  = "/org/freedesktop/systemd1";
+constexpr auto SYSTEMD_SERVICE = "org.freedesktop.systemd1";
+constexpr auto SYSTEMD_OBJ_PATH = "/org/freedesktop/systemd1";
 constexpr auto SYSTEMD_INTERFACE = "org.freedesktop.systemd1.Manager";
 constexpr auto SYSTEMD_PROPERTY_INTERFACE = "org.freedesktop.DBus.Properties";
 constexpr auto SYSTEMD_UNIT_INTERFACE = "org.freedesktop.systemd1.Unit";
-
 
 void Monitor::analyze()
 {
@@ -44,15 +43,12 @@ void Monitor::analyze()
     }
 }
 
-
 bool Monitor::inFailedState(const std::string&& path)
 {
     sdbusplus::message::variant<std::string> property;
 
-    auto method = bus.new_method_call(SYSTEMD_SERVICE,
-                                      path.c_str(),
-                                      SYSTEMD_PROPERTY_INTERFACE,
-                                      "Get");
+    auto method = bus.new_method_call(SYSTEMD_SERVICE, path.c_str(),
+                                      SYSTEMD_PROPERTY_INTERFACE, "Get");
 
     method.append(SYSTEMD_UNIT_INTERFACE, "ActiveState");
 
@@ -60,7 +56,7 @@ bool Monitor::inFailedState(const std::string&& path)
     if (reply.is_method_error())
     {
         log<level::ERR>("Failed reading ActiveState DBus property",
-                entry("UNIT=%s", source.c_str()));
+                        entry("UNIT=%s", source.c_str()));
         // TODO openbmc/openbmc#851 - Once available, throw returned error
         throw std::runtime_error("Failed reading ActiveState DBus property");
     }
@@ -71,22 +67,19 @@ bool Monitor::inFailedState(const std::string&& path)
     return (value == FAILED_STATE);
 }
 
-
 std::string Monitor::getSourceUnitPath()
 {
     sdbusplus::message::object_path path;
 
-    auto method = bus.new_method_call(SYSTEMD_SERVICE,
-                                      SYSTEMD_OBJ_PATH,
-                                      SYSTEMD_INTERFACE,
-                                      "GetUnit");
+    auto method = bus.new_method_call(SYSTEMD_SERVICE, SYSTEMD_OBJ_PATH,
+                                      SYSTEMD_INTERFACE, "GetUnit");
     method.append(source);
     auto reply = bus.call(method);
 
     if (reply.is_method_error())
     {
         log<level::ERR>("Failed GetUnit DBus method call",
-                entry("UNIT=%s", source.c_str()));
+                        entry("UNIT=%s", source.c_str()));
         // TODO openbmc/openbmc#851 - Once available, throw returned error
         throw std::runtime_error("Failed GetUnit DBus method call");
     }
@@ -96,12 +89,10 @@ std::string Monitor::getSourceUnitPath()
     return static_cast<std::string>(path);
 }
 
-
 void Monitor::runTargetAction()
 {
-    //Start or stop the target unit
-    auto methodCall = (action == Action::start) ?
-                      START_METHOD : STOP_METHOD;
+    // Start or stop the target unit
+    auto methodCall = (action == Action::start) ? START_METHOD : STOP_METHOD;
 
     log<level::INFO>("The source unit is in failed state, "
                      "running target action",
@@ -109,10 +100,8 @@ void Monitor::runTargetAction()
                      entry("TARGET=%s", target.c_str()),
                      entry("ACTION=%s", methodCall));
 
-    auto method = this->bus.new_method_call(SYSTEMD_SERVICE,
-                                            SYSTEMD_OBJ_PATH,
-                                            SYSTEMD_INTERFACE,
-                                            methodCall);
+    auto method = this->bus.new_method_call(SYSTEMD_SERVICE, SYSTEMD_OBJ_PATH,
+                                            SYSTEMD_INTERFACE, methodCall);
     method.append(target);
     method.append("replace");
 
@@ -121,12 +110,11 @@ void Monitor::runTargetAction()
     if (reply.is_method_error())
     {
         log<level::ERR>("Failed to run action on the target unit",
-                entry("UNIT=%s", target.c_str()));
+                        entry("UNIT=%s", target.c_str()));
         // TODO openbmc/openbmc#851 - Once available, throw returned error
         throw std::runtime_error("Failed to run action on the target unit");
     }
 }
-
 }
 }
 }
