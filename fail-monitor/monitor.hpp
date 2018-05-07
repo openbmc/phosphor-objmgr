@@ -23,91 +23,85 @@ namespace failure
  */
 class Monitor
 {
-    public:
+  public:
+    /**
+     * The valid actions - either starting or stopping a unit
+     */
+    enum class Action
+    {
+        start,
+        stop
+    };
 
-        /**
-         * The valid actions - either starting or stopping a unit
-         */
-        enum class Action
-        {
-            start,
-            stop
-        };
+    Monitor() = delete;
+    Monitor(const Monitor&) = delete;
+    Monitor(Monitor&&) = default;
+    Monitor& operator=(const Monitor&) = delete;
+    Monitor& operator=(Monitor&&) = default;
+    ~Monitor() = default;
 
-        Monitor() = delete;
-        Monitor(const Monitor&) = delete;
-        Monitor(Monitor&&) = default;
-        Monitor& operator=(const Monitor&) = delete;
-        Monitor& operator=(Monitor&&) = default;
-        ~Monitor() = default;
+    /**
+     * Constructor
+     *
+     * @param[in] sourceUnit - the source unit
+     * @param[in] targetUnit - the target unit
+     * @param[in] action - the action to run on the target
+     */
+    Monitor(const std::string& sourceUnit, const std::string& targetUnit,
+            Action action) :
+        bus(std::move(sdbusplus::bus::new_default())),
+        source(sourceUnit), target(targetUnit), action(action)
+    {
+    }
 
-        /**
-         * Constructor
-         *
-         * @param[in] sourceUnit - the source unit
-         * @param[in] targetUnit - the target unit
-         * @param[in] action - the action to run on the target
-         */
-        Monitor(const std::string& sourceUnit,
-                const std::string& targetUnit,
-                Action action) :
-            bus(std::move(sdbusplus::bus::new_default())),
-            source(sourceUnit),
-            target(targetUnit),
-            action(action)
-            {
-            }
+    /**
+     * Analyzes the source unit to check if it is in a failed state.
+     * If it is, then it runs the action on the target unit.
+     */
+    void analyze();
 
-        /**
-         * Analyzes the source unit to check if it is in a failed state.
-         * If it is, then it runs the action on the target unit.
-         */
-        void analyze();
+  private:
+    /**
+     * Returns the dbus object path of the source unit
+     */
+    std::string getSourceUnitPath();
 
-    private:
+    /**
+     * Says if the unit object passed in has an
+     * ActiveState property equal to 'failed'.
+     *
+     * @param[in] path - the unit object path to check
+     *
+     * @return - true if this unit is in the failed state
+     */
+    bool inFailedState(const std::string&& path);
 
-        /**
-         * Returns the dbus object path of the source unit
-         */
-        std::string getSourceUnitPath();
+    /**
+     * Runs the action on the target unit.
+     */
+    void runTargetAction();
 
-        /**
-         * Says if the unit object passed in has an
-         * ActiveState property equal to 'failed'.
-         *
-         * @param[in] path - the unit object path to check
-         *
-         * @return - true if this unit is in the failed state
-         */
-        bool inFailedState(const std::string&& path);
+    /**
+     * The dbus object
+     */
+    sdbusplus::bus::bus bus;
 
-        /**
-         * Runs the action on the target unit.
-         */
-        void runTargetAction();
+    /**
+     * The source unit
+     */
+    const std::string source;
 
-        /**
-         * The dbus object
-         */
-        sdbusplus::bus::bus bus;
+    /**
+     * The target unit
+     */
+    const std::string target;
 
-        /**
-         * The source unit
-         */
-        const std::string source;
-
-        /**
-         * The target unit
-         */
-        const std::string target;
-
-        /**
-         * The action to run on the target if the source
-         * unit is in failed state.
-         */
-        const Action action;
+    /**
+     * The action to run on the target if the source
+     * unit is in failed state.
+     */
+    const Action action;
 };
-
 }
 }
 }
