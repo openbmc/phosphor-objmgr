@@ -30,6 +30,7 @@ import obmc.dbuslib.bindings
 import obmc.dbuslib.enums
 import sys
 import traceback
+from itertools import chain
 
 
 class MapperBusyException(dbus.exceptions.DBusException):
@@ -65,7 +66,7 @@ def find_dbus_interfaces(conn, service, path, callback, error_callback, **kw):
 
         @staticmethod
         def _to_path_elements(path):
-            return list(filter(bool, path.split('/')))
+            return filter(bool, path.split('/'))
 
         def __call__(self, path):
             try:
@@ -101,10 +102,9 @@ def find_dbus_interfaces(conn, service, path, callback, error_callback, **kw):
         def _gmo_callback(self, path, objs):
             try:
                 self.gmo_pending.remove(path)
-                for k, v in list(objs.items()):
-                    ifaces = {iface: properties for iface, properties in list(
-                        filter(lambda x: iface_match(x[0]), v.items()))}
-                    self.results[k] = ifaces
+                for k, v in objs.items():
+                    self.results[k] = dict(x for x in v.items()
+                                           if iface_match(x[0]))
             except Exception as e:
                 error_callback(service, path, e)
                 return None
@@ -120,9 +120,9 @@ def find_dbus_interfaces(conn, service, path, callback, error_callback, **kw):
             try:
                 path_elements = self._to_path_elements(path)
                 root = ET.fromstring(data)
-                ifaces = list(filter(
-                    self._match,
-                    [x.attrib.get('name') for x in root.findall('interface')]))
+                all_ifaces = root.findall('interface')
+                ifaces = filter(self._match,
+                                [x.attrib.get('name') for x in all_ifaces])
                 ifaces = {x: {} for x in ifaces}
                 self.results[path] = ifaces
 
@@ -149,12 +149,12 @@ def find_dbus_interfaces(conn, service, path, callback, error_callback, **kw):
                         error_handler=lambda e: error_callback(
                             service, path, e))
                 else:
-                    children = list(filter(
+                    children = filter(
                         bool,
-                        [x.attrib.get('name') for x in root.findall('node')]))
+                        [x.attrib.get('name') for x in root.findall('node')])
                     children = [
-                        self._to_path(
-                            path_elements + self._to_path_elements(x))
+                        self._to_path(chain(path_elements,
+                                            self._to_path_elements(x)))
                         for x in sorted(children)]
                     for child in filter(subtree_match, children):
                         if child not in self.results:
@@ -166,8 +166,7 @@ def find_dbus_interfaces(conn, service, path, callback, error_callback, **kw):
             self.check_done()
 
         def _find_interfaces(self, path):
-            path_elements = self._to_path_elements(path)
-            path = self._to_path(path_elements)
+            path = self._to_path(self._to_path_elements(path))
             obj = conn.get_object(service, path, introspect=False)
             iface = dbus.Interface(obj, dbus.INTROSPECTABLE_IFACE)
             self.introspect_pending.append(path)
@@ -303,7 +302,7 @@ class ObjectMapper(dbus.service.Object):
         # make sure its in our cache, and add it if not.
         cache_entry = self.cache_get(path)
         old = self.interfaces_get(cache_entry, owner)
-        new = list(set(old).union([dbus.BUS_DAEMON_IFACE + '.ObjectManager']))
+        new = set(old).union([dbus.BUS_DAEMON_IFACE + '.ObjectManager'])
         self.update_interfaces(path, owner, old, new)
 
     def defer_signal(self, owner, callback):
@@ -314,7 +313,7 @@ class ObjectMapper(dbus.service.Object):
         owner = self.bus_normalize(str(kw['sender']))
         if not owner:
             return
-        interfaces = self.filter_signal_interfaces(iter(list(iprops.keys())))
+        interfaces = self.filter_signal_interfaces(iprops.keys())
         if not interfaces:
             return
 
@@ -322,7 +321,7 @@ class ObjectMapper(dbus.service.Object):
             self.add_new_objmgr(str(kw['sender_path']), owner)
             cache_entry = self.cache_get(path)
             old = self.interfaces_get(cache_entry, owner)
-            new = list(set(interfaces).union(old))
+            new = set(interfaces).union(old)
             new = {x: iprops.get(x, {}) for x in new}
             self.update_interfaces(path, owner, old, new)
         else:
@@ -344,7 +343,7 @@ class ObjectMapper(dbus.service.Object):
             self.add_new_objmgr(str(kw['sender_path']), owner)
             cache_entry = self.cache_get(path)
             old = self.interfaces_get(cache_entry, owner)
-            new = list(set(old).difference(interfaces))
+            new = set(old).difference(interfaces)
             self.update_interfaces(path, owner, old, new)
         else:
             self.defer_signal(
@@ -415,20 +414,20 @@ class ObjectMapper(dbus.service.Object):
         # __xx -> intf list
         # xx -> intf dict
         if isinstance(old, dict):
-            __old = list(old.keys())
+            __old = old.keys()
         else:
             __old = old
             old = {x: {} for x in old}
         if isinstance(new, dict):
-            __new = list(new.keys())
+            __new = new.keys()
         else:
             __new = new
             new = {x: {} for x in new}
 
         cache_entry = self.cache.setdefault(path, {})
         created = [] if self.has_interfaces(cache_entry) else [path]
-        added = list(set(__new).difference(__old))
-        removed = list(set(__old).difference(__new))
+        added = set(__new).difference(__old)
+        removed = set(__old).difference(__new)
         self.interfaces_append(cache_entry, owner, added)
         self.interfaces_remove(cache_entry, owner, removed, path)
         destroyed = [] if self.has_interfaces(cache_entry) else [path]
@@ -445,7 +444,7 @@ class ObjectMapper(dbus.service.Object):
             path, owner, old_assoc, new_assoc, created, destroyed)
 
     def add_items(self, owner, bus_items):
-        for path, items in list(bus_items.items()):
+        for path, items in bus_items.items():
             self.update_interfaces(path, str(owner), old=[], new=items)
 
     def path_match(self, path):
@@ -492,11 +491,9 @@ class ObjectMapper(dbus.service.Object):
                 traceback.print_exception(*sys.exc_info())
 
         if not owners:
-            owned_names = [
-                x for x in self.bus.list_names()
-                if not obmc.dbuslib.bindings.is_unique(x)]
-            owners = list(
-                filter(bool, [get_owner(name) for name in owned_names]))
+            owned_names = [x for x in self.bus.list_names()
+                           if not obmc.dbuslib.bindings.is_unique(x)]
+            owners = filter(bool, (get_owner(name) for name in owned_names))
         for owned_name, o in owners:
             if not self.bus_normalize(owned_name):
                 continue
@@ -565,18 +562,14 @@ class ObjectMapper(dbus.service.Object):
 
             # Remove interfaces from a service that
             # aren't in a filter.
-            svc_map = lambda svc: (
-                svc[0],
-                list(set(ifaces).intersection(svc[1])))
+            svc_map = lambda svc: (svc[0], set(ifaces).intersection(svc[1]))
 
             # Remove services where no interfaces remain after mapping.
             svc_filter = lambda svc: svc[1]
 
-            obj_map = lambda o: (
-                tuple(*list(filter(svc_filter, list(map(svc_map, [o]))))))
+            obj_map = lambda o: tuple(*filter(svc_filter, map(svc_map, [o])))
 
-            return dict(
-                [x for x in map(obj_map, iter(list(item.items()))) if x])
+            return dict(x for x in map(obj_map, item.items()) if x)
 
         # Called with a list of path/object tuples.
         if not ifaces:
@@ -618,10 +611,7 @@ class ObjectMapper(dbus.service.Object):
 
     @staticmethod
     def has_interfaces(item):
-        for owner in list(item.keys()):
-            if ObjectMapper.interfaces_get(item, owner):
-                return True
-        return False
+        return any(item.values())
 
     @staticmethod
     def is_association(interfaces):
@@ -659,7 +649,7 @@ class ObjectMapper(dbus.service.Object):
         associations = []
         if not owners:
             index = self.index.get(forward, {})
-            owners = list(index.get(path, {}).keys())
+            owners = index.get(path, {}).keys()
 
         # f: forward
         # r: reverse
@@ -681,9 +671,8 @@ class ObjectMapper(dbus.service.Object):
         iface = obmc.dbuslib.enums.OBMC_ASSOC_IFACE
         assoc = self.manager.get(path, None)
 
-        old_endpoints = assoc.Get(iface, 'endpoints') if assoc else []
-        new_endpoints = list(
-            set(old_endpoints).union(added).difference(removed))
+        old_endpoints = set(assoc.Get(iface, 'endpoints') if assoc else [])
+        new_endpoints = old_endpoints.union(added).difference(removed)
 
         if old_endpoints == new_endpoints:
             return
@@ -693,11 +682,11 @@ class ObjectMapper(dbus.service.Object):
 
         if create:
             self.manager.add(
-                path, Association(self.bus, path, new_endpoints))
+                path, Association(self.bus, path, list(new_endpoints)))
         elif delete:
             self.manager.remove(path)
         else:
-            assoc.Set(iface, 'endpoints', new_endpoints)
+            assoc.Set(iface, 'endpoints', list(new_endpoints))
 
         if create != delete:
             self.update_interfaces(
@@ -705,8 +694,8 @@ class ObjectMapper(dbus.service.Object):
 
     def update_associations(
             self, path, owner, old, new, created=[], destroyed=[]):
-        added = list(set(new).difference(old))
-        removed = list(set(old).difference(new))
+        added = set(new).difference(old)
+        removed = set(old).difference(new)
         for forward, reverse, endpoint in added:
             if not endpoint:
                 # skip associations without an endpoint
@@ -764,22 +753,22 @@ class ObjectMapper(dbus.service.Object):
         if not self.cache_get(path):
             raise MapperNotFoundException(path)
 
-        elements = list(filter(bool, path.split('/')))
-        paths = []
         objs = {}
-        while elements:
-            elements.pop()
-            paths.append('/' + '/'.join(elements))
-        if path != '/':
-            paths.append('/')
 
-        for path in paths:
-            obj = self.cache_get(path)
+        def parents(path):
+            yield "/"
+            parent = ""
+            for elem in (x for x in list(filter(bool, path.split('/')))[:-1]):
+                parent += "/" + elem
+                yield parent
+
+        for parent in parents(path):
+            obj = self.cache_get(parent)
             if not obj:
                 continue
-            objs[path] = obj
+            objs[parent] = obj
 
-        return self.filter_interfaces(list(objs.items()), interfaces)
+        return self.filter_interfaces(objs.items(), interfaces)
 
     @dbus.service.signal(obmc.mapper.MAPPER_IFACE + '.Private', 's')
     def IntrospectionComplete(self, name):
