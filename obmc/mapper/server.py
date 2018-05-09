@@ -558,33 +558,37 @@ class ObjectMapper(dbus.service.Object):
 
     @staticmethod
     def filter_interfaces(item, ifaces):
+        return ObjectMapper._filter_interfaces(item, set(ifaces))
+
+    @staticmethod
+    def _filter_interfaces(item, ifaces):
         if isinstance(item, dict):
             # Called with a single object.
             if not ifaces:
                 return item
 
-            # Remove interfaces from a service that
-            # aren't in a filter.
-            svc_map = lambda svc: (svc[0], set(ifaces).intersection(svc[1]))
+            filtered = dict()
+            for k, v in item.items():
+                isec = ifaces.intersection(v)
+                if isec:
+                    filtered[k] = isec
 
-            # Remove services where no interfaces remain after mapping.
-            svc_filter = lambda svc: svc[1]
-
-            obj_map = lambda o: tuple(*filter(svc_filter, map(svc_map, [o])))
-
-            return dict(x for x in map(obj_map, item.items()) if x)
+            return filtered
 
         # Called with a list of path/object tuples.
         if not ifaces:
             return dict(item)
 
-        obj_map = lambda x: (
-            x[0],
-            ObjectMapper.filter_interfaces(
-                x[1],
-                ifaces))
+        if not item:
+            return dict()
 
-        return dict([x for x in map(obj_map, iter(item or [])) if x[1]])
+        filtered = dict()
+        for i in item:
+            children = ObjectMapper._filter_interfaces(i[1], ifaces)
+            if children:
+                filtered[i[0]] = children
+
+        return filtered
 
     @dbus.service.method(obmc.mapper.MAPPER_IFACE, 'sas', 'a{sas}')
     def GetObject(self, path, interfaces):
