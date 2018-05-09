@@ -391,9 +391,10 @@ class ObjectMapper(dbus.service.Object):
 
         for path, item in self.cache.dataitems():
             old = self.interfaces_get(item, owned_name)
-            # remove all interfaces for this service
-            self.update_interfaces(
-                path, owned_name, old=old, new=[])
+            if old:
+                # remove all interfaces for this service
+                self.update_interfaces(
+                    path, owned_name, old=old, new=[])
 
     def bus_handler(self, owned_name, old, new):
         if obmc.dbuslib.bindings.is_unique(owned_name) or \
