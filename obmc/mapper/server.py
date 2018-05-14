@@ -483,7 +483,10 @@ class ObjectMapper(dbus.service.Object):
                              subtree_match=self.path_match,
                              iface_match=self.interface_match)
 
-    def discover(self, owners=[]):
+    def discover(self, owners=None):
+        if owners is None:
+            owners = []
+
         def get_owner(name):
             try:
                 return (name, self.bus.get_name_owner(name))
@@ -524,7 +527,9 @@ class ObjectMapper(dbus.service.Object):
         return [str(x) for x in interfaces if self.interface_match(x)]
 
     @staticmethod
-    def interfaces_get(item, owner, default=[]):
+    def interfaces_get(item, owner, default=None):
+        if default is None:
+            default = []
         return item.get(owner, default)
 
     @staticmethod
