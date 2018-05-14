@@ -30,6 +30,7 @@ import obmc.dbuslib.bindings
 import obmc.dbuslib.enums
 import sys
 import traceback
+from collections import defaultdict
 from itertools import chain
 
 
@@ -418,12 +419,12 @@ class ObjectMapper(dbus.service.Object):
             __old = old.keys()
         else:
             __old = old
-            old = {x: {} for x in old}
+            old = defaultdict(dict)
         if isinstance(new, dict):
             __new = new.keys()
         else:
             __new = new
-            new = {x: {} for x in new}
+            new = defaultdict(dict)
 
         cache_entry = self.cache.setdefault(path, {})
         created = [] if self.has_interfaces(cache_entry) else [path]
