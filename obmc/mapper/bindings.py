@@ -122,7 +122,7 @@ class Mapper:
 
         obj = {}
 
-        for owner, interfaces in list(mapper_data[path].items()):
+        for owner, interfaces in mapper_data[path].items():
             obj.update(
                 self.__get_properties_on_bus(
                     path, owner, interfaces, match))
@@ -140,8 +140,8 @@ class Mapper:
 
         # look for objectmanager implementations as they result
         # in fewer dbus calls
-        for path, bus_data in list(mapper_data.items()):
-            for owner, interfaces in list(bus_data.items()):
+        for path, bus_data in mapper_data.items():
+            for owner, interfaces in bus_data.items():
                 owners.append(owner)
                 if dbus.BUS_DAEMON_IFACE + '.ObjectManager' in interfaces:
                     managers[owner] = path
@@ -156,14 +156,16 @@ class Mapper:
             if e.get_dbus_name() != MAPPER_NOT_FOUND:
                 raise
 
-        for path, bus_data in list(ancestors.items()):
-            for owner, interfaces in list(bus_data.items()):
+        for path, bus_data in ancestors.items():
+            for owner, interfaces in bus_data.items():
                 if dbus.BUS_DAEMON_IFACE + '.ObjectManager' in interfaces:
                     managers[owner] = path
 
+        mapper_keys = set(mapper_data.keys())
+
         # make all the manager gmo (get managed objects) calls
         results = {}
-        for owner, path in list(managers.items()):
+        for owner, path in managers.items():
             if owner not in owners:
                 continue
             obj = self.bus.get_object(owner, path, introspect=False)
@@ -172,17 +174,17 @@ class Mapper:
 
             # flatten (remove interface names) gmo results
             for path, interfaces in \
-                    list(iface.GetManagedObjects().items()):
-                if path not in iter(list(mapper_data.keys())):
+                    iface.GetManagedObjects().items():
+                if path not in mapper_keys:
                     continue
                 properties = {}
-                for iface, props in list(interfaces.items()):
+                for iface, props in interfaces.items():
                     properties.update(props)
                 results.setdefault(path, {}).setdefault(owner, properties)
 
         # make dbus calls for any remaining objects
-        for path, bus_data in list(mapper_data.items()):
-            for owner, interfaces in list(bus_data.items()):
+        for path, bus_data in mapper_data.items():
+            for owner, interfaces in bus_data.items():
                 if results.setdefault(path, {}).setdefault(owner, {}):
                     continue
                 results[path][owner].update(
@@ -190,8 +192,8 @@ class Mapper:
                         path, owner, interfaces, match))
 
         objs = obmc.utils.pathtree.PathTree()
-        for path, owners in list(results.items()):
-            for owner, properties in list(owners.items()):
+        for path, owners in results.items():
+            for owner, properties in owners.items():
                 objs.setdefault(path, {}).update(properties)
 
         return objs
