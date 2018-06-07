@@ -20,71 +20,6 @@
 #include <systemd/sd-event.h>
 #include "mapper.h"
 
-static int call_main(int argc, char *argv[])
-{
-    int r;
-    sd_bus *conn = NULL;
-    char *service = NULL;
-    sd_bus_message *m = NULL, *reply = NULL;
-    sd_bus_error error = SD_BUS_ERROR_NULL;
-
-    if (argc < 5)
-    {
-        fprintf(stderr,
-                "Usage: %s call OBJECTPATH INTERFACE "
-                "METHOD [SIGNATURE [ARGUMENT...]\n",
-                argv[0]);
-        r = -1;
-        goto finish;
-    }
-
-    r = sd_bus_default_system(&conn);
-    if (r < 0)
-    {
-        fprintf(stderr, "Error connecting to system bus: %s\n", strerror(-r));
-        goto finish;
-    }
-
-    r = mapper_get_service(conn, argv[2], &service);
-    if (r < 0)
-    {
-        fprintf(stderr, "Error finding '%s' service: %s\n", argv[2],
-                strerror(-r));
-        goto finish;
-    }
-
-    r = sd_bus_message_new_method_call(conn, &m, service, argv[2], argv[3],
-                                       argv[4]);
-    if (r < 0)
-    {
-        fprintf(stderr, "Error populating message: %s\n", strerror(-r));
-        goto finish;
-    }
-
-    if (argc > 5)
-    {
-        char **p;
-        p = argv + 6;
-        r = sd_bus_message_append_cmdline(m, argv[5], &p);
-        if (r < 0)
-        {
-            fprintf(stderr, "Error appending method arguments: %s\n",
-                    strerror(-r));
-            goto finish;
-        }
-    }
-
-    r = sd_bus_call(conn, m, 0, &error, &reply);
-    if (r < 0)
-    {
-        fprintf(stderr, "Error invoking method: %s\n", strerror(-r));
-        goto finish;
-    }
-
-finish:
-    exit(r < 0 ? EXIT_FAILURE : EXIT_SUCCESS);
-}
-
 static void quit(int r, void *loop)
 {
     sd_event_exit((sd_event *)loop, r);
@@ -257,7 +192,6 @@ int main(int argc, char *argv[])
     static const char *usage =
         "Usage: %s {COMMAND} ...\n"
         "\nCOMMANDS:\n"
-        "  call           invoke the specified method\n"
         "  wait           wait for the specified objects to appear on the "
         "DBus\n"
         "  subtree-remove\n"
@@ -271,8 +205,6 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    if (!strcmp(argv[1], "call"))
-        call_main(argc, argv);
     if (!strcmp(argv[1], "wait"))
         wait_main(argc, argv);
     if (!strcmp(argv[1], "subtree-remove"))
