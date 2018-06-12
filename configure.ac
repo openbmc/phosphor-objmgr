@@ -25,6 +25,8 @@ AC_SUBST([HAVE_PYTHON])
 AC_SUBST([PYTHONDIR], ${pythondir})
 
 # Checks for libraries.
+PKG_CHECK_MODULES([SDBUSPLUS], [sdbusplus],, [AC_MSG_ERROR([Could not find sdbusplus...openbmc/sdbusplus package required])])
+PKG_CHECK_MODULES([TINYXML2], [tinyxml2],, AC_MSG_ERROR(["Requires tinyxml2."]))
 PKG_CHECK_MODULES([SYSTEMD], [libsystemd >= 221])
 PKG_CHECK_MODULES([PHOSPHOR_LOGGING], [phosphor-logging],, AC_MSG_ERROR(["Requires phosphor-logging."]))
 
@@ -42,7 +44,7 @@ LT_INIT([disable-static shared])
 AX_PTHREAD([GTEST_CPPFLAGS="-DGTEST_HAS_PTHREAD=1"],[GTEST_CPPFLAGS="-DGTEST_HAS_PTHREAD=0"])
 AC_SUBST(GTEST_CPPFLAGS)
 
-AC_ARG_ENABLE([oe-sdk],
+AC_ARG_ENABLE([oe-sdk],`
     AS_HELP_STRING([--enable-oe-sdk], [Link testcases absolutely against OE SDK so they can be ran within it.])
 )
 AC_ARG_VAR(OECORE_TARGET_SYSROOT,
