@@ -1,7 +1,5 @@
 from distutils.core import setup
-setup(name='phosphor-mapper',
+setup(name='obmc.mapper',
       version='1.0',
-      package_dir={'':'@top_srcdir@'},
-      packages=['obmc.mapper'],
-      scripts=['@top_srcdir@/phosphor-mapper']
+      package_dir={'':'@top_srcdir@'}
       )
