@@ -403,7 +403,6 @@ static int async_subtree_getpaths_callback(sd_bus_message *m, void *userdata,
                                            sd_bus_error *e)
 {
     int r;
-    char *intf = NULL;
     struct mapper_async_subtree *subtree = userdata;
     uint64_t now;
 
@@ -449,12 +448,26 @@ static int async_subtree_getpaths_callback(sd_bus_message *m, void *userdata,
         goto exit;
     }
 
-    sd_bus_message_read(m, "as", 1, &intf);
     if (subtree->op == MAPPER_OP_REMOVE)
     {
+        r = sd_bus_message_enter_container(m, SD_BUS_TYPE_ARRAY, "s");
+        if (r < 0)
+        {
+            async_subtree_done(r, subtree);
+            goto exit;
+        }
+
+        r = sd_bus_message_at_end(m, false);
+        if (r < 0)
+        {
+            async_subtree_done(r, subtree);
+            goto exit;
+        }
+
         /* For remove, operation is complete when the interface is not present
+         * we know it is empty if the returned array is empty
          */
-        if (intf == NULL)
+        if (r)
             async_subtree_done(0, subtree);
     }
 
