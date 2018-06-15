@@ -173,7 +173,7 @@ static int async_wait_getobject_callback(sd_bus_message *m, void *userdata,
     int i, r;
     struct async_wait_callback_data *data = userdata;
     mapper_async_wait *wait = data->wait;
-    uint64_t now;
+    uint64_t next_retry;
 
     if (wait->finished)
         goto exit;
@@ -184,17 +184,17 @@ static int async_wait_getobject_callback(sd_bus_message *m, void *userdata,
 
     if (r == EBUSY && data->retry < mapper_busy_retries)
     {
-        r = sd_event_now(wait->loop, CLOCK_MONOTONIC, &now);
+        r = sd_event_now(wait->loop, CLOCK_MONOTONIC, &next_retry);
         if (r < 0)
         {
             async_wait_done(r, wait);
             goto exit;
         }
 
-        ++data->retry;
+        next_retry += mapper_busy_delay_interval_usec * (1 << data->retry);
         r = sd_event_add_time(wait->loop, &data->event_source, CLOCK_MONOTONIC,
-                              now + mapper_busy_delay_interval_usec, 0,
-                              async_wait_timeout_callback, data);
+                              next_retry, 0, async_wait_timeout_callback, data);
+        ++data->retry;
         if (r < 0)
         {
             async_wait_done(r, wait);
@@ -405,7 +405,7 @@ static int async_subtree_getpaths_callback(sd_bus_message *m, void *userdata,
 {
     int r;
     struct mapper_async_subtree *subtree = userdata;
-    uint64_t now;
+    uint64_t next_retry;
 
     if (subtree->finished)
         goto exit;
@@ -422,18 +422,18 @@ static int async_subtree_getpaths_callback(sd_bus_message *m, void *userdata,
 
     if (r == EBUSY && subtree->retry < mapper_busy_retries)
     {
-        r = sd_event_now(subtree->loop, CLOCK_MONOTONIC, &now);
+        r = sd_event_now(subtree->loop, CLOCK_MONOTONIC, &next_retry);
         if (r < 0)
         {
             async_subtree_done(r, subtree);
             goto exit;
         }
 
-        ++subtree->retry;
+        next_retry += mapper_busy_delay_interval_usec * (1 << subtree->retry);
         r = sd_event_add_time(subtree->loop, &subtree->event_source,
-                              CLOCK_MONOTONIC,
-                              now + mapper_busy_delay_interval_usec, 0,
+                              CLOCK_MONOTONIC, next_retry, 0,
                               async_subtree_timeout_callback, subtree);
+        ++subtree->retry;
         if (r < 0)
         {
             async_subtree_done(r, subtree);
@@ -598,16 +598,17 @@ int mapper_get_object(sd_bus *conn, const char *obj, sd_bus_message **reply)
     if (r < 0)
         goto exit;
 
-    while (retry < mapper_busy_retries)
+    while (true)
     {
         sd_bus_error_free(&error);
         r = sd_bus_call(conn, request, 0, &error, reply);
         if (r < 0 && sd_bus_error_get_errno(&error) == EBUSY)
         {
-            ++retry;
+            if (retry >= mapper_busy_retries)
+                break;
 
-            if (retry != mapper_busy_retries)
-                usleep(mapper_busy_delay_interval_usec);
+            usleep(mapper_busy_delay_interval_usec * (1 << retry));
+            ++retry;
             continue;
         }
         break;
