@@ -182,7 +182,7 @@ static int async_wait_getobject_callback(sd_bus_message *m, void *userdata,
     if (r == ENOENT)
         goto exit;
 
-    if (r == EBUSY && data->retry < mapper_busy_retries)
+    if ((r == EBUSY || r == ENOBUFS) && data->retry < mapper_busy_retries)
     {
         r = sd_event_now(wait->loop, CLOCK_MONOTONIC, &next_retry);
         if (r < 0)
@@ -420,7 +420,7 @@ static int async_subtree_getpaths_callback(sd_bus_message *m, void *userdata,
             goto exit;
     }
 
-    if (r == EBUSY && subtree->retry < mapper_busy_retries)
+    if ((r == EBUSY || r == ENOBUFS) && subtree->retry < mapper_busy_retries)
     {
         r = sd_event_now(subtree->loop, CLOCK_MONOTONIC, &now);
         if (r < 0)
@@ -602,7 +602,7 @@ int mapper_get_object(sd_bus *conn, const char *obj, sd_bus_message **reply)
     {
         sd_bus_error_free(&error);
         r = sd_bus_call(conn, request, 0, &error, reply);
-        if (r < 0 && sd_bus_error_get_errno(&error) == EBUSY)
+        if (r == -EBUSY || r == -ENOBUFS)
         {
             if (retry >= mapper_busy_retries)
                 break;
@@ -615,7 +615,10 @@ int mapper_get_object(sd_bus *conn, const char *obj, sd_bus_message **reply)
     }
 
     if (r < 0)
+    {
+        fprintf(stderr, "%s: Call failed\n", __func__);
         goto exit;
+    }
 
 exit:
     sd_bus_error_free(&error);
