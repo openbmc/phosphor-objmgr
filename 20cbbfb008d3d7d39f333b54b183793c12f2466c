@@ -1,0 +1,9 @@
+Ok-To-Test+1: Jenkins <openbmc-ci-admin@ozlabs.org>
+Verified+1: Jenkins <openbmc-ci-admin@ozlabs.org>
+Code-Review+1: Ed Tanous <ed.tanous@intel.com>
+Code-Review+2: Brad Bishop <bradleyb@fuzziesquirrel.com>
+Submitted-by: Brad Bishop <bradleyb@fuzziesquirrel.com>
+Submitted-at: Thu, 21 Jun 2018 03:58:58 +0000
+Reviewed-on: https://gerrit.openbmc-project.xyz/11147
+Project: openbmc/phosphor-objmgr
+Branch: refs/heads/master
