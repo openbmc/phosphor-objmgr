@@ -33,14 +33,6 @@ import traceback
 from itertools import chain
 
 
-class MapperBusyException(dbus.exceptions.DBusException):
-    _dbus_error_name = 'org.freedesktop.DBus.Error.ObjectPathInUse'
-
-    def __init__(self):
-        super(MapperBusyException, self).__init__(
-            'busy processing bus traffic')
-
-
 class MapperNotFoundException(dbus.exceptions.DBusException):
     _dbus_error_name = obmc.mapper.MAPPER_NOT_FOUND
 
