@@ -1,3 +1,5 @@
+#include "src/argument.hpp"
+
 #include <tinyxml2.h>
 
 #include <atomic>
@@ -28,6 +30,10 @@ using Association = std::tuple<std::string, std::string, std::string>;
 boost::container::flat_map<std::string,
                            std::shared_ptr<sdbusplus::asio::dbus_interface>>
     associationInterfaces;
+
+static boost::container::flat_set<std::string> service_whitelist;
+static boost::container::flat_set<std::string> service_blacklist;
+static boost::container::flat_set<std::string> iface_whitelist;
 
 /** Exception thrown when a path is not found in the object list. */
 struct NotFoundException final : public sdbusplus::exception_t
@@ -302,8 +308,16 @@ void do_introspect(sdbusplus::asio::connection* system_bus,
                     continue;
                 }
 
-                if (ignored_interfaces.find(std::string(iface_name)) ==
-                    ignored_interfaces.end())
+                std::string iface{iface_name};
+
+                if (((ignored_interfaces.find(iface) ==
+                      ignored_interfaces.end()) &&
+                     (std::find_if(iface_whitelist.begin(),
+                                   iface_whitelist.end(),
+                                   [iface](const auto& prefix) {
+                                       return boost::starts_with(iface, prefix);
+                                   }) != iface_whitelist.end())) ||
+                    (iface == "org.freedesktop.DBus.ObjectManager"))
                 {
                     thisPathMap[transaction->process_name].emplace(iface_name);
                 }
@@ -357,9 +371,17 @@ void do_introspect(sdbusplus::asio::connection* system_bus,
 
 bool need_to_introspect(const std::string& process_name)
 {
-    return boost::starts_with(process_name, "xyz.openbmc_project.") ||
-           boost::starts_with(process_name, "org.openbmc.") ||
-           boost::starts_with(process_name, "com.intel.");
+    auto inWhitelist =
+        std::find_if(service_whitelist.begin(), service_whitelist.end(),
+                     [&process_name](const auto& prefix) {
+                         return boost::starts_with(process_name, prefix);
+                     }) != service_whitelist.end();
+
+    // This holds full service names, not prefixes
+    auto inBlacklist =
+        service_blacklist.find(process_name) != service_blacklist.end();
+
+    return inWhitelist && !inBlacklist;
 }
 
 void start_new_introspect(
@@ -442,12 +464,35 @@ void doListNames(
         "ListNames");
 }
 
+void splitArgs(const std::string& stringArgs,
+               boost::container::flat_set<std::string>& listArgs)
+{
+    std::istringstream args;
+    std::string arg;
+
+    args.str(stringArgs);
+
+    while (!args.eof())
+    {
+        args >> arg;
+        if (!arg.empty())
+        {
+            listArgs.insert(arg);
+        }
+    }
+}
+
 int main(int argc, char** argv)
 {
     std::cerr << "started\n";
+    auto options = ArgumentParser(argc, argv);
     boost::asio::io_service io;
     std::shared_ptr<sdbusplus::asio::connection> system_bus =
         std::make_shared<sdbusplus::asio::connection>(io);
+
+    splitArgs(options["service-namespaces"], service_whitelist);
+    splitArgs(options["interface-namespaces"], iface_whitelist);
+    splitArgs(options["service-blacklists"], service_blacklist);
 
     system_bus->request_name(OBJECT_MAPPER_DBUS_NAME);
     sdbusplus::asio::object_server server(system_bus);
