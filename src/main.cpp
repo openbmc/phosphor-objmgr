@@ -482,6 +482,34 @@ void splitArgs(const std::string& stringArgs,
     }
 }
 
+void addSubtreeResult(
+    std::vector<interface_map_type::value_type>& subtree,
+    const std::string& objectPath,
+    const std::pair<std::string, boost::container::flat_set<std::string>>&
+        interfaceMap)
+{
+    // Adds an object path/service name/interface list entry to
+    // the results of GetSubTree.
+    // If an entry for the object path already exists, just add the
+    // service name and interfaces to that entry, otherwise create
+    // a new entry.
+    auto entry = std::find_if(
+        subtree.begin(), subtree.end(),
+        [&objectPath](const auto& i) { return objectPath == i.first; });
+
+    if (entry != subtree.end())
+    {
+        entry->second.emplace(interfaceMap);
+    }
+    else
+    {
+        interface_map_type::value_type object;
+        object.first = objectPath;
+        object.second.emplace(interfaceMap);
+        subtree.push_back(object);
+    }
+}
+
 int main(int argc, char** argv)
 {
     std::cerr << "started\n";
@@ -797,21 +825,21 @@ int main(int argc, char** argv)
                                    this_path.end(), '/');
                     if (this_depth <= depth)
                     {
-                        bool add = interfaces.empty();
                         for (auto& interface_map : object_path.second)
                         {
                             if (intersect(interfaces.begin(), interfaces.end(),
                                           interface_map.second.begin(),
-                                          interface_map.second.end()))
+                                          interface_map.second.end()) ||
+                                interfaces.empty())
                             {
-                                add = true;
-                                break;
+                                addSubtreeResult(ret, this_path, interface_map);
+
+                                // if not just adding every interface, then done
+                                if (!interfaces.empty())
+                                {
+                                    break;
+                                }
                             }
-                        }
-                        if (add)
-                        {
-                            // todo(ed) this is a copy
-                            ret.emplace_back(object_path);
                         }
                     }
                 }
