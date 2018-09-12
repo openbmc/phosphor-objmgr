@@ -766,10 +766,6 @@ int main(int argc, char** argv)
                     }
                 }
             }
-            if (ret.empty())
-            {
-                throw NotFoundException();
-            }
 
             return ret;
         });
@@ -844,10 +840,6 @@ int main(int argc, char** argv)
                     }
                 }
             }
-            if (ret.empty())
-            {
-                throw NotFoundException();
-            }
             return ret;
         });
 
@@ -891,10 +883,6 @@ int main(int argc, char** argv)
                         }
                     }
                 }
-            }
-            if (ret.empty())
-            {
-                throw NotFoundException();
             }
             return ret;
         });
