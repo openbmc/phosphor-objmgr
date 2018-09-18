@@ -604,12 +604,7 @@ int main(int argc, char** argv)
             {
                 auto& iface_list = interface_map[obj_path.str];
 
-                for (const std::pair<
-                         std::string,
-                         std::vector<std::pair<std::string,
-                                               sdbusplus::message::variant<
-                                                   std::vector<Association>>>>>&
-                         interface_pair : interfaces_added)
+                for (const auto& interface_pair : interfaces_added)
                 {
                     iface_list[well_known].emplace(interface_pair.first);
 
