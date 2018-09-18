@@ -777,6 +777,10 @@ int main(int argc, char** argv)
     iface->register_method(
         "GetObject", [&interface_map](const std::string& path,
                                       std::vector<std::string>& interfaces) {
+            boost::container::flat_map<std::string,
+                                       boost::container::flat_set<std::string>>
+                results;
+
             // Interfaces need to be sorted for intersect to function
             std::sort(interfaces.begin(), interfaces.end());
             auto path_ref = interface_map.find(path);
@@ -794,12 +798,16 @@ int main(int argc, char** argv)
                               interface_map.second.begin(),
                               interface_map.second.end()))
                 {
-                    return path_ref->second;
+                    results.emplace(interface_map.first, interface_map.second);
                 }
             }
-            // Unable to find intersection, return default constructed
-            // object
-            throw NotFoundException();
+
+            if (results.empty())
+            {
+                throw NotFoundException();
+            }
+
+            return results;
         });
 
     iface->register_method(
