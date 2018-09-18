@@ -15,6 +15,8 @@
 constexpr const char* OBJECT_MAPPER_DBUS_NAME =
     "xyz.openbmc_project.ObjectMapper";
 constexpr const char* ASSOCIATIONS_INTERFACE = "org.openbmc.Associations";
+constexpr const char* XYZ_ASSOCIATION_INTERFACE =
+    "xyz.openbmc_project.Association";
 
 // interface_map_type is the underlying datastructure the mapper uses.
 // The 3 levels of map are
@@ -27,8 +29,18 @@ using interface_map_type = boost::container::flat_map<
 
 using Association = std::tuple<std::string, std::string, std::string>;
 
-boost::container::flat_map<std::string,
-                           std::shared_ptr<sdbusplus::asio::dbus_interface>>
+//  Associations and some metadata are stored in associationInterfaces.
+//  The fields are:
+//   * ifacePos - holds the D-Bus interface object
+//   * endpointPos - holds the endpoints array that shadows the property
+//   * sourcePos - holds the owning source path of the association
+static constexpr auto ifacePos = 0;
+static constexpr auto endpointsPos = 1;
+static constexpr auto sourcePos = 2;
+using Endpoints = std::vector<std::string>;
+boost::container::flat_map<
+    std::string, std::tuple<std::shared_ptr<sdbusplus::asio::dbus_interface>,
+                            Endpoints, std::string>>
     associationInterfaces;
 
 static boost::container::flat_set<std::string> service_whitelist;
@@ -231,12 +243,77 @@ void addAssociation(sdbusplus::asio::object_server& objectServer,
         // the old
 
         auto& iface = associationInterfaces[object.first];
-        iface = objectServer.add_interface(object.first,
-                                           "xyz.openbmc_project.Association");
-        iface->register_property("endpoints",
-                                 std::vector<std::string>(object.second.begin(),
-                                                          object.second.end()));
-        iface->initialize();
+        auto& i = std::get<ifacePos>(iface);
+        auto& endpoints = std::get<endpointsPos>(iface);
+        std::get<sourcePos>(iface) = path;
+
+        // Only add new endpoints
+        for (auto& e : object.second)
+        {
+            if (std::find(endpoints.begin(), endpoints.end(), e) ==
+                endpoints.end())
+            {
+                endpoints.push_back(e);
+            }
+        }
+
+        // If the interface already exists, only need to update
+        // the property value, otherwise create it
+        if (i)
+        {
+            i->set_property("endpoints", endpoints);
+        }
+        else
+        {
+            i = objectServer.add_interface(object.first,
+                                           XYZ_ASSOCIATION_INTERFACE);
+            i->register_property("endpoints", endpoints);
+            i->initialize();
+        }
+    }
+}
+
+void removeAssociation(const std::string& sourcePath,
+                       sdbusplus::asio::object_server& server)
+{
+    // The sourcePath passed in can be:
+    // a) the source of the association object, in which case
+    //    that whole object needs to be deleted, and/or
+    // b) just an entry in the endpoints property under some
+    //    other path, in which case it just needs to be removed
+    //    from the property.
+    for (auto& assoc : associationInterfaces)
+    {
+        if (sourcePath == std::get<sourcePos>(assoc.second))
+        {
+            server.remove_interface(std::get<ifacePos>(assoc.second));
+            std::get<ifacePos>(assoc.second) = nullptr;
+            std::get<endpointsPos>(assoc.second).clear();
+            std::get<sourcePos>(assoc.second).clear();
+        }
+        else
+        {
+            auto& endpoints = std::get<endpointsPos>(assoc.second);
+            auto toRemove =
+                std::find(endpoints.begin(), endpoints.end(), sourcePath);
+            if (toRemove != endpoints.end())
+            {
+                endpoints.erase(toRemove);
+
+                if (endpoints.empty())
+                {
+                    // Remove the interface object too if no longer needed
+                    server.remove_interface(std::get<ifacePos>(assoc.second));
+                    std::get<ifacePos>(assoc.second) = nullptr;
+                    std::get<sourcePos>(assoc.second).clear();
+                }
+                else
+                {
+                    std::get<ifacePos>(assoc.second)
+                        ->set_property("endpoints", endpoints);
+                }
+            }
+        }
     }
 }
 
@@ -556,6 +633,22 @@ int main(int argc, char** argv)
                 interface_map_type::iterator path_it = interface_map.begin();
                 while (path_it != interface_map.end())
                 {
+                    // If an associations interface is being removed,
+                    // also need to remove the corresponding associations
+                    // objects and properties.
+                    auto ifaces = path_it->second.find(name);
+                    if (ifaces != path_it->second.end())
+                    {
+                        auto assoc = std::find(ifaces->second.begin(),
+                                               ifaces->second.end(),
+                                               ASSOCIATIONS_INTERFACE);
+
+                        if (assoc != ifaces->second.end())
+                        {
+                            removeAssociation(path_it->first, server);
+                        }
+                    }
+
                     path_it->second.erase(name);
                     if (path_it->second.empty())
                     {
@@ -669,13 +762,7 @@ int main(int argc, char** argv)
 
                 if (interface == ASSOCIATIONS_INTERFACE)
                 {
-                    auto findAssociation =
-                        associationInterfaces.find(interface);
-                    if (findAssociation != associationInterfaces.end())
-                    {
-                        server.remove_interface(findAssociation->second);
-                        findAssociation->second = nullptr;
-                    }
+                    removeAssociation(obj_path.str, server);
                 }
 
                 interface_set->second.erase(interface);
