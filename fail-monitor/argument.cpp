@@ -85,6 +85,6 @@ const char* ArgumentParser::optionStr = "s:a:t:h?";
 
 const std::string ArgumentParser::trueString = "true";
 const std::string ArgumentParser::emptyString = "";
-}
-}
-}
+} // namespace failure
+} // namespace unit
+} // namespace phosphor

@@ -62,6 +62,6 @@ class ArgumentParser
     /** @brief optstring as needed by getopt_long */
     static const char* optionStr;
 };
-}
-}
-}
+} // namespace failure
+} // namespace unit
+} // namespace phosphor

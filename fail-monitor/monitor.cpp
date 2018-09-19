@@ -115,6 +115,6 @@ void Monitor::runTargetAction()
         throw std::runtime_error("Failed to run action on the target unit");
     }
 }
-}
-}
-}
+} // namespace failure
+} // namespace unit
+} // namespace phosphor

@@ -4,7 +4,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-typedef enum mapper_operation { MAPPER_OP_REMOVE = 1 } mapper_operation;
+typedef enum mapper_operation
+{
+    MAPPER_OP_REMOVE = 1
+} mapper_operation;
 typedef struct mapper_async_wait mapper_async_wait;
 typedef struct mapper_async_subtree mapper_async_subtree;
 void mapper_wait_async_free(mapper_async_wait *);
