@@ -470,8 +470,6 @@ void start_new_introspect(
 {
     if (need_to_introspect(process_name))
     {
-
-        std::cerr << "starting introspect on " << process_name << "\n";
         std::shared_ptr<InProgressIntrospect> transaction =
             std::make_shared<InProgressIntrospect>(system_bus, io, process_name,
                                                    global_start_time);
@@ -518,8 +516,6 @@ void doListNames(
                 std::exit(EXIT_FAILURE);
                 return;
             }
-            std::cerr << "ListNames returned " << process_names.size()
-                      << " entries\n";
             // Try to make startup consistent
             std::sort(process_names.begin(), process_names.end());
             std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
@@ -589,7 +585,6 @@ void addSubtreeResult(
 
 int main(int argc, char** argv)
 {
-    std::cerr << "started\n";
     auto options = ArgumentParser(argc, argv);
     boost::asio::io_service io;
     std::shared_ptr<sdbusplus::asio::connection> system_bus =
@@ -995,6 +990,5 @@ int main(int argc, char** argv)
         doListNames(io, interface_map, system_bus.get(), name_owners, server);
     });
 
-    std::cerr << "starting event loop\n";
     io.run();
 }
