@@ -137,6 +137,9 @@ struct InProgressIntrospect
     ~InProgressIntrospect()
     {
         send_introspection_complete_signal(system_bus, process_name);
+
+        //Can put back in for performance debug
+#if 0
         std::chrono::duration<float> diff =
             std::chrono::steady_clock::now() - process_start_time;
         std::cout << std::setw(50) << process_name << " scan took "
@@ -150,6 +153,7 @@ struct InProgressIntrospect
             std::cout << "Total scan took " << diff.count()
                       << " seconds to complete\n";
         }
+#endif
     }
     sdbusplus::asio::connection* system_bus;
     boost::asio::io_service& io;
@@ -470,8 +474,6 @@ void start_new_introspect(
 {
     if (need_to_introspect(process_name))
     {
-
-        std::cerr << "starting introspect on " << process_name << "\n";
         std::shared_ptr<InProgressIntrospect> transaction =
             std::make_shared<InProgressIntrospect>(system_bus, io, process_name,
                                                    global_start_time);
@@ -518,8 +520,6 @@ void doListNames(
                 std::exit(EXIT_FAILURE);
                 return;
             }
-            std::cerr << "ListNames returned " << process_names.size()
-                      << " entries\n";
             // Try to make startup consistent
             std::sort(process_names.begin(), process_names.end());
             std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
@@ -589,7 +589,6 @@ void addSubtreeResult(
 
 int main(int argc, char** argv)
 {
-    std::cerr << "started\n";
     auto options = ArgumentParser(argc, argv);
     boost::asio::io_service io;
     std::shared_ptr<sdbusplus::asio::connection> system_bus =
@@ -995,6 +994,5 @@ int main(int argc, char** argv)
         doListNames(io, interface_map, system_bus.get(), name_owners, server);
     });
 
-    std::cerr << "starting event loop\n";
     io.run();
 }
