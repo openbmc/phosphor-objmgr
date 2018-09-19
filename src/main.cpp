@@ -125,18 +125,27 @@ struct InProgressIntrospect
 {
     InProgressIntrospect(
         sdbusplus::asio::connection* system_bus, boost::asio::io_service& io,
-        const std::string& process_name,
+        const std::string& process_name
+#ifdef DEBUG
+        ,
         std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
-            global_start_time) :
+            global_start_time
+#endif
+        ) :
         system_bus(system_bus),
-        io(io), process_name(process_name),
+        io(io), process_name(process_name)
+#ifdef DEBUG
+        ,
         global_start_time(global_start_time),
         process_start_time(std::chrono::steady_clock::now())
+#endif
     {
     }
     ~InProgressIntrospect()
     {
         send_introspection_complete_signal(system_bus, process_name);
+
+#ifdef DEBUG
         std::chrono::duration<float> diff =
             std::chrono::steady_clock::now() - process_start_time;
         std::cout << std::setw(50) << process_name << " scan took "
@@ -150,14 +159,16 @@ struct InProgressIntrospect
             std::cout << "Total scan took " << diff.count()
                       << " seconds to complete\n";
         }
+#endif
     }
     sdbusplus::asio::connection* system_bus;
     boost::asio::io_service& io;
     std::string process_name;
-
+#ifdef DEBUG
     std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
         global_start_time;
     std::chrono::time_point<std::chrono::steady_clock> process_start_time;
+#endif
 };
 
 static const boost::container::flat_set<std::string> ignored_interfaces{
@@ -464,17 +475,21 @@ bool need_to_introspect(const std::string& process_name)
 void start_new_introspect(
     sdbusplus::asio::connection* system_bus, boost::asio::io_service& io,
     interface_map_type& interface_map, const std::string& process_name,
+#ifdef DEBUG
     std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
         global_start_time,
+#endif
     sdbusplus::asio::object_server& objectServer)
 {
     if (need_to_introspect(process_name))
     {
-
-        std::cerr << "starting introspect on " << process_name << "\n";
         std::shared_ptr<InProgressIntrospect> transaction =
-            std::make_shared<InProgressIntrospect>(system_bus, io, process_name,
-                                                   global_start_time);
+            std::make_shared<InProgressIntrospect>(system_bus, io, process_name
+#ifdef DEBUG
+                                                   ,
+                                                   global_start_time
+#endif
+            );
 
         do_introspect(system_bus, transaction, interface_map, objectServer,
                       "/");
@@ -518,20 +533,23 @@ void doListNames(
                 std::exit(EXIT_FAILURE);
                 return;
             }
-            std::cerr << "ListNames returned " << process_names.size()
-                      << " entries\n";
             // Try to make startup consistent
             std::sort(process_names.begin(), process_names.end());
+#ifdef DEBUG
             std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
                 global_start_time = std::make_shared<
                     std::chrono::time_point<std::chrono::steady_clock>>(
                     std::chrono::steady_clock::now());
+#endif
             for (const std::string& process_name : process_names)
             {
                 if (need_to_introspect(process_name))
                 {
                     start_new_introspect(system_bus, io, interface_map,
-                                         process_name, global_start_time,
+                                         process_name,
+#ifdef DEBUG
+                                         global_start_time,
+#endif
                                          objectServer);
                     update_owners(system_bus, name_owners, process_name);
                 }
@@ -589,7 +607,6 @@ void addSubtreeResult(
 
 int main(int argc, char** argv)
 {
-    std::cerr << "started\n";
     auto options = ArgumentParser(argc, argv);
     boost::asio::io_service io;
     std::shared_ptr<sdbusplus::asio::connection> system_bus =
@@ -663,15 +680,21 @@ int main(int argc, char** argv)
 
             if (!new_owner.empty())
             {
+#ifdef DEBUG
                 auto transaction = std::make_shared<
                     std::chrono::time_point<std::chrono::steady_clock>>(
                     std::chrono::steady_clock::now());
+#endif
                 // New daemon added
                 if (need_to_introspect(name))
                 {
                     name_owners[new_owner] = name;
                     start_new_introspect(system_bus.get(), io, interface_map,
-                                         name, transaction, server);
+                                         name,
+#ifdef DEBUG
+                                         transaction,
+#endif
+                                         server);
                 }
             }
         };
@@ -995,6 +1018,5 @@ int main(int argc, char** argv)
         doListNames(io, interface_map, system_bus.get(), name_owners, server);
     });
 
-    std::cerr << "starting event loop\n";
     io.run();
 }
