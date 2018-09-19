@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <phosphor-logging/log.hpp>
 #include "monitor.hpp"
+
+#include <phosphor-logging/log.hpp>
 
 namespace phosphor
 {
@@ -115,6 +116,6 @@ void Monitor::runTargetAction()
         throw std::runtime_error("Failed to run action on the target unit");
     }
 }
-}
-}
-}
+} // namespace failure
+} // namespace unit
+} // namespace phosphor

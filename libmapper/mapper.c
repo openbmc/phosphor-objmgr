@@ -14,29 +14,31 @@
  * limitations under the License.
  */
 #include "config.h"
+
+#include "mapper.h"
+
+#include <errno.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-#include <errno.h>
-#include <unistd.h>
 #include <sys/timerfd.h>
 #include <systemd/sd-bus.h>
 #include <systemd/sd-event.h>
-#include "mapper.h"
+#include <unistd.h>
 
-static const char *async_wait_introspection_match =
+static const char* async_wait_introspection_match =
     "type='signal',"
     "sender='xyz.openbmc_project.ObjectMapper',"
     "interface='xyz.openbmc_project.ObjectMapper.Private',"
     "member='IntrospectionComplete'";
 
-static const char *async_wait_interfaces_added_match =
+static const char* async_wait_interfaces_added_match =
     "type='signal',"
     "interface='org.freedesktop.DBus.ObjectManager',"
     "member='InterfacesAdded'";
 
-static const char *interfaces_removed_match =
+static const char* interfaces_removed_match =
     "type='signal',"
     "interface='org.freedesktop.DBus.ObjectManager',"
     "member='InterfacesRemoved'";
@@ -46,14 +48,14 @@ static const uint64_t mapper_busy_delay_interval_usec = 1000000;
 
 struct mapper_async_wait
 {
-    char **objs;
-    void (*callback)(int, void *);
-    void *userdata;
-    sd_event *loop;
-    sd_bus *conn;
-    sd_bus_slot *introspection_slot;
-    sd_bus_slot *intf_slot;
-    int *status;
+    char** objs;
+    void (*callback)(int, void*);
+    void* userdata;
+    sd_event* loop;
+    sd_bus* conn;
+    sd_bus_slot* introspection_slot;
+    sd_bus_slot* intf_slot;
+    int* status;
     int count;
     int finished;
     int r;
@@ -61,46 +63,44 @@ struct mapper_async_wait
 
 struct async_wait_callback_data
 {
-    mapper_async_wait *wait;
-    const char *path;
-    sd_event_source *event_source;
+    mapper_async_wait* wait;
+    const char* path;
+    sd_event_source* event_source;
     int retry;
 };
 
 struct mapper_async_subtree
 {
-    char *namespace;
-    char *interface;
-    void (*callback)(int, void *);
-    void *userdata;
-    sd_event *loop;
-    sd_bus *conn;
-    sd_bus_slot *slot;
-    sd_event_source *event_source;
+    char* namespace;
+    char* interface;
+    void (*callback)(int, void*);
+    void* userdata;
+    sd_event* loop;
+    sd_bus* conn;
+    sd_bus_slot* slot;
+    sd_event_source* event_source;
     int finished;
     int op;
     int retry;
 };
 
-static int async_wait_match_introspection_complete(sd_bus_message *, void *,
-                                                   sd_bus_error *);
-static int async_wait_check_done(mapper_async_wait *);
-static void async_wait_done(int r, mapper_async_wait *);
-static int async_wait_get_objects(mapper_async_wait *);
-static int async_wait_getobject_callback(sd_bus_message *, void *,
-                                         sd_bus_error *);
+static int async_wait_match_introspection_complete(sd_bus_message*, void*,
+                                                   sd_bus_error*);
+static int async_wait_check_done(mapper_async_wait*);
+static void async_wait_done(int r, mapper_async_wait*);
+static int async_wait_get_objects(mapper_async_wait*);
+static int async_wait_getobject_callback(sd_bus_message*, void*, sd_bus_error*);
 
-static int async_subtree_match_callback(sd_bus_message *, void *,
-                                        sd_bus_error *);
-static void async_subtree_done(int r, mapper_async_subtree *);
-static int async_subtree_getpaths(mapper_async_subtree *);
-static int async_subtree_getpaths_callback(sd_bus_message *, void *,
-                                           sd_bus_error *);
+static int async_subtree_match_callback(sd_bus_message*, void*, sd_bus_error*);
+static void async_subtree_done(int r, mapper_async_subtree*);
+static int async_subtree_getpaths(mapper_async_subtree*);
+static int async_subtree_getpaths_callback(sd_bus_message*, void*,
+                                           sd_bus_error*);
 
-static int sarraylen(char *array[])
+static int sarraylen(char* array[])
 {
     int count = 0;
-    char **p = array;
+    char** p = array;
 
     while (*p != NULL)
     {
@@ -111,9 +111,9 @@ static int sarraylen(char *array[])
     return count;
 }
 
-static void sarrayfree(char *array[])
+static void sarrayfree(char* array[])
 {
-    char **p = array;
+    char** p = array;
     while (*p != NULL)
     {
         free(*p);
@@ -122,11 +122,11 @@ static void sarrayfree(char *array[])
     free(array);
 }
 
-static char **sarraydup(char *array[])
+static char** sarraydup(char* array[])
 {
     int count = sarraylen(array);
     int i;
-    char **ret = NULL;
+    char** ret = NULL;
 
     ret = malloc(sizeof(*ret) * count);
     if (!ret)
@@ -146,12 +146,12 @@ error:
     return NULL;
 }
 
-static int async_wait_timeout_callback(sd_event_source *s, uint64_t usec,
-                                       void *userdata)
+static int async_wait_timeout_callback(sd_event_source* s, uint64_t usec,
+                                       void* userdata)
 {
     int r;
-    struct async_wait_callback_data *data = userdata;
-    mapper_async_wait *wait = data->wait;
+    struct async_wait_callback_data* data = userdata;
+    mapper_async_wait* wait = data->wait;
 
     sd_event_source_unref(data->event_source);
     r = sd_bus_call_method_async(wait->conn, NULL, MAPPER_BUSNAME, MAPPER_PATH,
@@ -167,12 +167,12 @@ static int async_wait_timeout_callback(sd_event_source *s, uint64_t usec,
     return 0;
 }
 
-static int async_wait_getobject_callback(sd_bus_message *m, void *userdata,
-                                         sd_bus_error *e)
+static int async_wait_getobject_callback(sd_bus_message* m, void* userdata,
+                                         sd_bus_error* e)
 {
     int i, r;
-    struct async_wait_callback_data *data = userdata;
-    mapper_async_wait *wait = data->wait;
+    struct async_wait_callback_data* data = userdata;
+    mapper_async_wait* wait = data->wait;
     uint64_t next_retry;
 
     if (wait->finished)
@@ -226,10 +226,10 @@ exit:
     return 0;
 }
 
-static int async_wait_get_objects(mapper_async_wait *wait)
+static int async_wait_get_objects(mapper_async_wait* wait)
 {
     int i, r;
-    struct async_wait_callback_data *data = NULL;
+    struct async_wait_callback_data* data = NULL;
 
     for (i = 0; i < wait->count; ++i)
     {
@@ -255,12 +255,12 @@ static int async_wait_get_objects(mapper_async_wait *wait)
     return 0;
 }
 
-static int async_wait_match_introspection_complete(sd_bus_message *m, void *w,
-                                                   sd_bus_error *e)
+static int async_wait_match_introspection_complete(sd_bus_message* m, void* w,
+                                                   sd_bus_error* e)
 {
     int r;
 
-    mapper_async_wait *wait = w;
+    mapper_async_wait* wait = w;
     if (wait->finished)
         return 0;
 
@@ -271,7 +271,7 @@ static int async_wait_match_introspection_complete(sd_bus_message *m, void *w,
     return 0;
 }
 
-static void async_wait_done(int r, mapper_async_wait *w)
+static void async_wait_done(int r, mapper_async_wait* w)
 {
     if (w->finished)
         return;
@@ -284,7 +284,7 @@ static void async_wait_done(int r, mapper_async_wait *w)
         w->callback(r, w->userdata);
 }
 
-static int async_wait_check_done(mapper_async_wait *w)
+static int async_wait_check_done(mapper_async_wait* w)
 {
     int i;
 
@@ -298,19 +298,19 @@ static int async_wait_check_done(mapper_async_wait *w)
     return 1;
 }
 
-void mapper_wait_async_free(mapper_async_wait *w)
+void mapper_wait_async_free(mapper_async_wait* w)
 {
     free(w->status);
     sarrayfree(w->objs);
     free(w);
 }
 
-int mapper_wait_async(sd_bus *conn, sd_event *loop, char *objs[],
-                      void (*callback)(int, void *), void *userdata,
-                      mapper_async_wait **w)
+int mapper_wait_async(sd_bus* conn, sd_event* loop, char* objs[],
+                      void (*callback)(int, void*), void* userdata,
+                      mapper_async_wait** w)
 {
     int r;
-    mapper_async_wait *wait = NULL;
+    mapper_async_wait* wait = NULL;
 
     wait = malloc(sizeof(*wait));
     if (!wait)
@@ -383,11 +383,11 @@ free_wait:
     return r;
 }
 
-static int async_subtree_timeout_callback(sd_event_source *s, uint64_t usec,
-                                          void *userdata)
+static int async_subtree_timeout_callback(sd_event_source* s, uint64_t usec,
+                                          void* userdata)
 {
     int r;
-    struct mapper_async_subtree *subtree = userdata;
+    struct mapper_async_subtree* subtree = userdata;
 
     sd_event_source_unref(subtree->event_source);
     r = sd_bus_call_method_async(
@@ -400,11 +400,11 @@ static int async_subtree_timeout_callback(sd_event_source *s, uint64_t usec,
     return 0;
 }
 
-static int async_subtree_getpaths_callback(sd_bus_message *m, void *userdata,
-                                           sd_bus_error *e)
+static int async_subtree_getpaths_callback(sd_bus_message* m, void* userdata,
+                                           sd_bus_error* e)
 {
     int r;
-    struct mapper_async_subtree *subtree = userdata;
+    struct mapper_async_subtree* subtree = userdata;
     uint64_t next_retry;
 
     if (subtree->finished)
@@ -476,7 +476,7 @@ exit:
     return 0;
 }
 
-static int async_subtree_getpaths(mapper_async_subtree *subtree)
+static int async_subtree_getpaths(mapper_async_subtree* subtree)
 {
     int r = 0;
 
@@ -495,12 +495,12 @@ static int async_subtree_getpaths(mapper_async_subtree *subtree)
     return 0;
 }
 
-static int async_subtree_match_callback(sd_bus_message *m, void *t,
-                                        sd_bus_error *e)
+static int async_subtree_match_callback(sd_bus_message* m, void* t,
+                                        sd_bus_error* e)
 {
     int r;
 
-    mapper_async_subtree *subtree = t;
+    mapper_async_subtree* subtree = t;
     if (subtree->finished)
         return 0;
 
@@ -511,7 +511,7 @@ static int async_subtree_match_callback(sd_bus_message *m, void *t,
     return 0;
 }
 
-static void async_subtree_done(int r, mapper_async_subtree *t)
+static void async_subtree_done(int r, mapper_async_subtree* t)
 {
     if (t->finished)
         return;
@@ -523,12 +523,12 @@ static void async_subtree_done(int r, mapper_async_subtree *t)
         t->callback(r, t->userdata);
 }
 
-int mapper_subtree_async(sd_bus *conn, sd_event *loop, char *namespace,
-                         char *interface, void (*callback)(int, void *),
-                         void *userdata, mapper_async_subtree **t, int op)
+int mapper_subtree_async(sd_bus* conn, sd_event* loop, char* namespace,
+                         char* interface, void (*callback)(int, void*),
+                         void* userdata, mapper_async_subtree** t, int op)
 {
     int r = 0;
-    mapper_async_subtree *subtree = NULL;
+    mapper_async_subtree* subtree = NULL;
 
     subtree = malloc(sizeof(*subtree));
     if (!subtree)
@@ -579,9 +579,9 @@ free_subtree:
     return r;
 }
 
-int mapper_get_object(sd_bus *conn, const char *obj, sd_bus_message **reply)
+int mapper_get_object(sd_bus* conn, const char* obj, sd_bus_message** reply)
 {
-    sd_bus_message *request = NULL;
+    sd_bus_message* request = NULL;
     int r, retry = 0;
 
     r = sd_bus_message_new_method_call(conn, &request, MAPPER_BUSNAME,
@@ -621,10 +621,10 @@ exit:
     return r;
 }
 
-int mapper_get_service(sd_bus *conn, const char *obj, char **service)
+int mapper_get_service(sd_bus* conn, const char* obj, char** service)
 {
-    sd_bus_message *reply = NULL;
-    const char *tmp;
+    sd_bus_message* reply = NULL;
+    const char* tmp;
     int r;
 
     r = mapper_get_object(conn, obj, &reply);

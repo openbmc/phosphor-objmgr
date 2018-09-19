@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "argument.hpp"
+
+#include <algorithm>
 #include <iostream>
 #include <iterator>
-#include <algorithm>
-#include "argument.hpp"
 
 namespace phosphor
 {
@@ -85,6 +86,6 @@ const char* ArgumentParser::optionStr = "s:a:t:h?";
 
 const std::string ArgumentParser::trueString = "true";
 const std::string ArgumentParser::emptyString = "";
-}
-}
-}
+} // namespace failure
+} // namespace unit
+} // namespace phosphor

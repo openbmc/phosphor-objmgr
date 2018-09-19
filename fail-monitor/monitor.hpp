@@ -102,6 +102,6 @@ class Monitor
      */
     const Action action;
 };
-}
-}
-}
+} // namespace failure
+} // namespace unit
+} // namespace phosphor

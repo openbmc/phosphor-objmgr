@@ -1,6 +1,7 @@
 #pragma once
 
 #include <getopt.h>
+
 #include <map>
 #include <string>
 
@@ -62,6 +63,6 @@ class ArgumentParser
     /** @brief optstring as needed by getopt_long */
     static const char* optionStr;
 };
-}
-}
-}
+} // namespace failure
+} // namespace unit
+} // namespace phosphor

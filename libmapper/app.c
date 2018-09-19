@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 #include "config.h"
-#include <stdlib.h>
+
 #include <stdio.h>
+#include <stdlib.h>
 #include <systemd/sd-bus.h>
 #include <systemd/sd-event.h>
+
 #include "mapper.h"
 
-static void quit(int r, void *loop)
+static void quit(int r, void* loop)
 {
-    sd_event_exit((sd_event *)loop, r);
+    sd_event_exit((sd_event*)loop, r);
 }
 
-static int wait_main(int argc, char *argv[])
+static int wait_main(int argc, char* argv[])
 {
     int r;
-    sd_bus *conn = NULL;
-    sd_event *loop = NULL;
-    mapper_async_wait *wait = NULL;
+    sd_bus* conn = NULL;
+    sd_event* loop = NULL;
+    mapper_async_wait* wait = NULL;
 
     if (argc < 3)
     {
@@ -81,17 +83,17 @@ finish:
     exit(r < 0 ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
-static int subtree_main(int argc, char *argv[])
+static int subtree_main(int argc, char* argv[])
 {
     int r = 0;
     int op = 0;
-    static const char *token = ":";
-    char *tmp = NULL;
-    char *namespace = NULL;
-    char *interface = NULL;
-    sd_bus *conn = NULL;
-    sd_event *loop = NULL;
-    mapper_async_subtree *subtree = NULL;
+    static const char* token = ":";
+    char* tmp = NULL;
+    char* namespace = NULL;
+    char* interface = NULL;
+    sd_bus* conn = NULL;
+    sd_event* loop = NULL;
+    mapper_async_subtree* subtree = NULL;
 
     if (argc != 3)
     {
@@ -154,11 +156,11 @@ finish:
 }
 
 /* print out the distinct dbus service name for the input dbus path */
-static int get_service_main(int argc, char *argv[])
+static int get_service_main(int argc, char* argv[])
 {
     int r;
-    sd_bus *conn = NULL;
-    char *service = NULL;
+    sd_bus* conn = NULL;
+    char* service = NULL;
 
     if (argc != 3)
     {
@@ -187,9 +189,9 @@ finish:
     exit(r < 0 ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-    static const char *usage =
+    static const char* usage =
         "Usage: %s {COMMAND} ...\n"
         "\nCOMMANDS:\n"
         "  wait           wait for the specified objects to appear on the "

@@ -20,10 +20,11 @@
  * then it will either stop or start the target unit, depending
  * on the command line arguments.
  */
-#include <iostream>
-#include <map>
 #include "argument.hpp"
 #include "monitor.hpp"
+
+#include <iostream>
+#include <map>
 
 using namespace phosphor::unit::failure;
 
