@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <systemd/sd-bus.h>
 #include <systemd/sd-event.h>
+#include <errno.h>
 
 #include "mapper.h"
 
@@ -147,8 +148,19 @@ static int subtree_main(int argc, char* argv[])
     r = sd_event_loop(loop);
     if (r < 0)
     {
-        fprintf(stderr, "Error starting event loop: %s\n", strerror(-r));
-        goto finish;
+        /* If this function has been called after the interface in   */
+        /* question has already been removed, then GetSubTree will   */
+        /* fail and it will show up here.  Treat as success instead. */
+        if (r == -ENXIO)
+        {
+            r = 0;
+        }
+        else
+        {
+            fprintf(stderr, "Error starting event loop: %d(%s)\n",
+                    r, strerror(-r));
+            goto finish;
+        }
     }
 
 finish:
