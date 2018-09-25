@@ -849,7 +849,8 @@ int main(int argc, char** argv)
             for (auto& object_path : interface_map)
             {
                 auto& this_path = object_path.first;
-                if (boost::starts_with(req_path, this_path))
+                if (boost::starts_with(req_path, this_path) &&
+                    (req_path != this_path))
                 {
                     if (interfaces.empty())
                     {
