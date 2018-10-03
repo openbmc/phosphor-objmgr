@@ -34,7 +34,7 @@ PKG_CHECK_MODULES([PHOSPHOR_LOGGING], [phosphor-logging],, AC_MSG_ERROR(["Requir
 AC_CHECK_HEADER(systemd/sd-bus.h, ,[AC_MSG_ERROR([Could not find systemd/sd-bus.h...systemd development package required])])
 
 # Checks for typedefs, structures, and compiler characteristics.
-AX_CXX_COMPILE_STDCXX_14([noext])
+AX_CXX_COMPILE_STDCXX_17([noext])
 AX_APPEND_COMPILE_FLAGS([-fpic -Wall -Werror], [CFLAGS CXXFLAGS])
 
 # Checks for library functions.
