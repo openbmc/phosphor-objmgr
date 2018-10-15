@@ -36,6 +36,7 @@ AC_CHECK_HEADER(systemd/sd-bus.h, ,[AC_MSG_ERROR([Could not find systemd/sd-bus.
 # Checks for typedefs, structures, and compiler characteristics.
 AX_CXX_COMPILE_STDCXX_17([noext])
 AX_APPEND_COMPILE_FLAGS([-fpic -Wall -Werror], [CFLAGS CXXFLAGS])
+AX_BOOST_BASE([1.66],, [AC_MSG_ERROR(["Requires boost."])])
 
 # Checks for library functions.
 LT_INIT([disable-static shared])
