@@ -24,10 +24,10 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument(
         '-p', '--path_namespaces',
-        required=True)
+        default="")
     parser.add_argument(
         '-s', '--service_namespaces',
-        default="")
+        required=True)
     parser.add_argument(
         '-i', '--interface_namespaces',
         required=True)

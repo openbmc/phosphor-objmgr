@@ -43,7 +43,6 @@ class MapperNotFoundException(dbus.exceptions.DBusException):
 
 def find_dbus_interfaces(conn, service, path, callback, error_callback, **kw):
     iface_match = kw.pop('iface_match', bool)
-    subtree_match = kw.pop('subtree_match', bool)
 
     class _FindInterfaces(object):
         def __init__(self):
@@ -148,7 +147,7 @@ def find_dbus_interfaces(conn, service, path, callback, error_callback, **kw):
                         self._to_path(chain(path_elements,
                                             self._to_path_elements(x)))
                         for x in sorted(children)]
-                    for child in filter(subtree_match, children):
+                    for child in children:
                         if child not in self.results:
                             self._find_interfaces(child)
             except Exception as e:
@@ -374,7 +373,8 @@ class ObjectMapper(dbus.service.Object):
     def process_new_owner(self, owned_name, owner):
         # unique name
         try:
-            return self.discover([(owned_name, owner)])
+            if self.busname_match(owned_name):
+                self.discover([(owned_name, owner)])
         except dbus.exceptions.DBusException as e:
             if obmc.dbuslib.enums.DBUS_UNKNOWN_SERVICE \
                     not in e.get_dbus_name():
@@ -443,17 +443,18 @@ class ObjectMapper(dbus.service.Object):
         for path, items in bus_items.items():
             self.update_interfaces(path, str(owner), old=[], new=items)
 
-    def path_match(self, path):
+    def busname_match(self, busname):
         match = False
 
-        if not any([x for x in self.blacklist if x in path]):
+        if not any([x for x in self.service_blacklist if x in busname]):
             # not blacklisted
 
-            if any([x for x in self.namespaces if x in path]):
-                # a watched namespace contains the path
+            if any([x for x in self.service_namespaces if x in busname]):
+                # a watched busname contains the path
                 match = True
-            elif any([path for x in self.namespaces if path in x]):
-                # the path contains a watched namespace
+            elif any([busname for x in self.service_namespaces
+                     if busname in x]):
+                # the busname contains a watched namespace
                 match = True
 
         return match
@@ -476,7 +477,6 @@ class ObjectMapper(dbus.service.Object):
         find_dbus_interfaces(self.bus, owner, '/',
                              self.discovery_callback,
                              self.discovery_error,
-                             subtree_match=self.path_match,
                              iface_match=self.interface_match)
 
     def discover(self, owners=None):
@@ -490,8 +490,9 @@ class ObjectMapper(dbus.service.Object):
                 traceback.print_exception(*sys.exc_info())
 
         if not owners:
-            owned_names = [x for x in self.bus.list_names()
-                           if not obmc.dbuslib.bindings.is_unique(x)]
+            owned_names = [
+                x for x in filter(self.busname_match, self.bus.list_names())
+                if not obmc.dbuslib.bindings.is_unique(x)]
             owners = filter(bool, (get_owner(name) for name in owned_names))
         for owned_name, o in owners:
             if not self.bus_normalize(owned_name):
@@ -502,7 +503,6 @@ class ObjectMapper(dbus.service.Object):
                 self.bus, owned_name, '/',
                 self.discovery_callback,
                 self.discovery_error_retry,
-                subtree_match=self.path_match,
                 iface_match=self.interface_match)
 
     def bus_normalize(self, name):
