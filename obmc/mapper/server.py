@@ -195,8 +195,9 @@ class Manager(obmc.dbuslib.bindings.DbusObjectManager):
 
 class ObjectMapper(dbus.service.Object):
     def __init__(
-            self, bus, path, namespaces, interface_namespaces,
-            blacklist, interface_blacklist):
+            self, bus, path, namespaces, service_namespaces,
+            interface_namespaces, blacklist, service_blacklist,
+            interface_blacklist):
         super(ObjectMapper, self).__init__(bus, path)
         self.cache = obmc.utils.pathtree.PathTree()
         self.bus = bus
@@ -206,9 +207,11 @@ class ObjectMapper(dbus.service.Object):
         self.bus_map = {}
         self.defer_signals = {}
         self.namespaces = namespaces
+        self.service_namespaces = service_namespaces
         self.interface_namespaces = interface_namespaces
         self.blacklist = blacklist
         self.blacklist.append(obmc.mapper.MAPPER_PATH)
+        self.service_blacklist = service_blacklist
         self.interface_blacklist = interface_blacklist
 
         # add my object mananger instance
@@ -779,8 +782,10 @@ class ObjectMapper(dbus.service.Object):
 
 def server_main(
         path_namespaces,
+        service_namespaces,
         interface_namespaces,
         blacklists,
+        service_blacklists,
         interface_blacklists):
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
     bus = dbus.SystemBus()
@@ -788,8 +793,10 @@ def server_main(
         bus,
         obmc.mapper.MAPPER_PATH,
         path_namespaces,
+        service_namespaces,
         interface_namespaces,
         blacklists,
+        service_blacklists,
         interface_blacklists)
     loop = gobject.MainLoop()
 

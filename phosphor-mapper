@@ -26,10 +26,16 @@ if __name__ == '__main__':
         '-p', '--path_namespaces',
         required=True)
     parser.add_argument(
+        '-s', '--service_namespaces',
+        default="")
+    parser.add_argument(
         '-i', '--interface_namespaces',
         required=True)
     parser.add_argument(
         '-b', '--blacklists',
+        default="")
+    parser.add_argument(
+        '-x', '--service_blacklists',
         default="")
     parser.add_argument(
         '-n', '--interface_blacklists',
@@ -40,6 +46,8 @@ if __name__ == '__main__':
     sys.exit(
         obmc.mapper.server.server_main(
             path_namespaces=args.path_namespaces.split(),
+            service_namespaces=args.service_namespaces.split(),
             interface_namespaces=args.interface_namespaces.split(),
             blacklists=args.blacklists.split(),
+            service_blacklists=args.service_blacklists.split(),
             interface_blacklists=args.interface_blacklists.split()))
