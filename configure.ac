@@ -36,7 +36,11 @@ AC_CHECK_HEADER(systemd/sd-bus.h, ,[AC_MSG_ERROR([Could not find systemd/sd-bus.
 # Checks for typedefs, structures, and compiler characteristics.
 AX_CXX_COMPILE_STDCXX_17([noext])
 AX_APPEND_COMPILE_FLAGS([-fpic -Wall -Werror], [CFLAGS CXXFLAGS])
-AX_BOOST_BASE([1.66],, [AC_MSG_ERROR(["Requires boost."])])
+
+# Checks for boost by the headers used.
+AC_CHECK_HEADER(boost/algorithm/string/predicate.hpp, ,[AC_MSG_ERROR([Could not find boost/algorithm/string/predicate.hpp])])
+AC_CHECK_HEADER(boost/container/flat_map.hpp, ,[AC_MSG_ERROR([Could not find boost/container/flat_map.hpp])])
+AC_CHECK_HEADER(boost/container/flat_set.hpp, ,[AC_MSG_ERROR([Could not find boost/container/flat_set.hpp])])
 
 # Checks for library functions.
 LT_INIT([disable-static shared])
