@@ -947,12 +947,6 @@ int main(int argc, char** argv)
                                 interfaces.empty())
                             {
                                 addSubtreeResult(ret, this_path, interface_map);
-
-                                // if not just adding every interface, then done
-                                if (!interfaces.empty())
-                                {
-                                    break;
-                                }
                             }
                         }
                     }
