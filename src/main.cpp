@@ -928,14 +928,26 @@ int main(int argc, char** argv)
             std::sort(interfaces.begin(), interfaces.end());
             std::vector<interface_map_type::value_type> ret;
 
+            auto path = req_path;
+            if ((path.back() == '/') && (path != "/"))
+            {
+                path.pop_back();
+            }
+
             for (auto& object_path : interface_map)
             {
                 auto& this_path = object_path.first;
-                if (boost::starts_with(this_path, req_path))
+
+                if (this_path == path)
+                {
+                    continue;
+                }
+
+                if (boost::starts_with(this_path, path))
                 {
                     // count the number of slashes past the search term
                     int32_t this_depth =
-                        std::count(this_path.begin() + req_path.size(),
+                        std::count(this_path.begin() + path.size(),
                                    this_path.end(), '/');
                     if (this_depth <= depth)
                     {
@@ -970,14 +982,27 @@ int main(int argc, char** argv)
             // Interfaces need to be sorted for intersect to function
             std::sort(interfaces.begin(), interfaces.end());
             std::vector<std::string> ret;
+
+            auto path = req_path;
+            if ((path.back() == '/') && (path != "/"))
+            {
+                path.pop_back();
+            }
+
             for (auto& object_path : interface_map)
             {
                 auto& this_path = object_path.first;
-                if (boost::starts_with(this_path, req_path))
+
+                if (this_path == path)
+                {
+                    continue;
+                }
+
+                if (boost::starts_with(this_path, path))
                 {
                     // count the number of slashes past the search term
                     int this_depth =
-                        std::count(this_path.begin() + req_path.size(),
+                        std::count(this_path.begin() + path.size(),
                                    this_path.end(), '/');
                     if (this_depth <= depth)
                     {
