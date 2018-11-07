@@ -931,6 +931,12 @@ int main(int argc, char** argv)
             for (auto& object_path : interface_map)
             {
                 auto& this_path = object_path.first;
+
+                if (this_path == req_path)
+                {
+                    continue;
+                }
+
                 if (boost::starts_with(this_path, req_path))
                 {
                     // count the number of slashes past the search term
@@ -973,6 +979,12 @@ int main(int argc, char** argv)
             for (auto& object_path : interface_map)
             {
                 auto& this_path = object_path.first;
+
+                if (this_path == req_path)
+                {
+                    continue;
+                }
+
                 if (boost::starts_with(this_path, req_path))
                 {
                     // count the number of slashes past the search term
