@@ -612,9 +612,9 @@ int main(int argc, char** argv)
     std::shared_ptr<sdbusplus::asio::connection> system_bus =
         std::make_shared<sdbusplus::asio::connection>(io);
 
-    splitArgs(options["service-namespaces"], service_whitelist);
-    splitArgs(options["interface-namespaces"], iface_whitelist);
-    splitArgs(options["service-blacklists"], service_blacklist);
+    splitArgs(options["service_namespaces"], service_whitelist);
+    splitArgs(options["interface_namespaces"], iface_whitelist);
+    splitArgs(options["service_blacklists"], service_blacklist);
 
     system_bus->request_name(OBJECT_MAPPER_DBUS_NAME);
     sdbusplus::asio::object_server server(system_bus);

@@ -26,9 +26,9 @@ const std::string ArgumentParser::empty_string = "";
 
 const char* ArgumentParser::optionstr = "s:b:i:?h";
 const option ArgumentParser::options[] = {
-    {"service-namespaces", required_argument, nullptr, 's'},
-    {"service-blacklists", required_argument, nullptr, 'b'},
-    {"interface-namespaces", required_argument, nullptr, 'i'},
+    {"service_namespaces", required_argument, nullptr, 's'},
+    {"service_blacklists", required_argument, nullptr, 'b'},
+    {"interface_namespaces", required_argument, nullptr, 'i'},
     {"help", no_argument, nullptr, 'h'},
     {0, 0, 0, 0},
 };
@@ -72,10 +72,10 @@ void ArgumentParser::usage(char** argv)
     std::cerr << "Usage: " << argv[0] << " [options]" << std::endl;
     std::cerr << "Options:" << std::endl;
     std::cerr << "    --help               Print this menu" << std::endl;
-    std::cerr << "    --service-namespaces=<services> Space separated list of ";
+    std::cerr << "    --service_namespaces=<services> Space separated list of ";
     std::cerr << "service namespaces to whitelist\n";
-    std::cerr << "    --service-blacklists=<services> Space separated list of ";
+    std::cerr << "    --service_blacklists=<services> Space separated list of ";
     std::cerr << "service names to blacklist\n";
-    std::cerr << "    --interface-namespaces=<ifaces> Space separated list of ";
+    std::cerr << "    --interface_namespaces=<ifaces> Space separated list of ";
     std::cerr << "interface namespaces to whitelist\n";
 }
