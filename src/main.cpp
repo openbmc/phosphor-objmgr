@@ -917,9 +917,8 @@ int main(int argc, char** argv)
         });
 
     iface->register_method(
-        "GetSubTree",
-        [&interface_map](const std::string& req_path, int32_t depth,
-                         std::vector<std::string>& interfaces) {
+        "GetSubTree", [&interface_map](std::string& req_path, int32_t depth,
+                                       std::vector<std::string>& interfaces) {
             if (depth <= 0)
             {
                 depth = std::numeric_limits<int32_t>::max();
@@ -928,9 +927,20 @@ int main(int argc, char** argv)
             std::sort(interfaces.begin(), interfaces.end());
             std::vector<interface_map_type::value_type> ret;
 
+            if (req_path.size() > 1 && req_path.back() == '/')
+            {
+                req_path.pop_back();
+            }
+
             for (auto& object_path : interface_map)
             {
                 auto& this_path = object_path.first;
+
+                if (this_path == req_path)
+                {
+                    continue;
+                }
+
                 if (boost::starts_with(this_path, req_path))
                 {
                     // count the number of slashes past the search term
@@ -961,7 +971,7 @@ int main(int argc, char** argv)
 
     iface->register_method(
         "GetSubTreePaths",
-        [&interface_map](const std::string& req_path, int32_t depth,
+        [&interface_map](std::string& req_path, int32_t depth,
                          std::vector<std::string>& interfaces) {
             if (depth <= 0)
             {
@@ -970,9 +980,21 @@ int main(int argc, char** argv)
             // Interfaces need to be sorted for intersect to function
             std::sort(interfaces.begin(), interfaces.end());
             std::vector<std::string> ret;
+
+            if (req_path.size() > 1 && req_path.back() == '/')
+            {
+                req_path.pop_back();
+            }
+
             for (auto& object_path : interface_map)
             {
                 auto& this_path = object_path.first;
+
+                if (this_path == req_path)
+                {
+                    continue;
+                }
+
                 if (boost::starts_with(this_path, req_path))
                 {
                     // count the number of slashes past the search term
