@@ -58,18 +58,32 @@ class Mapper:
                 path, interfaces, signature='sas'),
             retries, interval)
 
+    @staticmethod
+    def call_func_with_default(func, sig, default, *funcargs):
+        try:
+            return func(*funcargs, signature=sig)
+        except dbus.exceptions.DBusException as e:
+            if e.get_dbus_name() == \
+                'org.freedesktop.DBus.Error.FileNotFound':
+                return default
+            raise;
+        if e:
+            raise e
+
     def get_subtree_paths(
             self, path='/', depth=0, retries=5, interfaces=[], interval=0.2):
         return self.retry(
-            lambda: self.iface.GetSubTreePaths(
-                path, depth, interfaces, signature='sias'),
+            lambda: self.call_func_with_default(
+                self.iface.GetSubTreePaths, 'sias', [],
+                path, depth, interfaces),
             retries, interval)
 
     def get_subtree(
             self, path='/', depth=0, retries=5, interfaces=[], interval=0.2):
         return self.retry(
-            lambda: self.iface.GetSubTree(
-                path, depth, interfaces, signature='sias'),
+            lambda: self.call_func_with_default(
+                self.iface.GetSubTree, 'sias', {},
+                path, depth, interfaces),
             retries, interval)
 
     def get_ancestors(self, path, retries=5, interfaces=[], interval=0.2):
