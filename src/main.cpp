@@ -45,7 +45,6 @@ boost::container::flat_map<
 
 static boost::container::flat_set<std::string> service_whitelist;
 static boost::container::flat_set<std::string> service_blacklist;
-static boost::container::flat_set<std::string> iface_whitelist;
 
 /** Exception thrown when a path is not found in the object list. */
 struct NotFoundException final : public sdbusplus::exception_t
@@ -170,10 +169,6 @@ struct InProgressIntrospect
     std::chrono::time_point<std::chrono::steady_clock> process_start_time;
 #endif
 };
-
-static const boost::container::flat_set<std::string> ignored_interfaces{
-    "org.freedesktop.DBus.Introspectable", "org.freedesktop.DBus.Peer",
-    "org.freedesktop.DBus.Properties"};
 
 void addAssociation(sdbusplus::asio::object_server& objectServer,
                     const std::vector<Association>& associations,
@@ -353,17 +348,8 @@ void do_introspect(sdbusplus::asio::connection* system_bus,
 
                 std::string iface{iface_name};
 
-                if (((ignored_interfaces.find(iface) ==
-                      ignored_interfaces.end()) &&
-                     (std::find_if(iface_whitelist.begin(),
-                                   iface_whitelist.end(),
-                                   [iface](const auto& prefix) {
-                                       return boost::starts_with(iface, prefix);
-                                   }) != iface_whitelist.end())) ||
-                    (iface == "org.freedesktop.DBus.ObjectManager"))
-                {
-                    thisPathMap[transaction->process_name].emplace(iface_name);
-                }
+                thisPathMap[transaction->process_name].emplace(iface_name);
+
                 if (std::strcmp(iface_name, ASSOCIATIONS_INTERFACE) == 0)
                 {
                     do_associations(system_bus, objectServer,
@@ -551,8 +537,12 @@ int main(int argc, char** argv)
         std::make_shared<sdbusplus::asio::connection>(io);
 
     splitArgs(options["service-namespaces"], service_whitelist);
-    splitArgs(options["interface-namespaces"], iface_whitelist);
     splitArgs(options["service-blacklists"], service_blacklist);
+
+    // TODO(Ed) Remove this once all service files are updated to not use this.
+    // For now, simply squash the input, and ignore it.
+    boost::container::flat_set<std::string> iface_whitelist;
+    splitArgs(options["interface-namespaces"], iface_whitelist);
 
     system_bus->request_name(OBJECT_MAPPER_DBUS_NAME);
     sdbusplus::asio::object_server server(system_bus);
