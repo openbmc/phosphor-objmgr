@@ -175,50 +175,6 @@ static const boost::container::flat_set<std::string> ignored_interfaces{
     "org.freedesktop.DBus.Introspectable", "org.freedesktop.DBus.Peer",
     "org.freedesktop.DBus.Properties"};
 
-void do_getmanagedobjects(sdbusplus::asio::connection* system_bus,
-                          std::shared_ptr<InProgressIntrospect> transaction,
-                          interface_map_type& interface_map, std::string path)
-{
-    // note, the variant type doesn't matter, as we don't actually track
-    // property names as of yet.  variant<bool> seemed like the most simple.
-    using ManagedObjectType = std::vector<std::pair<
-        sdbusplus::message::object_path,
-        boost::container::flat_map<
-            std::string, boost::container::flat_map<
-                             std::string, sdbusplus::message::variant<bool>>>>>;
-
-    system_bus->async_method_call(
-        [&interface_map, system_bus, transaction,
-         path](const boost::system::error_code ec,
-               const ManagedObjectType& objects) {
-            if (ec)
-            {
-                std::cerr << "GetMangedObjects call failed" << ec << "\n";
-                return;
-            }
-
-            interface_map.reserve(interface_map.size() + objects.size());
-            for (const std::pair<
-                     sdbusplus::message::object_path,
-                     boost::container::flat_map<
-                         std::string,
-                         boost::container::flat_map<
-                             std::string, sdbusplus::message::variant<bool>>>>&
-                     object : objects)
-            {
-                const std::string& path_name = object.first.str;
-                auto& this_path_map =
-                    interface_map[path_name][transaction->process_name];
-                for (auto& interface_it : object.second)
-                {
-                    this_path_map.insert(interface_it.first);
-                }
-            }
-        },
-        transaction->process_name, path, "org.freedesktop.DBus.ObjectManager",
-        "GetManagedObjects");
-}
-
 void addAssociation(sdbusplus::asio::object_server& objectServer,
                     const std::vector<Association>& associations,
                     const std::string& path)
@@ -385,7 +341,6 @@ void do_introspect(sdbusplus::asio::connection* system_bus,
                 return;
             }
             auto& thisPathMap = interface_map[path];
-            bool handling_via_objectmanager = false;
             tinyxml2::XMLElement* pElement =
                 pRoot->FirstChildElement("interface");
             while (pElement != nullptr)
@@ -414,43 +369,26 @@ void do_introspect(sdbusplus::asio::connection* system_bus,
                     do_associations(system_bus, objectServer,
                                     transaction->process_name, path);
                 }
-                else if (std::strcmp(iface_name,
-                                     "org.freedesktop.DBus.ObjectManager") == 0)
-                {
-                    // TODO(ed) in the current implementation,
-                    // introspect is actually faster than
-                    // getmanagedObjects, but I suspect it will be
-                    // faster when needing to deal with
-                    // associations, so leave the code here for now
-
-                    // handling_via_objectmanager = true;
-                    // do_getmanagedobjects(system_bus, transaction,
-                    //                     interface_map, path);
-                }
 
                 pElement = pElement->NextSiblingElement("interface");
             }
 
-            if (!handling_via_objectmanager)
+            pElement = pRoot->FirstChildElement("node");
+            while (pElement != nullptr)
             {
-                pElement = pRoot->FirstChildElement("node");
-                while (pElement != nullptr)
+                const char* child_path = pElement->Attribute("name");
+                if (child_path != nullptr)
                 {
-                    const char* child_path = pElement->Attribute("name");
-                    if (child_path != nullptr)
+                    std::string parent_path(path);
+                    if (parent_path == "/")
                     {
-                        std::string parent_path(path);
-                        if (parent_path == "/")
-                        {
-                            parent_path.clear();
-                        }
-
-                        do_introspect(system_bus, transaction, interface_map,
-                                      objectServer,
-                                      parent_path + "/" + child_path);
+                        parent_path.clear();
                     }
-                    pElement = pElement->NextSiblingElement("node");
+
+                    do_introspect(system_bus, transaction, interface_map,
+                                  objectServer, parent_path + "/" + child_path);
                 }
+                pElement = pElement->NextSiblingElement("node");
             }
         },
         transaction->process_name, path, "org.freedesktop.DBus.Introspectable",
