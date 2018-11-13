@@ -24,6 +24,12 @@ MAPPER_IFACE = MAPPER_NAME
 MAPPER_PATH = '/xyz/openbmc_project/object_mapper'
 MAPPER_NOT_FOUND = 'org.freedesktop.DBus.Error.FileNotFound'
 
+# The default D-Bus interfaces that we don't need to get
+# properties on during an enumerate.
+DEFAULT_IFACES = ['org.freedesktop.DBus.Introspectable',
+                  'org.freedesktop.DBus.Peer',
+                  'org.freedesktop.DBus.Properties']
+
 
 class Mapper:
     def __init__(self, bus):
@@ -107,6 +113,8 @@ class Mapper:
             obj, dbus_interface=dbus.PROPERTIES_IFACE)
         for i in interfaces:
             if match and not match(i):
+                continue
+            if i in DEFAULT_IFACES:
                 continue
             properties.update(self.__get_properties_on_iface(
                 properties_iface, i))
