@@ -773,12 +773,25 @@ int main(int argc, char** argv)
             // Interfaces need to be sorted for intersect to function
             std::sort(interfaces.begin(), interfaces.end());
 
+            auto path = req_path;
+            if (path != "/")
+            {
+                if (path.back() == '/')
+                {
+                    path.pop_back();
+                }
+
+                if (interface_map.find(path) == interface_map.end())
+                {
+                    throw NotFoundException();
+                }
+            }
+
             std::vector<interface_map_type::value_type> ret;
             for (auto& object_path : interface_map)
             {
                 auto& this_path = object_path.first;
-                if (boost::starts_with(req_path, this_path) &&
-                    (req_path != this_path))
+                if (boost::starts_with(path, this_path) && (path != this_path))
                 {
                     if (interfaces.empty())
                     {
@@ -799,10 +812,6 @@ int main(int argc, char** argv)
                         }
                     }
                 }
-            }
-            if (ret.empty())
-            {
-                throw NotFoundException();
             }
 
             return ret;
@@ -857,9 +866,17 @@ int main(int argc, char** argv)
             std::vector<interface_map_type::value_type> ret;
 
             auto path = req_path;
-            if ((path.back() == '/') && (path != "/"))
+            if (path != "/")
             {
-                path.pop_back();
+                if (path.back() == '/')
+                {
+                    path.pop_back();
+                }
+
+                if (interface_map.find(path) == interface_map.end())
+                {
+                    throw NotFoundException();
+                }
             }
 
             for (auto& object_path : interface_map)
@@ -891,10 +908,7 @@ int main(int argc, char** argv)
                     }
                 }
             }
-            if (ret.empty())
-            {
-                throw NotFoundException();
-            }
+
             return ret;
         });
 
@@ -911,9 +925,17 @@ int main(int argc, char** argv)
             std::vector<std::string> ret;
 
             auto path = req_path;
-            if ((path.back() == '/') && (path != "/"))
+            if (path != "/")
             {
-                path.pop_back();
+                if (path.back() == '/')
+                {
+                    path.pop_back();
+                }
+
+                if (interface_map.find(path) == interface_map.end())
+                {
+                    throw NotFoundException();
+                }
             }
 
             for (auto& object_path : interface_map)
@@ -951,10 +973,7 @@ int main(int argc, char** argv)
                     }
                 }
             }
-            if (ret.empty())
-            {
-                throw NotFoundException();
-            }
+
             return ret;
         });
 
