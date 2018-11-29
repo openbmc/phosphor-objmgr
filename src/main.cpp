@@ -501,22 +501,22 @@ void splitArgs(const std::string& stringArgs,
     }
 }
 
-void addSubtreeResult(
-    std::vector<interface_map_type::value_type>& subtree,
+void addObjectMapResult(
+    std::vector<interface_map_type::value_type>& objectMap,
     const std::string& objectPath,
     const std::pair<std::string, boost::container::flat_set<std::string>>&
         interfaceMap)
 {
     // Adds an object path/service name/interface list entry to
-    // the results of GetSubTree.
+    // the results of GetSubTree and GetAncestors.
     // If an entry for the object path already exists, just add the
     // service name and interfaces to that entry, otherwise create
     // a new entry.
     auto entry = std::find_if(
-        subtree.begin(), subtree.end(),
+        objectMap.begin(), objectMap.end(),
         [&objectPath](const auto& i) { return objectPath == i.first; });
 
-    if (entry != subtree.end())
+    if (entry != objectMap.end())
     {
         entry->second.emplace(interfaceMap);
     }
@@ -525,7 +525,7 @@ void addSubtreeResult(
         interface_map_type::value_type object;
         object.first = objectPath;
         object.second.emplace(interfaceMap);
-        subtree.push_back(object);
+        objectMap.push_back(object);
     }
 }
 
@@ -806,7 +806,8 @@ int main(int argc, char** argv)
                                           interface_map.second.begin(),
                                           interface_map.second.end()))
                             {
-                                ret.emplace_back(object_path);
+                                addObjectMapResult(ret, this_path,
+                                                   interface_map);
                                 break;
                             }
                         }
@@ -901,7 +902,8 @@ int main(int argc, char** argv)
                                           interface_map.second.end()) ||
                                 interfaces.empty())
                             {
-                                addSubtreeResult(ret, this_path, interface_map);
+                                addObjectMapResult(ret, this_path,
+                                                   interface_map);
                             }
                         }
                     }
