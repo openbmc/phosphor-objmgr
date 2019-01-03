@@ -46,6 +46,10 @@ boost::container::flat_map<
 static boost::container::flat_set<std::string> service_whitelist;
 static boost::container::flat_set<std::string> service_blacklist;
 
+static const boost::container::flat_set<std::string> default_ifaces{
+    "org.freedesktop.DBus.Introspectable", "org.freedesktop.DBus.Peer",
+    "org.freedesktop.DBus.Properties"};
+
 /** Exception thrown when a path is not found in the object list. */
 struct NotFoundException final : public sdbusplus::exception_t
 {
@@ -676,6 +680,54 @@ int main(int argc, char** argv)
                             sdbusplus::message::variant_ns::get<
                                 std::vector<Association>>(*variantAssociations);
                         addAssociation(server, associations, obj_path.str);
+                    }
+                }
+
+                // To handle the case where an object path is being created
+                // with 2 or more new path segments, check if the parent paths
+                // of this path are already in the interface map, and add them
+                // if they aren't with just the default freedesktop interfaces.
+                // This would be done via introspection if they would have
+                // already existed at startup.  While we could also introspect
+                // them now to do the work, we know there aren't any other
+                // interfaces or we would have gotten signals for them as well,
+                // so take a shortcut to speed things up.
+                //
+                // This is all needed so that mapper operations can be done
+                // on the new parent paths.
+
+                auto parent = obj_path.str;
+                auto pos = parent.find_last_of('/');
+
+                while (pos != std::string::npos)
+                {
+                    parent = parent.substr(0, pos);
+                    auto parentEntry = interface_map.find(parent);
+
+                    // Check both that the path is found and that it has
+                    // an entry for this owner.
+                    auto add =
+                        (parentEntry == interface_map.end()) ? true : false;
+
+                    if (parentEntry != interface_map.end())
+                    {
+                        if (parentEntry->second.find(well_known) ==
+                            parentEntry->second.end())
+                        {
+                            add = true;
+                        }
+                    }
+
+                    if (add)
+                    {
+                        auto& ifaces = interface_map[parent];
+                        ifaces[well_known] = default_ifaces;
+                        pos = parent.find_last_of('/');
+                    }
+                    else
+                    {
+                        // Can stop when we hit a parent that exists.
+                        pos = std::string::npos;
                     }
                 }
             }
