@@ -678,6 +678,52 @@ int main(int argc, char** argv)
                         addAssociation(server, associations, obj_path.str);
                     }
                 }
+
+                // To handle the case where an object path is being created
+                // with 2 or more new path segments, check if the parent paths
+                // of this path are already in the interface map, and add them
+                // if they aren't with just the default freedesktop interfaces.
+                // This would be done via introspection if they would have
+                // already existed at startup.  While we could also introspect
+                // them now to do the work, we know there aren't any other
+                // interfaces or we would have gotten signals for them as well,
+                // so take a shortcut to speed things up.
+                //
+                // This is all needed so that mapper operations can be done
+                // on the new parent paths.
+                using iface_map_iterator = interface_map_type::iterator;
+                using iface_map_value_type = boost::container::flat_map<
+                    std::string, boost::container::flat_set<std::string>>;
+                using name_map_iterator = iface_map_value_type::iterator;
+
+                static const boost::container::flat_set<std::string>
+                    default_ifaces{"org.freedesktop.DBus.Introspectable",
+                                   "org.freedesktop.DBus.Peer",
+                                   "org.freedesktop.DBus.Properties"};
+
+                std::string& parent = obj_path.str;
+                auto pos = parent.find_last_of('/');
+
+                while (pos != std::string::npos)
+                {
+                    parent = parent.substr(0, pos);
+
+                    std::pair<iface_map_iterator, bool> parentEntry =
+                        interface_map.insert(
+                            std::make_pair(parent, iface_map_value_type{}));
+
+                    std::pair<name_map_iterator, bool> ifaceEntry =
+                        parentEntry.first->second.insert(
+                            std::make_pair(well_known, default_ifaces));
+
+                    if (!ifaceEntry.second)
+                    {
+                        // Entry was already there for this name so done.
+                        break;
+                    }
+
+                    pos = parent.find_last_of('/');
+                }
             }
         };
 
