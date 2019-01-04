@@ -808,7 +808,6 @@ int main(int argc, char** argv)
                             {
                                 addObjectMapResult(ret, this_path,
                                                    interface_map);
-                                break;
                             }
                         }
                     }
