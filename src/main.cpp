@@ -529,6 +529,68 @@ void addObjectMapResult(
     }
 }
 
+// Remove parents of the passed in path that:
+// 1) Only have the 3 default interfaces on them
+//    - Means D-Bus created these, not application code,
+//      with the Properties, Introspectable, and Peer ifaces
+// 2) Have no other child for this owner
+void removeUnneededParents(const std::string& objectPath,
+                           const std::string& owner,
+                           interface_map_type& interface_map)
+{
+    auto parent = objectPath;
+
+    while (true)
+    {
+        auto pos = parent.find_last_of('/');
+        if ((pos == std::string::npos) || (pos == 0))
+        {
+            break;
+        }
+        parent = parent.substr(0, pos);
+
+        auto parent_it = interface_map.find(parent);
+        if (parent_it == interface_map.end())
+        {
+            break;
+        }
+
+        auto ifaces_it = parent_it->second.find(owner);
+        if (ifaces_it == parent_it->second.end())
+        {
+            break;
+        }
+
+        if (ifaces_it->second.size() != 3)
+        {
+            break;
+        }
+
+        auto child_path = parent + '/';
+
+        // Remove this parent if there isn't a remaining child on this owner
+        auto child = std::find_if(
+            interface_map.begin(), interface_map.end(),
+            [&owner, &child_path](const auto& entry) {
+                return boost::starts_with(entry.first, child_path) &&
+                       (entry.second.find(owner) != entry.second.end());
+            });
+
+        if (child == interface_map.end())
+        {
+            parent_it->second.erase(ifaces_it);
+            if (parent_it->second.empty())
+            {
+                interface_map.erase(parent_it);
+            }
+        }
+        else
+        {
+            break;
+        }
+    }
+}
+
 int main(int argc, char** argv)
 {
     auto options = ArgumentParser(argc, argv);
@@ -776,6 +838,8 @@ int main(int argc, char** argv)
             {
                 interface_map.erase(connection_map);
             }
+
+            removeUnneededParents(obj_path.str, sender, interface_map);
         };
 
     sdbusplus::bus::match::match interfacesRemoved(
