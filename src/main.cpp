@@ -32,16 +32,37 @@ using Association = std::tuple<std::string, std::string, std::string>;
 //  Associations and some metadata are stored in associationInterfaces.
 //  The fields are:
 //   * ifacePos - holds the D-Bus interface object
-//   * endpointPos - holds the endpoints array that shadows the property
-//   * sourcePos - holds the owning source path of the association
+//   * endpointsPos - holds the endpoints array that shadows the property
 static constexpr auto ifacePos = 0;
 static constexpr auto endpointsPos = 1;
-static constexpr auto sourcePos = 2;
 using Endpoints = std::vector<std::string>;
 boost::container::flat_map<
-    std::string, std::tuple<std::shared_ptr<sdbusplus::asio::dbus_interface>,
-                            Endpoints, std::string>>
+    std::string,
+    std::tuple<std::shared_ptr<sdbusplus::asio::dbus_interface>, Endpoints>>
     associationInterfaces;
+
+// The associationOwners map contains information about creators of
+// associations, so that when a org.openbmc.Association interface is
+// removed or its 'associations' property is changed, the mapper owned
+// association objects can be correctly handled.  It is a map of the
+// object path of the org.openbmc.Association owner to a map of the
+// service the path is owned by, to a map of the association objects to
+// their endpoint paths:
+// map[ownerPath : map[service : map[assocPath : [endpoint paths]]]
+// For example:
+// [/logging/entry/1 :
+//   [xyz.openbmc_project.Logging :
+//     [/logging/entry/1/callout : [/system/cpu0],
+//      /system/cpu0/fault : [/logging/entry/1]]]]
+
+using AssociationPaths =
+    boost::container::flat_map<std::string,
+                               boost::container::flat_set<std::string>>;
+
+using AssociationOwnersType = boost::container::flat_map<
+    std::string, boost::container::flat_map<std::string, AssociationPaths>>;
+
+AssociationOwnersType associationOwners;
 
 static boost::container::flat_set<std::string> service_whitelist;
 static boost::container::flat_set<std::string> service_blacklist;
@@ -170,13 +191,14 @@ struct InProgressIntrospect
 #endif
 };
 
+// Called when either a new org.openbmc.Associations interface was
+// created, or the associations property on that interface changed.
 void addAssociation(sdbusplus::asio::object_server& objectServer,
                     const std::vector<Association>& associations,
-                    const std::string& path)
+                    const std::string& path, const std::string& owner)
 {
-    boost::container::flat_map<std::string,
-                               boost::container::flat_set<std::string>>
-        objects;
+    AssociationPaths objects;
+
     for (const Association& association : associations)
     {
         std::string forward;
@@ -207,7 +229,6 @@ void addAssociation(sdbusplus::asio::object_server& objectServer,
         auto& iface = associationInterfaces[object.first];
         auto& i = std::get<ifacePos>(iface);
         auto& endpoints = std::get<endpointsPos>(iface);
-        std::get<sourcePos>(iface) = path;
 
         // Only add new endpoints
         for (auto& e : object.second)
@@ -233,49 +254,99 @@ void addAssociation(sdbusplus::asio::object_server& objectServer,
             i->initialize();
         }
     }
-}
 
-void removeAssociation(const std::string& sourcePath,
-                       sdbusplus::asio::object_server& server)
-{
-    // The sourcePath passed in can be:
-    // a) the source of the association object, in which case
-    //    that whole object needs to be deleted, and/or
-    // b) just an entry in the endpoints property under some
-    //    other path, in which case it just needs to be removed
-    //    from the property.
-    for (auto& assoc : associationInterfaces)
+    // Update associationOwners with the latest info
+    auto a = associationOwners.find(path);
+    if (a != associationOwners.end())
     {
-        if (sourcePath == std::get<sourcePos>(assoc.second))
+        auto o = a->second.find(owner);
+        if (o != a->second.end())
         {
-            server.remove_interface(std::get<ifacePos>(assoc.second));
-            std::get<ifacePos>(assoc.second) = nullptr;
-            std::get<endpointsPos>(assoc.second).clear();
-            std::get<sourcePos>(assoc.second).clear();
+            o->second = std::move(objects);
         }
         else
         {
-            auto& endpoints = std::get<endpointsPos>(assoc.second);
-            auto toRemove =
-                std::find(endpoints.begin(), endpoints.end(), sourcePath);
-            if (toRemove != endpoints.end())
-            {
-                endpoints.erase(toRemove);
+            a->second.emplace(owner, std::move(objects));
+        }
+    }
+    else
+    {
+        boost::container::flat_map<std::string, AssociationPaths> owners;
+        owners.emplace(owner, std::move(objects));
+        associationOwners.emplace(path, owners);
+    }
+}
 
-                if (endpoints.empty())
-                {
-                    // Remove the interface object too if no longer needed
-                    server.remove_interface(std::get<ifacePos>(assoc.second));
-                    std::get<ifacePos>(assoc.second) = nullptr;
-                    std::get<sourcePos>(assoc.second).clear();
-                }
-                else
-                {
-                    std::get<ifacePos>(assoc.second)
-                        ->set_property("endpoints", endpoints);
-                }
+void removeAssociation(const std::string& sourcePath, const std::string& owner,
+                       sdbusplus::asio::object_server& server)
+{
+    // Use associationOwners to find the association paths and endpoints
+    // that the passed in object path and service own.  Remove all of
+    // these endpoints from the actual association D-Bus objects, and if
+    // the endpoints property is then empty, the whole association object
+    // can be removed.  Note there can be multiple services that own an
+    // association, and also that sourcePath is the path of the object
+    // that contains the org.openbmc.Associations interface and not the
+    // association path itself.
+
+    // Find the services that have associations for this object path
+    auto owners = associationOwners.find(sourcePath);
+    if (owners == associationOwners.end())
+    {
+        return;
+    }
+
+    // Find the association paths and endpoints owned by this object
+    // path for this service.
+    auto assocs = owners->second.find(owner);
+    if (assocs == owners->second.end())
+    {
+        return;
+    }
+
+    for (const auto& [assocPath, endpointsToRemove] : assocs->second)
+    {
+        // Get the association D-Bus object for this assocPath
+        auto target = associationInterfaces.find(assocPath);
+        if (target == associationInterfaces.end())
+        {
+            continue;
+        }
+
+        // Remove the entries in the endpoints D-Bus property for this
+        // path/owner/association-path.
+        auto& existingEndpoints = std::get<endpointsPos>(target->second);
+        for (const auto& endpointToRemove : endpointsToRemove)
+        {
+            auto e = std::find(existingEndpoints.begin(),
+                               existingEndpoints.end(), endpointToRemove);
+
+            if (e != existingEndpoints.end())
+            {
+                existingEndpoints.erase(e);
             }
         }
+
+        // Remove the association from D-Bus if there are no more endpoints,
+        // otherwise just update the endpoints property.
+        if (existingEndpoints.empty())
+        {
+            server.remove_interface(std::get<ifacePos>(target->second));
+            std::get<ifacePos>(target->second) = nullptr;
+            std::get<endpointsPos>(target->second).clear();
+        }
+        else
+        {
+            std::get<ifacePos>(target->second)
+                ->set_property("endpoints", existingEndpoints);
+        }
+    }
+
+    // Remove the associationOwners entries for this owning path/service.
+    owners->second.erase(assocs);
+    if (owners->second.empty())
+    {
+        associationOwners.erase(owners);
     }
 }
 
@@ -284,10 +355,10 @@ void do_associations(sdbusplus::asio::connection* system_bus,
                      const std::string& processName, const std::string& path)
 {
     system_bus->async_method_call(
-        [&objectServer,
-         path](const boost::system::error_code ec,
-               const sdbusplus::message::variant<std::vector<Association>>&
-                   variantAssociations) {
+        [&objectServer, path, processName](
+            const boost::system::error_code ec,
+            const sdbusplus::message::variant<std::vector<Association>>&
+                variantAssociations) {
             if (ec)
             {
                 std::cerr << "Error getting associations from " << path << "\n";
@@ -295,7 +366,7 @@ void do_associations(sdbusplus::asio::connection* system_bus,
             std::vector<Association> associations =
                 sdbusplus::message::variant_ns::get<std::vector<Association>>(
                     variantAssociations);
-            addAssociation(objectServer, associations, path);
+            addAssociation(objectServer, associations, path, processName);
         },
         processName, path, "org.freedesktop.DBus.Properties", "Get",
         ASSOCIATIONS_INTERFACE, "associations");
@@ -652,7 +723,7 @@ int main(int argc, char** argv)
 
                         if (assoc != ifaces->second.end())
                         {
-                            removeAssociation(path_it->first, server);
+                            removeAssociation(path_it->first, name, server);
                         }
                     }
 
@@ -737,7 +808,8 @@ int main(int argc, char** argv)
                         std::vector<Association> associations =
                             sdbusplus::message::variant_ns::get<
                                 std::vector<Association>>(*variantAssociations);
-                        addAssociation(server, associations, obj_path.str);
+                        addAssociation(server, associations, obj_path.str,
+                                       well_known);
                     }
                 }
 
@@ -821,7 +893,7 @@ int main(int argc, char** argv)
 
                 if (interface == ASSOCIATIONS_INTERFACE)
                 {
-                    removeAssociation(obj_path.str, server);
+                    removeAssociation(obj_path.str, sender, server);
                 }
 
                 interface_set->second.erase(interface);
@@ -849,7 +921,7 @@ int main(int argc, char** argv)
 
     std::function<void(sdbusplus::message::message & message)>
         associationChangedHandler =
-            [&server](sdbusplus::message::message& message) {
+            [&server, &name_owners](sdbusplus::message::message& message) {
                 std::string objectName;
                 boost::container::flat_map<
                     std::string,
@@ -862,7 +934,15 @@ int main(int argc, char** argv)
                     std::vector<Association> associations =
                         sdbusplus::message::variant_ns::get<
                             std::vector<Association>>(findAssociations->second);
-                    addAssociation(server, associations, message.get_path());
+
+                    std::string well_known;
+                    if (!get_well_known(name_owners, message.get_sender(),
+                                        well_known))
+                    {
+                        return;
+                    }
+                    addAssociation(server, associations, message.get_path(),
+                                   well_known);
                 }
             };
     sdbusplus::bus::match::match associationChanged(
