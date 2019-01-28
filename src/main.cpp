@@ -883,17 +883,14 @@ int main(int argc, char** argv)
             // Interfaces need to be sorted for intersect to function
             std::sort(interfaces.begin(), interfaces.end());
 
-            if (req_path.size() > 1)
+            if (boost::ends_with(req_path, "/"))
             {
-                if (req_path.back() == '/')
-                {
-                    req_path.pop_back();
-                }
-
-                if (interface_map.find(req_path) == interface_map.end())
-                {
-                    throw NotFoundException();
-                }
+                req_path.pop_back();
+            }
+            if (req_path.size() &&
+                interface_map.find(req_path) == interface_map.end())
+            {
+                throw NotFoundException();
             }
 
             std::vector<interface_map_type::value_type> ret;
@@ -974,17 +971,14 @@ int main(int argc, char** argv)
             std::sort(interfaces.begin(), interfaces.end());
             std::vector<interface_map_type::value_type> ret;
 
-            if (req_path.size() > 1)
+            if (boost::ends_with(req_path, "/"))
             {
-                if (req_path.back() == '/')
-                {
-                    req_path.pop_back();
-                }
-
-                if (interface_map.find(req_path) == interface_map.end())
-                {
-                    throw NotFoundException();
-                }
+                req_path.pop_back();
+            }
+            if (req_path.size() &&
+                interface_map.find(req_path) == interface_map.end())
+            {
+                throw NotFoundException();
             }
 
             for (auto& object_path : interface_map)
@@ -1034,17 +1028,14 @@ int main(int argc, char** argv)
             std::sort(interfaces.begin(), interfaces.end());
             std::vector<std::string> ret;
 
-            if (req_path.size() > 1)
+            if (boost::ends_with(req_path, "/"))
             {
-                if (req_path.back() == '/')
-                {
-                    req_path.pop_back();
-                }
-
-                if (interface_map.find(req_path) == interface_map.end())
-                {
-                    throw NotFoundException();
-                }
+                req_path.pop_back();
+            }
+            if (req_path.size() &&
+                interface_map.find(req_path) == interface_map.end())
+            {
+                throw NotFoundException();
             }
 
             for (auto& object_path : interface_map)
