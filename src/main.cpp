@@ -1,6 +1,7 @@
 #include "associations.hpp"
 #include "processing.hpp"
 #include "src/argument.hpp"
+#include "src/test/util/debug_output.hpp"
 
 #include <tinyxml2.h>
 
@@ -475,16 +476,48 @@ int main(int argc, char** argv)
                     std::chrono::steady_clock::now());
 #endif
                 // New daemon added
-                if (needToIntrospect(name, service_whitelist,
-                                     service_blacklist))
+                // See if already added via an InterfacesAdded signal
+                if (!name_owners[new_owner].empty())
                 {
+                    std::cout << "nameChangeHandler: " << new_owner
+                              << " is "
+                                 "already in name_owners as "
+                              << name_owners[new_owner] << std::endl;
+
+                    // Check if this is a name to track in mapper
+                    if (needToIntrospect(name, service_whitelist,
+                                         service_blacklist))
+                    {
+                        std::cout << "nameChangeHandler: Track " << name
+                                  << " in name_owners" << std::endl;
+
+                        // Update it with well know name
+                        name_owners[new_owner] = name;
+                    }
+                    else
+                    {
+                        std::cout << "nameChangeHandler: Not tracking " << name
+                                  << " so delete it from name_owners"
+                                  << std::endl;
+                        name_owners.erase(new_owner);
+                        // TODO - delete associations
+                    }
+                }
+                else if (needToIntrospect(name, service_whitelist,
+                                          service_blacklist))
+                {
+                    std::cout << "nameChangeHandler: " << name
+                              << " is "
+                                 "not in name_owners so add it"
+                              << std::endl;
                     name_owners[new_owner] = name;
-                    start_new_introspect(system_bus.get(), io, interface_map,
-                                         name,
-#ifdef DEBUG
-                                         transaction,
-#endif
-                                         server);
+                }
+                else
+                {
+                    std::cout << "nameChangeHandler: " << name
+                              << " is "
+                                 "not in name_owners and not being tracked"
+                              << std::endl;
                 }
             }
         };
@@ -500,13 +533,31 @@ int main(int argc, char** argv)
             InterfacesAdded interfaces_added;
             message.read(obj_path, interfaces_added);
             std::string well_known;
-            if (!getWellKnown(name_owners, message.get_sender(), well_known))
+            if (!getWellKnown(name_owners, message.get_sender(), well_known) ||
+                well_known.empty())
             {
-                return; // only introspect well-known
+                std::cout << "interfacesAddedHandler: Not a well known name: "
+                          << message.get_sender() << std::endl;
+
+                // We will update name_owners properly once the
+                // NameOwnerChanged signal comes in for this
+                name_owners[message.get_sender()] = message.get_sender();
             }
-            if (needToIntrospect(well_known, service_whitelist,
+            else
+            {
+                std::cout << "interfacesAddedHandler: well known name: "
+                          << well_known << std::endl;
+            }
+            if (well_known.empty() ||
+                needToIntrospect(well_known, service_whitelist,
                                  service_blacklist))
             {
+                if (well_known.empty())
+                {
+                    // Use the unique name as the key since well-known is not
+                    // available
+                    well_known = message.get_sender();
+                }
                 processInterfaceAdded(interface_map, obj_path, interfaces_added,
                                       well_known, associationOwners,
                                       associationInterfaces, server);
@@ -664,6 +715,10 @@ int main(int argc, char** argv)
             boost::container::flat_map<std::string,
                                        boost::container::flat_set<std::string>>
                 results;
+
+            // dump_AssociationOwnersType(associationOwners);
+            // dump_AssociationInterfaces(associationInterfaces);
+            // dump_InterfaceMapType(interface_map);
 
             // Interfaces need to be sorted for intersect to function
             std::sort(interfaces.begin(), interfaces.end());
