@@ -71,6 +71,7 @@ bool get_well_known(
     // If it's already a well known name, just return
     if (!boost::starts_with(request, ":"))
     {
+        std::cout << "request " << request << " starts with :" << std::endl;
         well_known = request;
         return true;
     }
@@ -78,9 +79,12 @@ bool get_well_known(
     auto it = owners.find(request);
     if (it == owners.end())
     {
+        std::cout << "did not find owner" << std::endl;
         return false;
     }
     well_known = it->second;
+    std::cout << "request " << request << " found with " << well_known <<
+            std::endl;
     return true;
 }
 
@@ -676,15 +680,42 @@ int main(int argc, char** argv)
                     std::chrono::steady_clock::now());
 #endif
                 // New daemon added
-                if (need_to_introspect(name))
+                // See if already added via an InterfacesAdded signal
+                if (!name_owners[new_owner].empty())
                 {
+                    std::cout << "nameChangeHandler: " << new_owner << " is "
+                            "already in name_owners as "
+                            << name_owners[new_owner] << std::endl;
+
+                    // Check if this is a name to track in mapper
+                    if (need_to_introspect(name))
+                    {
+                        std::cout << "nameChangeHandler: Track " << name <<
+                                " in name_owners" << std::endl;
+
+                        // Update it with well know name
+                        name_owners[new_owner] = name;
+                    }
+                    else
+                    {
+                        std::cout << "nameChangeHandler: Not tracking " <<
+                                name << " so delete it from name_owners" <<
+                                std::endl;
+                        name_owners.erase(new_owner);
+                        // TODO - delete associations
+                    }
+                }
+                else if (need_to_introspect(name))
+                {
+                    std::cout << "nameChangeHandler: " << name << " is "
+                            "not in name_owners so add it" << std::endl;
                     name_owners[new_owner] = name;
-                    start_new_introspect(system_bus.get(), io, interface_map,
-                                         name,
-#ifdef DEBUG
-                                         transaction,
-#endif
-                                         server);
+                }
+                else
+                {
+                    std::cout << "nameChangeHandler: " << name << " is "
+                            "not in name_owners and not being tracked" <<
+                            std::endl;
                 }
             }
         };
@@ -704,12 +735,35 @@ int main(int argc, char** argv)
                 interfaces_added;
             message.read(obj_path, interfaces_added);
             std::string well_known;
-            if (!get_well_known(name_owners, message.get_sender(), well_known))
+            if (!get_well_known(name_owners, message.get_sender(), well_known) ||
+                    well_known.empty())
             {
-                return; // only introspect well-known
+                std::cout << "interfacesAddedHandler: Not a well known name: "
+                        << message.get_sender() << std::endl;
+
+                // We will update name_owners properly once the
+                // NameOwnerChanged signal comes in for this
+                name_owners[message.get_sender()] = message.get_sender();
             }
-            if (need_to_introspect(well_known))
+            else
             {
+                std::cout << "interfacesAddedHandler: well known name: " <<
+                        well_known << std::endl;
+            }
+            // If well_known is defined, check if it's one to introspect
+            // Else store it and delete it later once we can check it's name
+            if (well_known.empty() || need_to_introspect(well_known))
+            {
+                if (well_known.empty())
+                {
+                    // Use the unique name as the key since well-known is not
+                    // available
+                    well_known = message.get_sender();
+                }
+
+                std::cout << "interfacesAddedHandler: Introspect " <<
+                        well_known << std::endl;
+
                 auto& iface_list = interface_map[obj_path.str];
 
                 for (const auto& interface_pair : interfaces_added)
