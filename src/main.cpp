@@ -11,6 +11,7 @@
 #include <iostream>
 #include <sdbusplus/asio/connection.hpp>
 #include <sdbusplus/asio/object_server.hpp>
+#include <src/processing.hpp>
 
 constexpr const char* OBJECT_MAPPER_DBUS_NAME =
     "xyz.openbmc_project.ObjectMapper";
@@ -84,26 +85,6 @@ struct NotFoundException final : public sdbusplus::exception_t
                "The requested object was not found";
     };
 };
-
-bool get_well_known(
-    boost::container::flat_map<std::string, std::string>& owners,
-    const std::string& request, std::string& well_known)
-{
-    // If it's already a well known name, just return
-    if (!boost::starts_with(request, ":"))
-    {
-        well_known = request;
-        return true;
-    }
-
-    auto it = owners.find(request);
-    if (it == owners.end())
-    {
-        return false;
-    }
-    well_known = it->second;
-    return true;
-}
 
 void update_owners(sdbusplus::asio::connection* conn,
                    boost::container::flat_map<std::string, std::string>& owners,
