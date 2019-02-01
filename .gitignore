@@ -91,6 +91,7 @@ target/
 Makefile
 Makefile.in
 aclocal.m4
+aminclude_static.am
 ar-lib
 *-libtool
 autom4te.cache*
