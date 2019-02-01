@@ -11,6 +11,7 @@
 #include <iostream>
 #include <sdbusplus/asio/connection.hpp>
 #include <sdbusplus/asio/object_server.hpp>
+#include <src/processing.hpp>
 
 constexpr const char* OBJECT_MAPPER_DBUS_NAME =
     "xyz.openbmc_project.ObjectMapper";
@@ -84,26 +85,6 @@ struct NotFoundException final : public sdbusplus::exception_t
                "The requested object was not found";
     };
 };
-
-bool get_well_known(
-    boost::container::flat_map<std::string, std::string>& owners,
-    const std::string& request, std::string& well_known)
-{
-    // If it's already a well known name, just return
-    if (!boost::starts_with(request, ":"))
-    {
-        well_known = request;
-        return true;
-    }
-
-    auto it = owners.find(request);
-    if (it == owners.end())
-    {
-        return false;
-    }
-    well_known = it->second;
-    return true;
-}
 
 void update_owners(sdbusplus::asio::connection* conn,
                    boost::container::flat_map<std::string, std::string>& owners,
@@ -882,7 +863,7 @@ int main(int argc, char** argv)
                 interfaces_added;
             message.read(obj_path, interfaces_added);
             std::string well_known;
-            if (!get_well_known(name_owners, message.get_sender(), well_known))
+            if (!getWellKnown(name_owners, message.get_sender(), well_known))
             {
                 return; // only introspect well-known
             }
@@ -986,7 +967,7 @@ int main(int argc, char** argv)
             }
 
             std::string sender;
-            if (!get_well_known(name_owners, message.get_sender(), sender))
+            if (!getWellKnown(name_owners, message.get_sender(), sender))
             {
                 return;
             }
@@ -1043,8 +1024,8 @@ int main(int argc, char** argv)
                             std::vector<Association>>(findAssociations->second);
 
                     std::string well_known;
-                    if (!get_well_known(name_owners, message.get_sender(),
-                                        well_known))
+                    if (!getWellKnown(name_owners, message.get_sender(),
+                                      well_known))
                     {
                         return;
                     }
