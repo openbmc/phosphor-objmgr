@@ -1,4 +1,8 @@
 src_test_well_known_SOURCES = %reldir%/well_known.cpp src/processing.cpp
 
+src_test_need_to_introspect_SOURCES = %reldir%/need_to_introspect.cpp \
+	src/processing.cpp
+
 check_PROGRAMS += \
-	%reldir%/well_known
+	%reldir%/well_known \
+	%reldir%/need_to_introspect
