@@ -20,3 +20,19 @@ bool getWellKnown(
     wellKnown = it->second;
     return true;
 }
+
+bool needToIntrospect(const std::string& processName,
+                      const WhiteBlackList& whiteList,
+                      const WhiteBlackList& blackList)
+{
+    auto inWhitelist =
+        std::find_if(whiteList.begin(), whiteList.end(),
+                     [&processName](const auto& prefix) {
+                         return boost::starts_with(processName, prefix);
+                     }) != whiteList.end();
+
+    // This holds full service names, not prefixes
+    auto inBlacklist = blackList.find(processName) != blackList.end();
+
+    return inWhitelist && !inBlacklist;
+}
