@@ -10,6 +10,7 @@
 #include <iostream>
 #include <sdbusplus/asio/connection.hpp>
 #include <sdbusplus/asio/object_server.hpp>
+#include <src/associations.hpp>
 #include <src/processing.hpp>
 
 constexpr const char* OBJECT_MAPPER_DBUS_NAME =
@@ -29,40 +30,7 @@ using interface_map_type = boost::container::flat_map<
 
 using Association = std::tuple<std::string, std::string, std::string>;
 
-//  Associations and some metadata are stored in associationInterfaces.
-//  The fields are:
-//   * ifacePos - holds the D-Bus interface object
-//   * endpointsPos - holds the endpoints array that shadows the property
-static constexpr auto ifacePos = 0;
-static constexpr auto endpointsPos = 1;
-using Endpoints = std::vector<std::string>;
-using AssociationInterfaces = boost::container::flat_map<
-    std::string,
-    std::tuple<std::shared_ptr<sdbusplus::asio::dbus_interface>, Endpoints>>;
-
 AssociationInterfaces associationInterfaces;
-
-// The associationOwners map contains information about creators of
-// associations, so that when a org.openbmc.Association interface is
-// removed or its 'associations' property is changed, the mapper owned
-// association objects can be correctly handled.  It is a map of the
-// object path of the org.openbmc.Association owner to a map of the
-// service the path is owned by, to a map of the association objects to
-// their endpoint paths:
-// map[ownerPath : map[service : map[assocPath : [endpoint paths]]]
-// For example:
-// [/logging/entry/1 :
-//   [xyz.openbmc_project.Logging :
-//     [/logging/entry/1/callout : [/system/cpu0],
-//      /system/cpu0/fault : [/logging/entry/1]]]]
-
-using AssociationPaths =
-    boost::container::flat_map<std::string,
-                               boost::container::flat_set<std::string>>;
-
-using AssociationOwnersType = boost::container::flat_map<
-    std::string, boost::container::flat_map<std::string, AssociationPaths>>;
-
 AssociationOwnersType associationOwners;
 
 static WhiteBlackList service_whitelist;
@@ -362,81 +330,6 @@ void associationChanged(sdbusplus::asio::object_server& objectServer,
         boost::container::flat_map<std::string, AssociationPaths> owners;
         owners.emplace(owner, std::move(objects));
         associationOwners.emplace(path, owners);
-    }
-}
-
-void removeAssociation(const std::string& sourcePath, const std::string& owner,
-                       sdbusplus::asio::object_server& server,
-                       AssociationOwnersType& assocOwners,
-                       AssociationInterfaces& assocInterfaces)
-{
-    // Use associationOwners to find the association paths and endpoints
-    // that the passed in object path and service own.  Remove all of
-    // these endpoints from the actual association D-Bus objects, and if
-    // the endpoints property is then empty, the whole association object
-    // can be removed.  Note there can be multiple services that own an
-    // association, and also that sourcePath is the path of the object
-    // that contains the org.openbmc.Associations interface and not the
-    // association path itself.
-
-    // Find the services that have associations for this object path
-    auto owners = assocOwners.find(sourcePath);
-    if (owners == assocOwners.end())
-    {
-        return;
-    }
-
-    // Find the association paths and endpoints owned by this object
-    // path for this service.
-    auto assocs = owners->second.find(owner);
-    if (assocs == owners->second.end())
-    {
-        return;
-    }
-
-    for (const auto& [assocPath, endpointsToRemove] : assocs->second)
-    {
-        // Get the association D-Bus object for this assocPath
-        auto target = assocInterfaces.find(assocPath);
-        if (target == assocInterfaces.end())
-        {
-            continue;
-        }
-
-        // Remove the entries in the endpoints D-Bus property for this
-        // path/owner/association-path.
-        auto& existingEndpoints = std::get<endpointsPos>(target->second);
-        for (const auto& endpointToRemove : endpointsToRemove)
-        {
-            auto e = std::find(existingEndpoints.begin(),
-                               existingEndpoints.end(), endpointToRemove);
-
-            if (e != existingEndpoints.end())
-            {
-                existingEndpoints.erase(e);
-            }
-        }
-
-        // Remove the association from D-Bus if there are no more endpoints,
-        // otherwise just update the endpoints property.
-        if (existingEndpoints.empty())
-        {
-            server.remove_interface(std::get<ifacePos>(target->second));
-            std::get<ifacePos>(target->second) = nullptr;
-            std::get<endpointsPos>(target->second).clear();
-        }
-        else
-        {
-            std::get<ifacePos>(target->second)
-                ->set_property("endpoints", existingEndpoints);
-        }
-    }
-
-    // Remove the associationOwners entries for this owning path/service.
-    owners->second.erase(assocs);
-    if (owners->second.empty())
-    {
-        associationOwners.erase(owners);
     }
 }
 
