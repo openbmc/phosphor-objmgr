@@ -1,7 +1,11 @@
 #pragma once
 
 #include <boost/container/flat_map.hpp>
+#include <boost/container/flat_set.hpp>
 #include <string>
+
+/** @brief Define white list and black list data structure */
+using WhiteBlackList = boost::container::flat_set<std::string>;
 
 /** @brief Get well known name of input unique name
  *
@@ -15,4 +19,20 @@
  */
 bool get_well_known(
     const boost::container::flat_map<std::string, std::string>& owners,
-    const std::string& request, std::string& wellKnown);
+    const std::string& request, std::string& well_known);
+
+/** @brief Determine if dbus service is something to monitor
+ *
+ * mapper supports a whitelist and blacklist concept. If a whitelist is provided
+ * as input then only dbus objects matching that list is monitored. If a
+ * blacklist is provided then objects matching it will not be monitored.
+ *
+ * @param[in] processName   - Dbus service name
+ * @param[in] whiteList     - The white list
+ * @param[in] blackList     - The black list
+ *
+ * @return True if input process_name should be monitored, false otherwise
+ */
+bool need_to_introspect(const std::string& processName,
+                        const WhiteBlackList& whiteList,
+                        const WhiteBlackList& blackList);
