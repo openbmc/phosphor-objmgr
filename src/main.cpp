@@ -5,7 +5,6 @@
 #include <atomic>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/container/flat_map.hpp>
-#include <boost/container/flat_set.hpp>
 #include <chrono>
 #include <iomanip>
 #include <iostream>
@@ -65,8 +64,8 @@ using AssociationOwnersType = boost::container::flat_map<
 
 AssociationOwnersType associationOwners;
 
-static boost::container::flat_set<std::string> service_whitelist;
-static boost::container::flat_set<std::string> service_blacklist;
+static WhiteBlackList service_whitelist;
+static WhiteBlackList service_blacklist;
 
 /** Exception thrown when a path is not found in the object list. */
 struct NotFoundException final : public sdbusplus::exception_t
@@ -540,21 +539,6 @@ void do_introspect(sdbusplus::asio::connection* system_bus,
         "Introspect");
 }
 
-bool need_to_introspect(const std::string& process_name)
-{
-    auto inWhitelist =
-        std::find_if(service_whitelist.begin(), service_whitelist.end(),
-                     [&process_name](const auto& prefix) {
-                         return boost::starts_with(process_name, prefix);
-                     }) != service_whitelist.end();
-
-    // This holds full service names, not prefixes
-    auto inBlacklist =
-        service_blacklist.find(process_name) != service_blacklist.end();
-
-    return inWhitelist && !inBlacklist;
-}
-
 void start_new_introspect(
     sdbusplus::asio::connection* system_bus, boost::asio::io_service& io,
     interface_map_type& interface_map, const std::string& process_name,
@@ -564,7 +548,7 @@ void start_new_introspect(
 #endif
     sdbusplus::asio::object_server& objectServer)
 {
-    if (need_to_introspect(process_name))
+    if (need_to_introspect(process_name, service_whitelist, service_blacklist))
     {
         std::shared_ptr<InProgressIntrospect> transaction =
             std::make_shared<InProgressIntrospect>(system_bus, io, process_name
@@ -626,7 +610,8 @@ void doListNames(
 #endif
             for (const std::string& process_name : process_names)
             {
-                if (need_to_introspect(process_name))
+                if (need_to_introspect(process_name, service_whitelist,
+                                       service_blacklist))
                 {
                     start_new_introspect(system_bus, io, interface_map,
                                          process_name,
@@ -835,7 +820,8 @@ int main(int argc, char** argv)
                     std::chrono::steady_clock::now());
 #endif
                 // New daemon added
-                if (need_to_introspect(name))
+                if (need_to_introspect(name, service_whitelist,
+                                       service_blacklist))
                 {
                     name_owners[new_owner] = name;
                     start_new_introspect(system_bus.get(), io, interface_map,
@@ -867,7 +853,8 @@ int main(int argc, char** argv)
             {
                 return; // only introspect well-known
             }
-            if (need_to_introspect(well_known))
+            if (need_to_introspect(well_known, service_whitelist,
+                                   service_blacklist))
             {
                 auto& iface_list = interface_map[obj_path.str];
 

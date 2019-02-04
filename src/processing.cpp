@@ -20,3 +20,19 @@ bool get_well_known(
     well_known = it->second;
     return true;
 }
+
+bool need_to_introspect(const std::string& process_name,
+                        const WhiteBlackList& whiteList,
+                        const WhiteBlackList& blackList)
+{
+    auto inWhitelist =
+        std::find_if(whiteList.begin(), whiteList.end(),
+                     [&process_name](const auto& prefix) {
+                         return boost::starts_with(process_name, prefix);
+                     }) != whiteList.end();
+
+    // This holds full service names, not prefixes
+    auto inBlacklist = blackList.find(process_name) != blackList.end();
+
+    return inWhitelist && !inBlacklist;
+}
