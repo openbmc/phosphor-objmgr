@@ -36,10 +36,11 @@ using Association = std::tuple<std::string, std::string, std::string>;
 static constexpr auto ifacePos = 0;
 static constexpr auto endpointsPos = 1;
 using Endpoints = std::vector<std::string>;
-boost::container::flat_map<
+using AssociationInterfaces = boost::container::flat_map<
     std::string,
-    std::tuple<std::shared_ptr<sdbusplus::asio::dbus_interface>, Endpoints>>
-    associationInterfaces;
+    std::tuple<std::shared_ptr<sdbusplus::asio::dbus_interface>, Endpoints>>;
+
+AssociationInterfaces associationInterfaces;
 
 // The associationOwners map contains information about creators of
 // associations, so that when a org.openbmc.Association interface is
@@ -365,7 +366,9 @@ void associationChanged(sdbusplus::asio::object_server& objectServer,
 }
 
 void removeAssociation(const std::string& sourcePath, const std::string& owner,
-                       sdbusplus::asio::object_server& server)
+                       sdbusplus::asio::object_server& server,
+                       AssociationOwnersType& assocOwners,
+                       AssociationInterfaces& assocInterfaces)
 {
     // Use associationOwners to find the association paths and endpoints
     // that the passed in object path and service own.  Remove all of
@@ -377,8 +380,8 @@ void removeAssociation(const std::string& sourcePath, const std::string& owner,
     // association path itself.
 
     // Find the services that have associations for this object path
-    auto owners = associationOwners.find(sourcePath);
-    if (owners == associationOwners.end())
+    auto owners = assocOwners.find(sourcePath);
+    if (owners == assocOwners.end())
     {
         return;
     }
@@ -394,8 +397,8 @@ void removeAssociation(const std::string& sourcePath, const std::string& owner,
     for (const auto& [assocPath, endpointsToRemove] : assocs->second)
     {
         // Get the association D-Bus object for this assocPath
-        auto target = associationInterfaces.find(assocPath);
-        if (target == associationInterfaces.end())
+        auto target = assocInterfaces.find(assocPath);
+        if (target == assocInterfaces.end())
         {
             continue;
         }
@@ -796,7 +799,9 @@ int main(int argc, char** argv)
 
                         if (assoc != ifaces->second.end())
                         {
-                            removeAssociation(path_it->first, name, server);
+                            removeAssociation(path_it->first, name, server,
+                                              associationOwners,
+                                              associationInterfaces);
                         }
                     }
 
@@ -968,7 +973,8 @@ int main(int argc, char** argv)
 
                 if (interface == ASSOCIATIONS_INTERFACE)
                 {
-                    removeAssociation(obj_path.str, sender, server);
+                    removeAssociation(obj_path.str, sender, server,
+                                      associationOwners, associationInterfaces);
                 }
 
                 interface_set->second.erase(interface);
