@@ -1,3 +1,4 @@
+#include <iostream>
 #include <src/associations.hpp>
 
 void removeAssociation(const std::string& sourcePath, const std::string& owner,
