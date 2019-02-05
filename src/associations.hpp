@@ -5,6 +5,7 @@
 #include <memory>
 #include <sdbusplus/asio/object_server.hpp>
 #include <string>
+#include <tuple>
 #include <vector>
 
 //  Associations and some metadata are stored in associationInterfaces.
@@ -15,6 +16,7 @@ static constexpr auto ifacePos = 0;
 static constexpr auto endpointsPos = 1;
 using Endpoints = std::vector<std::string>;
 
+// map[interface path: tuple[dbus_interface,vector[endpoint paths]]]
 using AssociationInterfaces = boost::container::flat_map<
     std::string,
     std::tuple<std::shared_ptr<sdbusplus::asio::dbus_interface>, Endpoints>>;
