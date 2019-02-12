@@ -1,4 +1,5 @@
 #include <src/associations.hpp>
+#include <src/processing.hpp>
 
 const std::string DEFAULT_SOURCE_PATH = "/logging/entry/1";
 const std::string DEFAULT_DBUS_SVC = "xyz.openbmc_project.New.Interface";
@@ -44,4 +45,16 @@ void addEndpointToInterfaceAssociation(AssociationInterfaces& interfaceAssoc)
     auto iface = interfaceAssoc[DEFAULT_FWD_PATH];
     auto endpoints = std::get<endpointsPos>(iface);
     endpoints.push_back(EXTRA_ENDPOINT);
+}
+
+// Create a default interface_map_type with input values
+interface_map_type createInterfaceMap(
+    const std::string& path, const std::string& connection_name,
+    const boost::container::flat_set<std::string>& interface_names)
+{
+    boost::container::flat_map<std::string,
+                               boost::container::flat_set<std::string>>
+        connectionMap = {{connection_name, interface_names}};
+    interface_map_type interfaceMap = {{path, connectionMap}};
+    return interfaceMap;
 }
