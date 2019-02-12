@@ -36,3 +36,48 @@ bool need_to_introspect(const std::string& processName,
 
     return inWhitelist && !inBlacklist;
 }
+
+void process_name_change_delete(
+    boost::container::flat_map<std::string, std::string>& nameOwners,
+    const std::string& wellKnown, const std::string& oldOwner,
+    interface_map_type& interfaceMap, AssociationOwnersType& assocOwners,
+    AssociationInterfaces& assocInterfaces,
+    sdbusplus::asio::object_server& server)
+{
+    if (boost::starts_with(oldOwner, ":"))
+    {
+        auto it = nameOwners.find(oldOwner);
+        if (it != nameOwners.end())
+        {
+            nameOwners.erase(it);
+        }
+    }
+    // Connection removed
+    interface_map_type::iterator pathIt = interfaceMap.begin();
+    while (pathIt != interfaceMap.end())
+    {
+        // If an associations interface is being removed,
+        // also need to remove the corresponding associations
+        // objects and properties.
+        auto ifaces = pathIt->second.find(wellKnown);
+        if (ifaces != pathIt->second.end())
+        {
+            auto assoc = std::find(ifaces->second.begin(), ifaces->second.end(),
+                                   ASSOCIATIONS_INTERFACE);
+            if (assoc != ifaces->second.end())
+            {
+                removeAssociation(pathIt->first, wellKnown, server, assocOwners,
+                                  assocInterfaces);
+            }
+        }
+        pathIt->second.erase(wellKnown);
+        if (pathIt->second.empty())
+        {
+            // If the last connection to the object is gone,
+            // delete the top level object
+            pathIt = interfaceMap.erase(pathIt);
+            continue;
+        }
+        pathIt++;
+    }
+}
