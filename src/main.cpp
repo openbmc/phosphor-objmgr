@@ -15,18 +15,8 @@
 
 constexpr const char* OBJECT_MAPPER_DBUS_NAME =
     "xyz.openbmc_project.ObjectMapper";
-constexpr const char* ASSOCIATIONS_INTERFACE = "org.openbmc.Associations";
 constexpr const char* XYZ_ASSOCIATION_INTERFACE =
     "xyz.openbmc_project.Association";
-
-// interface_map_type is the underlying datastructure the mapper uses.
-// The 3 levels of map are
-// object paths
-//   connection names
-//      interface names
-using interface_map_type = boost::container::flat_map<
-    std::string, boost::container::flat_map<
-                     std::string, boost::container::flat_set<std::string>>>;
 
 using Association = std::tuple<std::string, std::string, std::string>;
 
@@ -660,54 +650,17 @@ int main(int argc, char** argv)
     std::function<void(sdbusplus::message::message & message)>
         nameChangeHandler = [&interface_map, &io, &name_owners, &server,
                              system_bus](sdbusplus::message::message& message) {
-            std::string name;
-            std::string old_owner;
-            std::string new_owner;
+            std::string name;      // well-known
+            std::string old_owner; // unique-name
+            std::string new_owner; // unique-name
 
             message.read(name, old_owner, new_owner);
 
             if (!old_owner.empty())
             {
-                if (boost::starts_with(old_owner, ":"))
-                {
-                    auto it = name_owners.find(old_owner);
-                    if (it != name_owners.end())
-                    {
-                        name_owners.erase(it);
-                    }
-                }
-                // Connection removed
-                interface_map_type::iterator path_it = interface_map.begin();
-                while (path_it != interface_map.end())
-                {
-                    // If an associations interface is being removed,
-                    // also need to remove the corresponding associations
-                    // objects and properties.
-                    auto ifaces = path_it->second.find(name);
-                    if (ifaces != path_it->second.end())
-                    {
-                        auto assoc = std::find(ifaces->second.begin(),
-                                               ifaces->second.end(),
-                                               ASSOCIATIONS_INTERFACE);
-
-                        if (assoc != ifaces->second.end())
-                        {
-                            removeAssociation(path_it->first, name, server,
-                                              associationOwners,
-                                              associationInterfaces);
-                        }
-                    }
-
-                    path_it->second.erase(name);
-                    if (path_it->second.empty())
-                    {
-                        // If the last connection to the object is gone,
-                        // delete the top level object
-                        path_it = interface_map.erase(path_it);
-                        continue;
-                    }
-                    path_it++;
-                }
+                process_name_change_delete(name_owners, name, old_owner,
+                                           interface_map, associationOwners,
+                                           associationInterfaces, server);
             }
 
             if (!new_owner.empty())
