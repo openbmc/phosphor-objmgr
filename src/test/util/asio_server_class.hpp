@@ -3,6 +3,9 @@
 #include <sdbusplus/asio/connection.hpp>
 #include <sdbusplus/asio/object_server.hpp>
 
+/* @brief Will contain path and name of test application */
+const char* appname = program_invocation_name;
+
 #include <gtest/gtest.h>
 /** @class AsioServerClassTest
  *
@@ -19,7 +22,13 @@ class AsioServerClassTest : public testing::Test
         boost::asio::io_context io;
         auto conn = std::make_shared<sdbusplus::asio::connection>(io);
 
-        conn->request_name("xyz.openbmc_project.ObjMgr.Test");
+        // Need a distinct name for the bus since multiple test applications
+        // will be running at same time
+        std::string dbusName = {"xyz.openbmc_project.ObjMgr.Test."};
+        std::string fullAppPath = {appname};
+        std::size_t fileNameLoc = fullAppPath.find_last_of("/\\");
+        dbusName += fullAppPath.substr(fileNameLoc + 1);
+        conn->request_name(dbusName.c_str());
         server = new sdbusplus::asio::object_server(conn);
     }
 
