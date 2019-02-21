@@ -8,6 +8,9 @@
 #include <tuple>
 #include <vector>
 
+constexpr const char* XYZ_ASSOCIATION_INTERFACE =
+    "xyz.openbmc_project.Association";
+
 //  Associations and some metadata are stored in associationInterfaces.
 //  The fields are:
 //   * ifacePos - holds the D-Bus interface object
@@ -41,6 +44,8 @@ using AssociationPaths =
 
 using AssociationOwnersType = boost::container::flat_map<
     std::string, boost::container::flat_map<std::string, AssociationPaths>>;
+
+using Association = std::tuple<std::string, std::string, std::string>;
 
 /** @brief Remove input association
  *
@@ -102,3 +107,25 @@ void checkAssociationEndpointRemoves(
     const AssociationPaths& newAssociations,
     sdbusplus::asio::object_server& objectServer,
     AssociationOwnersType& assocOwners, AssociationInterfaces& assocInterfaces);
+
+/** @brief Handle new or changed association interfaces
+ *
+ * Called when either a new org.openbmc.Associations interface was
+ * created, or the associations property on that interface changed
+ *
+ * @param[in,out] objectServer    - sdbus system object
+ * @param[in] associations        - New associations to look at for change
+ * @param[in] path                - Path of the object that contains the
+ *                                  org.openbmc.Associations
+ * @param[in] owner               - The Dbus service having it's associatons
+ *                                  changed
+ * @param[in,out] assocOwners     - Owners of associations
+ * @param[in,out] assocInterfaces - Associations endpoints
+ *
+ * @return Void, objectServer and assocOwners updated if needed
+ */
+void associationChanged(sdbusplus::asio::object_server& objectServer,
+                        const std::vector<Association>& associations,
+                        const std::string& path, const std::string& owner,
+                        AssociationOwnersType& assocOwners,
+                        AssociationInterfaces& assocInterfaces);
