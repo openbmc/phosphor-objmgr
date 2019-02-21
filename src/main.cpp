@@ -130,46 +130,6 @@ struct InProgressIntrospect
 #endif
 };
 
-// Remove paths from the endpoints property of an association.
-// If the last endpoint was removed, then remove the whole
-// association object, otherwise just set the property.
-void removeAssociationEndpoints(
-    sdbusplus::asio::object_server& objectServer, const std::string& assocPath,
-    const std::string& owner,
-    const boost::container::flat_set<std::string>& endpointsToRemove)
-{
-    auto assoc = associationInterfaces.find(assocPath);
-    if (assoc == associationInterfaces.end())
-    {
-        return;
-    }
-
-    auto& endpointsInDBus = std::get<endpointsPos>(assoc->second);
-
-    for (const auto& endpointToRemove : endpointsToRemove)
-    {
-        auto e = std::find(endpointsInDBus.begin(), endpointsInDBus.end(),
-                           endpointToRemove);
-
-        if (e != endpointsInDBus.end())
-        {
-            endpointsInDBus.erase(e);
-        }
-    }
-
-    if (endpointsInDBus.empty())
-    {
-        objectServer.remove_interface(std::get<ifacePos>(assoc->second));
-        std::get<ifacePos>(assoc->second) = nullptr;
-        std::get<endpointsPos>(assoc->second).clear();
-    }
-    else
-    {
-        std::get<ifacePos>(assoc->second)
-            ->set_property("endpoints", endpointsInDBus);
-    }
-}
-
 // Based on the latest values of the org.openbmc.Associations.associations
 // property, passed in via the newAssociations param, check if any of the
 // paths in the xyz.openbmc_project.Association.endpoints D-Bus property
@@ -207,8 +167,9 @@ void checkAssociationEndpointRemoves(
         auto newEndpoints = newAssociations.find(originalAssocPath);
         if (newEndpoints == newAssociations.end())
         {
-            removeAssociationEndpoints(objectServer, originalAssocPath, owner,
-                                       originalEndpoints);
+            removeAssociationEndpoints(objectServer, originalAssocPath,
+                                       originalEndpoints,
+                                       associationInterfaces);
         }
         else
         {
@@ -228,7 +189,7 @@ void checkAssociationEndpointRemoves(
             if (!toRemove.empty())
             {
                 removeAssociationEndpoints(objectServer, originalAssocPath,
-                                           owner, toRemove);
+                                           toRemove, associationInterfaces);
             }
         }
     }
