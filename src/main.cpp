@@ -130,71 +130,6 @@ struct InProgressIntrospect
 #endif
 };
 
-// Based on the latest values of the org.openbmc.Associations.associations
-// property, passed in via the newAssociations param, check if any of the
-// paths in the xyz.openbmc_project.Association.endpoints D-Bus property
-// for that association need to be removed.  If the last path is removed
-// from the endpoints property, remove that whole association object from
-// D-Bus.
-void checkAssociationEndpointRemoves(
-    const std::string& sourcePath, const std::string& owner,
-    const AssociationPaths& newAssociations,
-    sdbusplus::asio::object_server& objectServer)
-{
-    // Find the services that have associations on this path.
-    auto originalOwners = associationOwners.find(sourcePath);
-    if (originalOwners == associationOwners.end())
-    {
-        return;
-    }
-
-    // Find the associations for this service
-    auto originalAssociations = originalOwners->second.find(owner);
-    if (originalAssociations == originalOwners->second.end())
-    {
-        return;
-    }
-
-    // Compare the new endpoints versus the original endpoints, and
-    // remove any of the original ones that aren't in the new list.
-    for (const auto& [originalAssocPath, originalEndpoints] :
-         originalAssociations->second)
-    {
-        // Check if this source even still has each association that
-        // was there previously, and if not, remove all of its endpoints
-        // from the D-Bus endpoints property which will cause the whole
-        // association path to be removed if no endpoints remain.
-        auto newEndpoints = newAssociations.find(originalAssocPath);
-        if (newEndpoints == newAssociations.end())
-        {
-            removeAssociationEndpoints(objectServer, originalAssocPath,
-                                       originalEndpoints,
-                                       associationInterfaces);
-        }
-        else
-        {
-            // The association is still there.  Check if the endpoints
-            // changed.
-            boost::container::flat_set<std::string> toRemove;
-
-            for (auto& originalEndpoint : originalEndpoints)
-            {
-                if (std::find(newEndpoints->second.begin(),
-                              newEndpoints->second.end(),
-                              originalEndpoint) == newEndpoints->second.end())
-                {
-                    toRemove.emplace(originalEndpoint);
-                }
-            }
-            if (!toRemove.empty())
-            {
-                removeAssociationEndpoints(objectServer, originalAssocPath,
-                                           toRemove, associationInterfaces);
-            }
-        }
-    }
-}
-
 // Called when either a new org.openbmc.Associations interface was
 // created, or the associations property on that interface changed.
 void associationChanged(sdbusplus::asio::object_server& objectServer,
@@ -260,7 +195,8 @@ void associationChanged(sdbusplus::asio::object_server& objectServer,
     }
 
     // Check for endpoints being removed instead of added
-    checkAssociationEndpointRemoves(path, owner, objects, objectServer);
+    checkAssociationEndpointRemoves(path, owner, objects, objectServer,
+                                    associationOwners, associationInterfaces);
 
     // Update associationOwners with the latest info
     auto a = associationOwners.find(path);
