@@ -96,3 +96,69 @@ TEST_F(TestAssociations, PathIsInAssociatedInterfacesExtraEndpoints)
     intfEndpoints = std::get<endpointsPos>(assocInterfaces[DEFAULT_REV_PATH]);
     EXPECT_EQ(intfEndpoints.size(), 0);
 }
+
+// Verify no associations or endpoints removed when the change is identical
+TEST_F(TestAssociations, checkAssociationEndpointRemovesNoEpRemove)
+{
+
+    AssociationPaths newAssocPaths = {
+        {DEFAULT_FWD_PATH, {DEFAULT_ENDPOINT}},
+        {DEFAULT_REV_PATH, {DEFAULT_SOURCE_PATH}}};
+
+    auto assocOwners = createDefaultOwnerAssociation();
+    auto assocInterfaces = createDefaultInterfaceAssociation(server);
+
+    checkAssociationEndpointRemoves(DEFAULT_SOURCE_PATH, DEFAULT_DBUS_SVC,
+                                    newAssocPaths, *server, assocOwners,
+                                    assocInterfaces);
+
+    // Verify endpoints were not deleted because they matche with what was
+    // in the original
+    auto intfEndpoints =
+        std::get<endpointsPos>(assocInterfaces[DEFAULT_FWD_PATH]);
+    EXPECT_EQ(intfEndpoints.size(), 1);
+    intfEndpoints = std::get<endpointsPos>(assocInterfaces[DEFAULT_REV_PATH]);
+    EXPECT_EQ(intfEndpoints.size(), 1);
+}
+
+// Verify endpoint is removed when assoc path is different
+TEST_F(TestAssociations, checkAssociationEndpointRemovesEpRemoveApDiff)
+{
+    AssociationPaths newAssocPaths = {{"/different/path", {DEFAULT_ENDPOINT}}};
+
+    auto assocOwners = createDefaultOwnerAssociation();
+    auto assocInterfaces = createDefaultInterfaceAssociation(server);
+
+    checkAssociationEndpointRemoves(DEFAULT_SOURCE_PATH, DEFAULT_DBUS_SVC,
+                                    newAssocPaths, *server, assocOwners,
+                                    assocInterfaces);
+
+    // Verify initial endpoints were deleted because the new path
+    auto intfEndpoints =
+        std::get<endpointsPos>(assocInterfaces[DEFAULT_FWD_PATH]);
+    EXPECT_EQ(intfEndpoints.size(), 0);
+    intfEndpoints = std::get<endpointsPos>(assocInterfaces[DEFAULT_REV_PATH]);
+    EXPECT_EQ(intfEndpoints.size(), 0);
+}
+
+// Verify endpoint is removed when endpoint is different
+TEST_F(TestAssociations, checkAssociationEndpointRemovesEpRemoveEpChanged)
+{
+    AssociationPaths newAssocPaths = {
+        {DEFAULT_FWD_PATH, {DEFAULT_ENDPOINT + "/different"}},
+        {DEFAULT_REV_PATH, {DEFAULT_SOURCE_PATH + "/different"}}};
+
+    auto assocOwners = createDefaultOwnerAssociation();
+    auto assocInterfaces = createDefaultInterfaceAssociation(server);
+
+    checkAssociationEndpointRemoves(DEFAULT_SOURCE_PATH, DEFAULT_DBUS_SVC,
+                                    newAssocPaths, *server, assocOwners,
+                                    assocInterfaces);
+
+    // Verify initial endpoints were deleted because of different endpoints
+    auto intfEndpoints =
+        std::get<endpointsPos>(assocInterfaces[DEFAULT_FWD_PATH]);
+    EXPECT_EQ(intfEndpoints.size(), 0);
+    intfEndpoints = std::get<endpointsPos>(assocInterfaces[DEFAULT_REV_PATH]);
+    EXPECT_EQ(intfEndpoints.size(), 0);
+}
