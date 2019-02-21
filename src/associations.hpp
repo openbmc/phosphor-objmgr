@@ -58,3 +58,21 @@ void removeAssociation(const std::string& sourcePath, const std::string& owner,
                        sdbusplus::asio::object_server& server,
                        AssociationOwnersType& assocOwners,
                        AssociationInterfaces& assocInterfaces);
+
+/** @brief Remove input paths from endpoints of an association
+ *
+ * If the last endpoint was removed, then remove the whole
+ * association object, otherwise just set the property
+ *
+ * @param[in] objectServer        - sdbus system object
+ * @param[in] assocPath           - Path of the object that contains the
+ *                                  org.openbmc.Associations
+ * @param[in] endpointsToRemove   - Endpoints to remove
+ * @param[in,out] assocInterfaces - Associations endpoints
+ *
+ * @return Void, objectServer and assocInterfaces updated if needed
+ */
+void removeAssociationEndpoints(
+    sdbusplus::asio::object_server& objectServer, const std::string& assocPath,
+    const boost::container::flat_set<std::string>& endpointsToRemove,
+    AssociationInterfaces& assocInterfaces);
