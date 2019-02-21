@@ -15,10 +15,6 @@
 
 constexpr const char* OBJECT_MAPPER_DBUS_NAME =
     "xyz.openbmc_project.ObjectMapper";
-constexpr const char* XYZ_ASSOCIATION_INTERFACE =
-    "xyz.openbmc_project.Association";
-
-using Association = std::tuple<std::string, std::string, std::string>;
 
 AssociationInterfaces associationInterfaces;
 AssociationOwnersType associationOwners;
@@ -130,96 +126,6 @@ struct InProgressIntrospect
 #endif
 };
 
-// Called when either a new org.openbmc.Associations interface was
-// created, or the associations property on that interface changed.
-void associationChanged(sdbusplus::asio::object_server& objectServer,
-                        const std::vector<Association>& associations,
-                        const std::string& path, const std::string& owner)
-{
-    AssociationPaths objects;
-
-    for (const Association& association : associations)
-    {
-        std::string forward;
-        std::string reverse;
-        std::string endpoint;
-        std::tie(forward, reverse, endpoint) = association;
-
-        if (forward.size())
-        {
-            objects[path + "/" + forward].emplace(endpoint);
-        }
-        if (reverse.size())
-        {
-            if (endpoint.empty())
-            {
-                std::cerr << "Found invalid association on path " << path
-                          << "\n";
-                continue;
-            }
-            objects[endpoint + "/" + reverse].emplace(path);
-        }
-    }
-    for (const auto& object : objects)
-    {
-        // the mapper exposes the new association interface but intakes
-        // the old
-
-        auto& iface = associationInterfaces[object.first];
-        auto& i = std::get<ifacePos>(iface);
-        auto& endpoints = std::get<endpointsPos>(iface);
-
-        // Only add new endpoints
-        for (auto& e : object.second)
-        {
-            if (std::find(endpoints.begin(), endpoints.end(), e) ==
-                endpoints.end())
-            {
-                endpoints.push_back(e);
-            }
-        }
-
-        // If the interface already exists, only need to update
-        // the property value, otherwise create it
-        if (i)
-        {
-            i->set_property("endpoints", endpoints);
-        }
-        else
-        {
-            i = objectServer.add_interface(object.first,
-                                           XYZ_ASSOCIATION_INTERFACE);
-            i->register_property("endpoints", endpoints);
-            i->initialize();
-        }
-    }
-
-    // Check for endpoints being removed instead of added
-    checkAssociationEndpointRemoves(path, owner, objects, objectServer,
-                                    associationOwners, associationInterfaces);
-
-    // Update associationOwners with the latest info
-    auto a = associationOwners.find(path);
-    if (a != associationOwners.end())
-    {
-        auto o = a->second.find(owner);
-        if (o != a->second.end())
-        {
-            o->second = std::move(objects);
-        }
-        else
-        {
-            a->second.emplace(owner, std::move(objects));
-        }
-    }
-    else
-    {
-        boost::container::flat_map<std::string, AssociationPaths> owners;
-        owners.emplace(owner, std::move(objects));
-        associationOwners.emplace(path, owners);
-    }
-}
-
 void do_associations(sdbusplus::asio::connection* system_bus,
                      sdbusplus::asio::object_server& objectServer,
                      const std::string& processName, const std::string& path)
@@ -236,7 +142,8 @@ void do_associations(sdbusplus::asio::connection* system_bus,
             std::vector<Association> associations =
                 sdbusplus::message::variant_ns::get<std::vector<Association>>(
                     variantAssociations);
-            associationChanged(objectServer, associations, path, processName);
+            associationChanged(objectServer, associations, path, processName,
+                               associationOwners, associationInterfaces);
         },
         processName, path, "org.freedesktop.DBus.Properties", "Get",
         ASSOCIATIONS_INTERFACE, "associations");
@@ -632,7 +539,8 @@ int main(int argc, char** argv)
                             sdbusplus::message::variant_ns::get<
                                 std::vector<Association>>(*variantAssociations);
                         associationChanged(server, associations, obj_path.str,
-                                           well_known);
+                                           well_known, associationOwners,
+                                           associationInterfaces);
                     }
                 }
 
@@ -766,7 +674,8 @@ int main(int argc, char** argv)
                         return;
                     }
                     associationChanged(server, associations, message.get_path(),
-                                       well_known);
+                                       well_known, associationOwners,
+                                       associationInterfaces);
                 }
             };
     sdbusplus::bus::match::match associationChanged(
