@@ -109,3 +109,85 @@ TEST_F(TestAssociations, PathIsInAssociatedInterfacesExtraEndpoints)
     intfEndpoints = std::get<endpointsPos>(assocInterfaces[assocPath]);
     EXPECT_EQ(intfEndpoints.size(), 1);
 }
+
+// Verify no associations or endpoints removed when the change is identical
+TEST_F(TestAssociations, checkAssociationEndpointRemovesNoEpRemove)
+{
+    std::string sourcePath = "/logging/entry/1";
+    std::string owner = "xyz.openbmc_project.Test";
+    std::string assocPath = "/logging/entry/1/callout";
+    std::string endpoint = "/system/cpu0";
+    boost::container::flat_set<std::string> assocEndpoints = {endpoint};
+    AssociationPaths newAssocPaths = {{assocPath, assocEndpoints}};
+    Endpoints intfEndpoints = {endpoint};
+
+    // Build up these objects so that an associated interface will match
+    // with the associated owner being removed
+    auto assocOwners =
+        createOwnerAssociation(sourcePath, owner, assocPath, assocEndpoints);
+    auto assocInterfaces =
+        createInterfaceAssociation(assocPath, server, intfEndpoints);
+
+    checkAssociationEndpointRemoves(sourcePath, owner, newAssocPaths, *server,
+                                    assocOwners, assocInterfaces);
+
+    // Verify endpoint was not deleted because it matches with what was
+    // in the original
+    intfEndpoints = std::get<endpointsPos>(assocInterfaces[assocPath]);
+    EXPECT_EQ(intfEndpoints.size(), 1);
+}
+
+// Verify endpoint is removed when assoc path is different
+TEST_F(TestAssociations, checkAssociationEndpointRemovesEpRemoveApDiff)
+{
+    std::string sourcePath = "/logging/entry/1";
+    std::string owner = "xyz.openbmc_project.Test";
+    std::string assocPath = "/logging/entry/1/callout";
+    std::string assocPath2 = "/logging/entry/2/callout";
+    std::string endpoint = "/system/cpu0";
+    boost::container::flat_set<std::string> assocEndpoints = {endpoint};
+    AssociationPaths newAssocPaths = {{assocPath2, assocEndpoints}};
+    Endpoints intfEndpoints = {endpoint};
+
+    // Build up these objects so that an associated interface will match
+    // with the associated owner being removed
+    auto assocOwners =
+        createOwnerAssociation(sourcePath, owner, assocPath, assocEndpoints);
+    auto assocInterfaces =
+        createInterfaceAssociation(assocPath, server, intfEndpoints);
+
+    checkAssociationEndpointRemoves(sourcePath, owner, newAssocPaths, *server,
+                                    assocOwners, assocInterfaces);
+
+    // Verify endpoint was deleted since associated path was different
+    intfEndpoints = std::get<endpointsPos>(assocInterfaces[assocPath]);
+    EXPECT_EQ(intfEndpoints.size(), 0);
+}
+
+// Verify endpoint is removed when endpoint is different
+TEST_F(TestAssociations, checkAssociationEndpointRemovesEpRemoveEpChanged)
+{
+    std::string sourcePath = "/logging/entry/1";
+    std::string owner = "xyz.openbmc_project.Test";
+    std::string assocPath = "/logging/entry/1/callout";
+    std::string endpoint = "/system/cpu0";
+    boost::container::flat_set<std::string> assocEndpoints = {endpoint};
+    boost::container::flat_set<std::string> extraAssocEndpoints = {
+        "/different/endpoint"};
+    AssociationPaths newAssocPaths = {{assocPath, extraAssocEndpoints}};
+    Endpoints intfEndpoints = {endpoint};
+
+    // Build up these objects so that an associated interface will match
+    // with the associated owner being removed
+    auto assocOwners =
+        createOwnerAssociation(sourcePath, owner, assocPath, assocEndpoints);
+    auto assocInterfaces =
+        createInterfaceAssociation(assocPath, server, intfEndpoints);
+
+    checkAssociationEndpointRemoves(sourcePath, owner, newAssocPaths, *server,
+                                    assocOwners, assocInterfaces);
+
+    // Verify endpoint was deleted since endpoint path was different
+    intfEndpoints = std::get<endpointsPos>(assocInterfaces[assocPath]);
+    EXPECT_EQ(intfEndpoints.size(), 0);
+}
