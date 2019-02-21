@@ -31,40 +31,8 @@ void removeAssociation(const std::string& sourcePath, const std::string& owner,
 
     for (const auto& [assocPath, endpointsToRemove] : assocs->second)
     {
-        // Get the association D-Bus object for this assocPath
-        auto target = assocInterfaces.find(assocPath);
-        if (target == assocInterfaces.end())
-        {
-            continue;
-        }
-
-        // Remove the entries in the endpoints D-Bus property for this
-        // path/owner/association-path.
-        auto& existingEndpoints = std::get<endpointsPos>(target->second);
-        for (const auto& endpointToRemove : endpointsToRemove)
-        {
-            auto e = std::find(existingEndpoints.begin(),
-                               existingEndpoints.end(), endpointToRemove);
-
-            if (e != existingEndpoints.end())
-            {
-                existingEndpoints.erase(e);
-            }
-        }
-
-        // Remove the association from D-Bus if there are no more endpoints,
-        // otherwise just update the endpoints property.
-        if (existingEndpoints.empty())
-        {
-            server.remove_interface(std::get<ifacePos>(target->second));
-            std::get<ifacePos>(target->second) = nullptr;
-            std::get<endpointsPos>(target->second).clear();
-        }
-        else
-        {
-            std::get<ifacePos>(target->second)
-                ->set_property("endpoints", existingEndpoints);
-        }
+        removeAssociationEndpoints(server, assocPath, endpointsToRemove,
+                                   assocInterfaces);
     }
 
     // Remove the associationOwners entries for this owning path/service.
