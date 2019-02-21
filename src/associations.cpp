@@ -74,3 +74,41 @@ void removeAssociation(const std::string& sourcePath, const std::string& owner,
         assocOwners.erase(owners);
     }
 }
+
+void removeAssociationEndpoints(
+    sdbusplus::asio::object_server& objectServer, const std::string& assocPath,
+    const std::string& owner,
+    const boost::container::flat_set<std::string>& endpointsToRemove,
+    AssociationInterfaces& assocInterfaces)
+{
+    auto assoc = assocInterfaces.find(assocPath);
+    if (assoc == assocInterfaces.end())
+    {
+        return;
+    }
+
+    auto& endpointsInDBus = std::get<endpointsPos>(assoc->second);
+
+    for (const auto& endpointToRemove : endpointsToRemove)
+    {
+        auto e = std::find(endpointsInDBus.begin(), endpointsInDBus.end(),
+                           endpointToRemove);
+
+        if (e != endpointsInDBus.end())
+        {
+            endpointsInDBus.erase(e);
+        }
+    }
+
+    if (endpointsInDBus.empty())
+    {
+        objectServer.remove_interface(std::get<ifacePos>(assoc->second));
+        std::get<ifacePos>(assoc->second) = nullptr;
+        std::get<endpointsPos>(assoc->second).clear();
+    }
+    else
+    {
+        std::get<ifacePos>(assoc->second)
+            ->set_property("endpoints", endpointsInDBus);
+    }
+}
