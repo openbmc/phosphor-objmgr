@@ -80,3 +80,62 @@ void removeAssociationEndpoints(
             ->set_property("endpoints", endpointsInDBus);
     }
 }
+
+void checkAssociationEndpointRemoves(
+    const std::string& sourcePath, const std::string& owner,
+    const AssociationPaths& newAssociations,
+    sdbusplus::asio::object_server& objectServer,
+    AssociationOwnersType& assocOwners, AssociationInterfaces& assocInterfaces)
+{
+    // Find the services that have associations on this path.
+    auto originalOwners = assocOwners.find(sourcePath);
+    if (originalOwners == assocOwners.end())
+    {
+        return;
+    }
+
+    // Find the associations for this service
+    auto originalAssociations = originalOwners->second.find(owner);
+    if (originalAssociations == originalOwners->second.end())
+    {
+        return;
+    }
+
+    // Compare the new endpoints versus the original endpoints, and
+    // remove any of the original ones that aren't in the new list.
+    for (const auto& [originalAssocPath, originalEndpoints] :
+         originalAssociations->second)
+    {
+        // Check if this source even still has each association that
+        // was there previously, and if not, remove all of its endpoints
+        // from the D-Bus endpoints property which will cause the whole
+        // association path to be removed if no endpoints remain.
+        auto newEndpoints = newAssociations.find(originalAssocPath);
+        if (newEndpoints == newAssociations.end())
+        {
+            removeAssociationEndpoints(objectServer, originalAssocPath, owner,
+                                       originalEndpoints, assocInterfaces);
+        }
+        else
+        {
+            // The association is still there.  Check if the endpoints
+            // changed.
+            boost::container::flat_set<std::string> toRemove;
+
+            for (auto& originalEndpoint : originalEndpoints)
+            {
+                if (std::find(newEndpoints->second.begin(),
+                              newEndpoints->second.end(),
+                              originalEndpoint) == newEndpoints->second.end())
+                {
+                    toRemove.emplace(originalEndpoint);
+                }
+            }
+            if (!toRemove.empty())
+            {
+                removeAssociationEndpoints(objectServer, originalAssocPath,
+                                           owner, toRemove, assocInterfaces);
+            }
+        }
+    }
+}
