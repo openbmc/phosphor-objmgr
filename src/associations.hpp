@@ -45,6 +45,9 @@ using AssociationPaths =
 using AssociationOwnersType = boost::container::flat_map<
     std::string, boost::container::flat_map<std::string, AssociationPaths>>;
 
+// Store the contents of the associations property on the interface
+// For example:
+// ["inventory", "activation", "/xyz/openbmc_project/inventory/system/chassis"]
 using Association = std::tuple<std::string, std::string, std::string>;
 
 /** @brief Remove input association
