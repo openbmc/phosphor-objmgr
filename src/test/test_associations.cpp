@@ -191,3 +191,151 @@ TEST_F(TestAssociations, checkAssociationEndpointRemovesEpRemoveEpChanged)
     intfEndpoints = std::get<endpointsPos>(assocInterfaces[assocPath]);
     EXPECT_EQ(intfEndpoints.size(), 0);
 }
+
+// Verify nothing occurs when invalid endpoint is input
+TEST_F(TestAssociations, associationChangedEmptyEndpoint)
+{
+    std::string sourcePath = "/logging/entry/1";
+    std::string owner = "xyz.openbmc_project.Test";
+    std::string assocPath = "/logging/entry/1/callout";
+    std::string endpoint = "/system/cpu0";
+    boost::container::flat_set<std::string> assocEndpoints = {endpoint};
+    Endpoints intfEndpoints = {endpoint};
+    std::vector<Association> associations = {{"inventory", "error", ""}};
+
+    // Build some default owners and interfaces objects
+    auto assocOwners =
+        createOwnerAssociation(sourcePath, owner, assocPath, assocEndpoints);
+    auto assocInterfaces =
+        createInterfaceAssociation(assocPath, server, intfEndpoints);
+
+    // Empty endpoint will result in no-op of function
+    associationChanged(*server, associations, assocPath, owner, assocOwners,
+                       assocInterfaces);
+
+    // Verify endpoint was not deleted
+    intfEndpoints = std::get<endpointsPos>(assocInterfaces[assocPath]);
+    EXPECT_EQ(intfEndpoints.size(), 1);
+}
+
+// Add a new association with endpoint
+TEST_F(TestAssociations, associationChangedAddNewAssoc)
+{
+    std::string sourcePath = "/logging/entry/1";
+    std::string owner = "xyz.openbmc_project.Test";
+    std::string assocPath = "/logging/entry/1/callout";
+    std::string endpoint = "/system/cpu0";
+    boost::container::flat_set<std::string> assocEndpoints = {endpoint};
+    Endpoints intfEndpoints = {endpoint};
+    std::vector<Association> associations = {
+        {"inventory", "error",
+         "/xyz/openbmc_project/inventory/system/chassis"}};
+
+    // Build some default owners and interfaces objects
+    auto assocOwners =
+        createOwnerAssociation(sourcePath, owner, assocPath, assocEndpoints);
+    auto assocInterfaces =
+        createInterfaceAssociation(assocPath, server, intfEndpoints);
+
+    associationChanged(*server, associations, assocPath, owner, assocOwners,
+                       assocInterfaces);
+
+    // New endpoint so assocInterfaces should be same size
+    intfEndpoints = std::get<endpointsPos>(assocInterfaces[assocPath]);
+    EXPECT_EQ(intfEndpoints.size(), 1);
+
+    // New endpoint so new association should be added
+    EXPECT_EQ(assocOwners.size(), 2);
+}
+
+// Add a new association to empty objects
+TEST_F(TestAssociations, associationChangedAddNewAssocEmptyObj)
+{
+    std::string owner = "xyz.openbmc_project.Test";
+    std::string assocPath = "/logging/entry/1/callout";
+    std::vector<Association> associations = {
+        {"inventory", "error",
+         "/xyz/openbmc_project/inventory/system/chassis"}};
+
+    // Empty objects because this test will ensure assocOwners adds the
+    // changed association
+    AssociationInterfaces assocInterfaces;
+    AssociationOwnersType assocOwners;
+
+    associationChanged(*server, associations, assocPath, owner, assocOwners,
+                       assocInterfaces);
+
+    // No new interface created with this test
+    auto intfEndpoints = std::get<endpointsPos>(assocInterfaces[assocPath]);
+    EXPECT_EQ(intfEndpoints.size(), 0);
+
+    // New associations so ensure it now contains a single entry
+    EXPECT_EQ(assocOwners.size(), 1);
+}
+
+// Add a new association to same source path but with new owner
+TEST_F(TestAssociations, associationChangedAddNewAssocNewOwner)
+{
+    std::string sourcePath = "/logging/entry/1";
+    std::string owner = "xyz.openbmc_project.Test";
+    std::string owner2 = "xyz.openbmc_project.Test2";
+    std::string assocPath = "/logging/entry/1/callout";
+    std::string endpoint = "/system/cpu0";
+    boost::container::flat_set<std::string> assocEndpoints = {endpoint};
+    Endpoints intfEndpoints = {endpoint};
+    std::vector<Association> associations = {
+        {"inventory", "error",
+         "/xyz/openbmc_project/inventory/system/chassis"}};
+
+    // Build some default owners and interfaces objects
+    auto assocOwners =
+        createOwnerAssociation(sourcePath, owner, assocPath, assocEndpoints);
+    auto assocInterfaces =
+        createInterfaceAssociation(assocPath, server, intfEndpoints);
+
+    associationChanged(*server, associations, sourcePath, owner2, assocOwners,
+                       assocInterfaces);
+
+    // New endpoint so assocInterfaces should be same size
+    intfEndpoints = std::get<endpointsPos>(assocInterfaces[assocPath]);
+    EXPECT_EQ(intfEndpoints.size(), 1);
+
+    // Same sourcePath so should just add the endpoint
+    EXPECT_EQ(assocOwners.size(), 1);
+
+    // Ensure the 2 new association endpoints are under the new owner
+    auto a = assocOwners.find(sourcePath);
+    auto o = a->second.find(owner2);
+    EXPECT_EQ(o->second.size(), 2);
+}
+
+// Add a new association to existing interface path
+TEST_F(TestAssociations, associationChangedAddNewAssocSameInterface)
+{
+    std::string sourcePath = "/logging/entry/1";
+    std::string owner = "xyz.openbmc_project.Test";
+    std::string assocPath = "/logging/entry/1/callout";
+    std::string endpoint = "/system/cpu0";
+    boost::container::flat_set<std::string> assocEndpoints = {endpoint};
+    Endpoints intfEndpoints = {endpoint};
+    std::vector<Association> associations = {
+        {"inventory", "error",
+         "/xyz/openbmc_project/inventory/system/chassis"}};
+
+    // Build some default owners and interfaces objects
+    auto assocOwners =
+        createOwnerAssociation(sourcePath, owner, assocPath, assocEndpoints);
+    // Tack on the /inventory association from above so they are equal
+    auto assocInterfaces = createInterfaceAssociation(
+        assocPath + "/" + "inventory", server, intfEndpoints);
+
+    associationChanged(*server, associations, assocPath, owner, assocOwners,
+                       assocInterfaces);
+
+    // Change to existing interface so it will be removed here
+    intfEndpoints = std::get<endpointsPos>(assocInterfaces[assocPath]);
+    EXPECT_EQ(intfEndpoints.size(), 0);
+
+    // Different source paths so should be 2 now
+    EXPECT_EQ(assocOwners.size(), 2);
+}
