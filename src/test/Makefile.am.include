@@ -10,8 +10,12 @@ src_test_associations_SOURCES = %reldir%/test_associations.cpp \
 src_test_name_change_SOURCES = %reldir%/name_change.cpp \
 		src/associations.cpp src/processing.cpp
 
+src_test_interfaces_added_SOURCES = %reldir%/interfaces_added.cpp \
+		src/associations.cpp src/processing.cpp
+
 check_PROGRAMS += \
 	%reldir%/well_known \
 	%reldir%/need_to_introspect \
 	%reldir%/associations \
-	%reldir%/name_change
+	%reldir%/name_change \
+	%reldir%/interfaces_added
