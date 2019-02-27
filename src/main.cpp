@@ -497,11 +497,7 @@ int main(int argc, char** argv)
         interfacesAddedHandler = [&interface_map, &name_owners, &server](
                                      sdbusplus::message::message& message) {
             sdbusplus::message::object_path obj_path;
-            std::vector<std::pair<
-                std::string, std::vector<std::pair<
-                                 std::string, sdbusplus::message::variant<
-                                                  std::vector<Association>>>>>>
-                interfaces_added;
+            InterfacesAdded interfaces_added;
             message.read(obj_path, interfaces_added);
             std::string well_known;
             if (!getWellKnown(name_owners, message.get_sender(), well_known))
@@ -511,84 +507,9 @@ int main(int argc, char** argv)
             if (needToIntrospect(well_known, service_whitelist,
                                  service_blacklist))
             {
-                auto& iface_list = interface_map[obj_path.str];
-
-                for (const auto& interface_pair : interfaces_added)
-                {
-                    iface_list[well_known].emplace(interface_pair.first);
-
-                    if (interface_pair.first == ASSOCIATIONS_INTERFACE)
-                    {
-                        const sdbusplus::message::variant<
-                            std::vector<Association>>* variantAssociations =
-                            nullptr;
-                        for (const auto& interface : interface_pair.second)
-                        {
-                            if (interface.first == "associations")
-                            {
-                                variantAssociations = &(interface.second);
-                            }
-                        }
-                        if (variantAssociations == nullptr)
-                        {
-                            std::cerr << "Illegal association found on "
-                                      << well_known << "\n";
-                            continue;
-                        }
-                        std::vector<Association> associations =
-                            sdbusplus::message::variant_ns::get<
-                                std::vector<Association>>(*variantAssociations);
-                        associationChanged(server, associations, obj_path.str,
-                                           well_known, associationOwners,
-                                           associationInterfaces);
-                    }
-                }
-
-                // To handle the case where an object path is being created
-                // with 2 or more new path segments, check if the parent paths
-                // of this path are already in the interface map, and add them
-                // if they aren't with just the default freedesktop interfaces.
-                // This would be done via introspection if they would have
-                // already existed at startup.  While we could also introspect
-                // them now to do the work, we know there aren't any other
-                // interfaces or we would have gotten signals for them as well,
-                // so take a shortcut to speed things up.
-                //
-                // This is all needed so that mapper operations can be done
-                // on the new parent paths.
-                using iface_map_iterator = interface_map_type::iterator;
-                using iface_map_value_type = boost::container::flat_map<
-                    std::string, boost::container::flat_set<std::string>>;
-                using name_map_iterator = iface_map_value_type::iterator;
-
-                static const boost::container::flat_set<std::string>
-                    default_ifaces{"org.freedesktop.DBus.Introspectable",
-                                   "org.freedesktop.DBus.Peer",
-                                   "org.freedesktop.DBus.Properties"};
-
-                std::string parent = obj_path.str;
-                auto pos = parent.find_last_of('/');
-
-                while (pos != std::string::npos)
-                {
-                    parent = parent.substr(0, pos);
-
-                    std::pair<iface_map_iterator, bool> parentEntry =
-                        interface_map.insert(
-                            std::make_pair(parent, iface_map_value_type{}));
-
-                    std::pair<name_map_iterator, bool> ifaceEntry =
-                        parentEntry.first->second.insert(
-                            std::make_pair(well_known, default_ifaces));
-
-                    if (!ifaceEntry.second)
-                    {
-                        // Entry was already there for this name so done.
-                        break;
-                    }
-
-                    pos = parent.find_last_of('/');
-                }
+                processInterfaceAdded(interface_map, obj_path, interfaces_added,
+                                      well_known, associationOwners,
+                                      associationInterfaces, server);
             }
         };
 

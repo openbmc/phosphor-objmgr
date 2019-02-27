@@ -22,6 +22,17 @@ using interface_map_type = boost::container::flat_map<
     std::string, boost::container::flat_map<
                      std::string, boost::container::flat_set<std::string>>>;
 
+/** @brief InterfacesAdded represents the dbus data from the signal
+ *
+ * There are 2 pairs
+ * pair1: D-bus Interface,vector[pair2]
+ * pair2: D-bus Method,vector[Associations]
+ */
+using InterfacesAdded = std::vector<std::pair<
+    std::string,
+    std::vector<std::pair<
+        std::string, sdbusplus::message::variant<std::vector<Association>>>>>>;
+
 /** @brief Get well known name of input unique name
  *
  * If user passes in well known name then that will be returned.
@@ -69,3 +80,22 @@ void processNameChangeDelete(
     interface_map_type& interfaceMap, AssociationOwnersType& assocOwners,
     AssociationInterfaces& assocInterfaces,
     sdbusplus::asio::object_server& server);
+
+/** @brief Handle an interfaces added signal
+ *
+ * @param[in,out] interfaceMap    - Global map of interfaces
+ * @param[in]     objPath         - New path to process
+ * @param[in]     interfacesAdded - New interfaces to process
+ * @param[in]     wellKnown       - Well known name that has new owner
+ * @param[in,out] assocOwners     - Owners of associations
+ * @param[in,out] assocInterfaces - Associations endpoints
+ * @param[in,out] server          - sdbus system object
+ *
+ */
+void processInterfaceAdded(interface_map_type& interfaceMap,
+                           const sdbusplus::message::object_path objPath,
+                           const InterfacesAdded intfAdded,
+                           const std::string& wellKnown,
+                           AssociationOwnersType& assocOwners,
+                           AssociationInterfaces& assocInterfaces,
+                           sdbusplus::asio::object_server& server);
