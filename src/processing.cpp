@@ -1,4 +1,5 @@
 #include <boost/algorithm/string/predicate.hpp>
+#include <iostream>
 #include <src/processing.hpp>
 
 bool get_well_known(
@@ -79,5 +80,90 @@ void process_name_change_delete(
             continue;
         }
         pathIt++;
+    }
+}
+
+void process_interface_added(interface_map_type& interfaceMap,
+                             const sdbusplus::message::object_path objPath,
+                             const InterfacesAdded intfAdded,
+                             const std::string& wellKnown,
+                             AssociationOwnersType& assocOwners,
+                             AssociationInterfaces& assocInterfaces,
+                             sdbusplus::asio::object_server& server)
+{
+    auto& ifaceList = interfaceMap[objPath.str];
+
+    for (const auto& interfacePair : intfAdded)
+    {
+        ifaceList[wellKnown].emplace(interfacePair.first);
+
+        if (interfacePair.first == ASSOCIATIONS_INTERFACE)
+        {
+            const sdbusplus::message::variant<std::vector<Association>>*
+                variantAssociations = nullptr;
+            for (const auto& interface : interfacePair.second)
+            {
+                if (interface.first == "associations")
+                {
+                    variantAssociations = &(interface.second);
+                }
+            }
+            if (variantAssociations == nullptr)
+            {
+                std::cerr << "Illegal association found on " << wellKnown
+                          << "\n";
+                continue;
+            }
+            std::vector<Association> associations =
+                sdbusplus::message::variant_ns::get<std::vector<Association>>(
+                    *variantAssociations);
+            associationChanged(server, associations, objPath.str, wellKnown,
+                               assocOwners, assocInterfaces);
+        }
+    }
+
+    // To handle the case where an object path is being created
+    // with 2 or more new path segments, check if the parent paths
+    // of this path are already in the interface map, and add them
+    // if they aren't with just the default freedesktop interfaces.
+    // This would be done via introspection if they would have
+    // already existed at startup.  While we could also introspect
+    // them now to do the work, we know there aren't any other
+    // interfaces or we would have gotten signals for them as well,
+    // so take a shortcut to speed things up.
+    //
+    // This is all needed so that mapper operations can be done
+    // on the new parent paths.
+    using iface_map_iterator = interface_map_type::iterator;
+    using iface_map_value_type =
+        boost::container::flat_map<std::string,
+                                   boost::container::flat_set<std::string>>;
+    using name_map_iterator = iface_map_value_type::iterator;
+
+    static const boost::container::flat_set<std::string> defaultIfaces{
+        "org.freedesktop.DBus.Introspectable", "org.freedesktop.DBus.Peer",
+        "org.freedesktop.DBus.Properties"};
+
+    std::string parent = objPath.str;
+    auto pos = parent.find_last_of('/');
+
+    while (pos != std::string::npos)
+    {
+        parent = parent.substr(0, pos);
+
+        std::pair<iface_map_iterator, bool> parentEntry =
+            interfaceMap.insert(std::make_pair(parent, iface_map_value_type{}));
+
+        std::pair<name_map_iterator, bool> ifaceEntry =
+            parentEntry.first->second.insert(
+                std::make_pair(wellKnown, defaultIfaces));
+
+        if (!ifaceEntry.second)
+        {
+            // Entry was already there for this name so done.
+            break;
+        }
+
+        pos = parent.find_last_of('/');
     }
 }
