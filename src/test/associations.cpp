@@ -174,14 +174,10 @@ TEST_F(TestAssociations, associationChangedEmptyEndpoint)
     associationChanged(*server, associations, DEFAULT_SOURCE_PATH,
                        DEFAULT_DBUS_SVC, assocOwners, assocInterfaces);
 
-    // TODO - This test case found a bug where the endpoint validity
-    // is not checked on the FWD path and is used by default, resulting
-    // in there being a "" endpoint value. Will fix this in next commit
-    // to keep the refactor of the code separate from the fix
-    // (i.e. both of these should be 0 since we have an invalid endpoint)
+    // Both of these should be 0 since we have an invalid endpoint
     auto intfEndpoints =
         std::get<endpointsPos>(assocInterfaces[DEFAULT_FWD_PATH]);
-    EXPECT_EQ(intfEndpoints.size(), 1);
+    EXPECT_EQ(intfEndpoints.size(), 0);
     intfEndpoints = std::get<endpointsPos>(assocInterfaces[DEFAULT_REV_PATH]);
     EXPECT_EQ(intfEndpoints.size(), 0);
 }

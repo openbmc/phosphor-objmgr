@@ -155,18 +155,17 @@ void associationChanged(sdbusplus::asio::object_server& objectServer,
         std::string endpoint;
         std::tie(forward, reverse, endpoint) = association;
 
+        if (endpoint.empty())
+        {
+            std::cerr << "Found invalid association on path " << path << "\n";
+            continue;
+        }
         if (forward.size())
         {
             objects[path + "/" + forward].emplace(endpoint);
         }
         if (reverse.size())
         {
-            if (endpoint.empty())
-            {
-                std::cerr << "Found invalid association on path " << path
-                          << "\n";
-                continue;
-            }
             objects[endpoint + "/" + reverse].emplace(path);
         }
     }
