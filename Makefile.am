@@ -17,26 +17,4 @@ mapperx_CXXFLAGS = $(SYSTEMD_CFLAGS) -DBOOST_SYSTEM_NO_DEPRECATED -DBOOST_ERROR_
 
 include_HEADERS = libmapper/mapper.h
 
-if HAVE_PYTHON
-
-all-local:
-	$(AM_V_at)$(PYTHON) ${top_builddir}/setup.py build
-
-clean-local:
-	rm -rfv ${top_builddir}/build
-
-install-exec-hook:
-	$(AM_V_at)$(PYTHON) ${top_builddir}/setup.py install \
-	--prefix=$(DESTDIR)${prefix} \
-	--install-data=$(DESTDIR)${datadir} \
-	--install-lib=$(DESTDIR)$(PYTHONDIR) \
-	--install-scripts=$(DESTDIR)${sbindir} \
-	--record=${top_builddir}/python_install.log
-
-uninstall-hook:
-	cat ${top_builddir}/python_install.log \
-	| $(AWK) '{print "$(DESTDIR)"$$1}' | xargs rm -fv
-
-endif
-
 SUBDIRS = fail-monitor
