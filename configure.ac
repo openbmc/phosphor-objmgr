@@ -18,11 +18,6 @@ AM_PROG_AR
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_AWK
-# Python
-AM_PATH_PYTHON([2.7], [AC_SUBST([PYTHON], [echo "$PYTHON"])], [AC_MSG_ERROR([Could not find python-2.7 installed...python-2.7 is required])])
-AM_CONDITIONAL([HAVE_PYTHON], [test "$PYTHON" != :])
-AC_SUBST([HAVE_PYTHON])
-AC_SUBST([PYTHONDIR], ${pythondir})
 
 # Checks for libraries.
 PKG_CHECK_MODULES([SDBUSPLUS], [sdbusplus])
@@ -83,5 +78,5 @@ AS_IF([test "x$enable_unpatched_systemd" == "xyes"],
 )
 
 # Create configured output
-AC_CONFIG_FILES([Makefile setup.py fail-monitor/Makefile])
+AC_CONFIG_FILES([Makefile fail-monitor/Makefile])
 AC_OUTPUT
