@@ -1,7 +1,7 @@
 AM_DEFAULT_SOURCE_EXT = .cpp
 AM_CPPFLAGS = -I$(top_srcdir)
 
-sbin_PROGRAMS = \
+bin_PROGRAMS = \
 	phosphor-unit-failure-monitor
 
 phosphor_unit_failure_monitor_SOURCES = \
