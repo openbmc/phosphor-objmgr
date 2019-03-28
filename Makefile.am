@@ -16,7 +16,7 @@ AM_LDFLAGS = $(GMOCK_LIBS) -lgmock_main \
 	$(GTEST_LIBS) $(OESDK_TESTCASE_FLAGS) $(PTHREAD_LIBS) \
 	$(SDBUSPLUS_LIBS) -lboost_system
 
-sbin_PROGRAMS = mapper mapperx
+bin_PROGRAMS = mapper mapperx
 
 mapper_SOURCES = libmapper/app.c
 mapper_LDFLAGS = $(SYSTEMD_LIBS)
