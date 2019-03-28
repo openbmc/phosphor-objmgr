@@ -1,4 +1,4 @@
-sbin_PROGRAMS = mapper mapperx
+bin_PROGRAMS = mapper mapperx
 
 mapper_SOURCES = libmapper/app.c
 mapper_LDFLAGS = $(SYSTEMD_LIBS)
@@ -30,7 +30,7 @@ install-exec-hook:
 	--prefix=$(DESTDIR)${prefix} \
 	--install-data=$(DESTDIR)${datadir} \
 	--install-lib=$(DESTDIR)$(PYTHONDIR) \
-	--install-scripts=$(DESTDIR)${sbindir} \
+	--install-scripts=$(DESTDIR)${bindir} \
 	--record=${top_builddir}/python_install.log
 
 uninstall-hook:
