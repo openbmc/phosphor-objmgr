@@ -111,3 +111,11 @@ mapper
 !mapper/
 setup.py
 mapperx
+.dirstamp
+*.trs
+test-driver
+src/test/associations
+src/test/interfaces_added
+src/test/need_to_introspect
+src/test/well_known
+src/test/name_change
