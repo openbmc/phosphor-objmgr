@@ -1,27 +1,13 @@
 #pragma once
 
 #include "associations.hpp"
-
-#include <boost/container/flat_map.hpp>
-#include <boost/container/flat_set.hpp>
-#include <string>
+#include "types.hpp"
 
 /** @brief Define white list and black list data structure */
 using WhiteBlackList = boost::container::flat_set<std::string>;
 
 /** @brief Dbus interface which contains org.openbmc Associations */
 constexpr const char* ASSOCIATIONS_INTERFACE = "org.openbmc.Associations";
-
-/** @brief interface_map_type is the underlying datastructure the mapper uses.
- *
- * The 3 levels of map are
- * object paths
- *   connection names
- *      interface names
- */
-using interface_map_type = boost::container::flat_map<
-    std::string, boost::container::flat_map<
-                     std::string, boost::container::flat_set<std::string>>>;
 
 /** @brief InterfacesAdded represents the dbus data from the signal
  *
