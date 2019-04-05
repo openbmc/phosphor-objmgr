@@ -12,15 +12,13 @@ constexpr const char* XYZ_ASSOCIATION_INTERFACE =
  * @param[in] owner               - The Dbus service having its associations
  *                                  removed
  * @param[in,out] server          - sdbus system object
- * @param[in,out] assocOwners     - Owners of associations
- * @param[in,out] assocInterfaces - Associations endpoints
+ * @param[in,out] assocMaps       - The association maps
  *
- * @return Void, server, assocOwners, and assocInterfaces updated if needed
+ * @return Void, server, assocMaps updated if needed
  */
 void removeAssociation(const std::string& sourcePath, const std::string& owner,
                        sdbusplus::asio::object_server& server,
-                       AssociationOwnersType& assocOwners,
-                       AssociationInterfaces& assocInterfaces);
+                       AssociationMaps& assocMaps);
 
 /** @brief Remove input paths from endpoints of an association
  *
@@ -31,14 +29,14 @@ void removeAssociation(const std::string& sourcePath, const std::string& owner,
  * @param[in] assocPath           - Path of the object that contains the
  *                                  org.openbmc.Associations
  * @param[in] endpointsToRemove   - Endpoints to remove
- * @param[in,out] assocInterfaces - Associations endpoints
+ * @param[in,out] assocMaps       - The association maps
  *
- * @return Void, objectServer and assocInterfaces updated if needed
+ * @return Void, objectServer and assocMaps updated if needed
  */
 void removeAssociationEndpoints(
     sdbusplus::asio::object_server& objectServer, const std::string& assocPath,
     const boost::container::flat_set<std::string>& endpointsToRemove,
-    AssociationInterfaces& assocInterfaces);
+    AssociationMaps& assocMaps);
 
 /** @brief Check and remove any changed associations
  *
@@ -55,16 +53,14 @@ void removeAssociationEndpoints(
  *                                 changed
  * @param[in] newAssociations    - New associations to look at for change
  * @param[in,out] objectServer   - sdbus system object
- * @param[in,out] assocOwners    - Owners of associations
- * @param[in,out] assocInterfaces - Associations endpoints
+ * @param[in,out] assocMaps      - The association maps
  *
- * @return Void, objectServer and assocOwners updated if needed
+ * @return Void, objectServer and assocMaps updated if needed
  */
 void checkAssociationEndpointRemoves(
     const std::string& sourcePath, const std::string& owner,
     const AssociationPaths& newAssociations,
-    sdbusplus::asio::object_server& objectServer,
-    AssociationOwnersType& assocOwners, AssociationInterfaces& assocInterfaces);
+    sdbusplus::asio::object_server& objectServer, AssociationMaps& assocMaps);
 
 /** @brief Handle new or changed association interfaces
  *
@@ -77,13 +73,11 @@ void checkAssociationEndpointRemoves(
  *                                  org.openbmc.Associations
  * @param[in] owner               - The Dbus service having it's associatons
  *                                  changed
- * @param[in,out] assocOwners     - Owners of associations
- * @param[in,out] assocInterfaces - Associations endpoints
+ * @param[in,out] assocMaps       - The association maps
  *
- * @return Void, objectServer and assocOwners updated if needed
+ * @return Void, objectServer and assocMaps updated if needed
  */
 void associationChanged(sdbusplus::asio::object_server& objectServer,
                         const std::vector<Association>& associations,
                         const std::string& path, const std::string& owner,
-                        AssociationOwnersType& assocOwners,
-                        AssociationInterfaces& assocInterfaces);
+                        AssociationMaps& assocMaps);

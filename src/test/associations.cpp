@@ -20,35 +20,32 @@ TEST_F(TestAssociations, SourcePathNotInAssociations)
 {
     EXPECT_NE(nullptr, server);
     std::string sourcePath = "/xyz/openbmc_project/no/association";
-    AssociationOwnersType assocOwners;
-    AssociationInterfaces assocInterfaces;
+    AssociationMaps assocMaps;
 
-    removeAssociation(sourcePath, DEFAULT_DBUS_SVC, *server, assocOwners,
-                      assocInterfaces);
+    removeAssociation(sourcePath, DEFAULT_DBUS_SVC, *server, assocMaps);
 }
 
 // Verify call when owner is not in associated owners
 TEST_F(TestAssociations, OwnerNotInAssociations)
 {
-    AssociationInterfaces assocInterfaces;
-
-    auto assocOwners = createDefaultOwnerAssociation();
+    AssociationMaps assocMaps;
+    assocMaps.owners = createDefaultOwnerAssociation();
 
     removeAssociation(DEFAULT_SOURCE_PATH, DEFAULT_DBUS_SVC, *server,
-                      assocOwners, assocInterfaces);
+                      assocMaps);
 }
 
 // Verify call when path is not in associated interfaces
 TEST_F(TestAssociations, PathNotInAssocInterfaces)
 {
-    AssociationInterfaces assocInterfaces;
+    AssociationMaps assocMaps;
 
-    auto assocOwners = createDefaultOwnerAssociation();
+    assocMaps.owners = createDefaultOwnerAssociation();
 
     removeAssociation(DEFAULT_SOURCE_PATH, DEFAULT_DBUS_SVC, *server,
-                      assocOwners, assocInterfaces);
+                      assocMaps);
 
-    EXPECT_TRUE(assocOwners.empty());
+    EXPECT_TRUE(assocMaps.owners.empty());
 }
 
 // Verify call when path is in associated interfaces
@@ -56,20 +53,21 @@ TEST_F(TestAssociations, PathIsInAssociatedInterfaces)
 {
     // Build up these objects so that an associated interface will match
     // with the associated owner being removed
-    auto assocOwners = createDefaultOwnerAssociation();
-    auto assocInterfaces = createDefaultInterfaceAssociation(server);
+    AssociationMaps assocMaps;
+    assocMaps.owners = createDefaultOwnerAssociation();
+    assocMaps.ifaces = createDefaultInterfaceAssociation(server);
 
     removeAssociation(DEFAULT_SOURCE_PATH, DEFAULT_DBUS_SVC, *server,
-                      assocOwners, assocInterfaces);
+                      assocMaps);
 
     // Verify owner association was deleted
-    EXPECT_TRUE(assocOwners.empty());
+    EXPECT_TRUE(assocMaps.owners.empty());
 
     // Verify endpoint was deleted from interface association
     auto intfEndpoints =
-        std::get<endpointsPos>(assocInterfaces[DEFAULT_FWD_PATH]);
+        std::get<endpointsPos>(assocMaps.ifaces[DEFAULT_FWD_PATH]);
     EXPECT_EQ(intfEndpoints.size(), 0);
-    intfEndpoints = std::get<endpointsPos>(assocInterfaces[DEFAULT_REV_PATH]);
+    intfEndpoints = std::get<endpointsPos>(assocMaps.ifaces[DEFAULT_REV_PATH]);
     EXPECT_EQ(intfEndpoints.size(), 0);
 }
 
@@ -78,23 +76,24 @@ TEST_F(TestAssociations, PathIsInAssociatedInterfacesExtraEndpoints)
 {
     // Build up these objects so that an associated interface will match
     // with the associated owner being removed
-    auto assocOwners = createDefaultOwnerAssociation();
-    auto assocInterfaces = createDefaultInterfaceAssociation(server);
+    AssociationMaps assocMaps;
+    assocMaps.owners = createDefaultOwnerAssociation();
+    assocMaps.ifaces = createDefaultInterfaceAssociation(server);
 
     // Add another endpoint to the assoc interfaces
-    addEndpointToInterfaceAssociation(assocInterfaces);
+    addEndpointToInterfaceAssociation(assocMaps.ifaces);
 
     removeAssociation(DEFAULT_SOURCE_PATH, DEFAULT_DBUS_SVC, *server,
-                      assocOwners, assocInterfaces);
+                      assocMaps);
 
     // Verify owner association was deleted
-    EXPECT_TRUE(assocOwners.empty());
+    EXPECT_TRUE(assocMaps.owners.empty());
 
     // Verify all endpoints are deleted since source path was deleted
     auto intfEndpoints =
-        std::get<endpointsPos>(assocInterfaces[DEFAULT_FWD_PATH]);
+        std::get<endpointsPos>(assocMaps.ifaces[DEFAULT_FWD_PATH]);
     EXPECT_EQ(intfEndpoints.size(), 0);
-    intfEndpoints = std::get<endpointsPos>(assocInterfaces[DEFAULT_REV_PATH]);
+    intfEndpoints = std::get<endpointsPos>(assocMaps.ifaces[DEFAULT_REV_PATH]);
     EXPECT_EQ(intfEndpoints.size(), 0);
 }
 
@@ -106,19 +105,19 @@ TEST_F(TestAssociations, checkAssociationEndpointRemovesNoEpRemove)
         {DEFAULT_FWD_PATH, {DEFAULT_ENDPOINT}},
         {DEFAULT_REV_PATH, {DEFAULT_SOURCE_PATH}}};
 
-    auto assocOwners = createDefaultOwnerAssociation();
-    auto assocInterfaces = createDefaultInterfaceAssociation(server);
+    AssociationMaps assocMaps;
+    assocMaps.owners = createDefaultOwnerAssociation();
+    assocMaps.ifaces = createDefaultInterfaceAssociation(server);
 
     checkAssociationEndpointRemoves(DEFAULT_SOURCE_PATH, DEFAULT_DBUS_SVC,
-                                    newAssocPaths, *server, assocOwners,
-                                    assocInterfaces);
+                                    newAssocPaths, *server, assocMaps);
 
     // Verify endpoints were not deleted because they matche with what was
     // in the original
     auto intfEndpoints =
-        std::get<endpointsPos>(assocInterfaces[DEFAULT_FWD_PATH]);
+        std::get<endpointsPos>(assocMaps.ifaces[DEFAULT_FWD_PATH]);
     EXPECT_EQ(intfEndpoints.size(), 1);
-    intfEndpoints = std::get<endpointsPos>(assocInterfaces[DEFAULT_REV_PATH]);
+    intfEndpoints = std::get<endpointsPos>(assocMaps.ifaces[DEFAULT_REV_PATH]);
     EXPECT_EQ(intfEndpoints.size(), 1);
 }
 
@@ -127,18 +126,18 @@ TEST_F(TestAssociations, checkAssociationEndpointRemovesEpRemoveApDiff)
 {
     AssociationPaths newAssocPaths = {{"/different/path", {DEFAULT_ENDPOINT}}};
 
-    auto assocOwners = createDefaultOwnerAssociation();
-    auto assocInterfaces = createDefaultInterfaceAssociation(server);
+    AssociationMaps assocMaps;
+    assocMaps.owners = createDefaultOwnerAssociation();
+    assocMaps.ifaces = createDefaultInterfaceAssociation(server);
 
     checkAssociationEndpointRemoves(DEFAULT_SOURCE_PATH, DEFAULT_DBUS_SVC,
-                                    newAssocPaths, *server, assocOwners,
-                                    assocInterfaces);
+                                    newAssocPaths, *server, assocMaps);
 
     // Verify initial endpoints were deleted because the new path
     auto intfEndpoints =
-        std::get<endpointsPos>(assocInterfaces[DEFAULT_FWD_PATH]);
+        std::get<endpointsPos>(assocMaps.ifaces[DEFAULT_FWD_PATH]);
     EXPECT_EQ(intfEndpoints.size(), 0);
-    intfEndpoints = std::get<endpointsPos>(assocInterfaces[DEFAULT_REV_PATH]);
+    intfEndpoints = std::get<endpointsPos>(assocMaps.ifaces[DEFAULT_REV_PATH]);
     EXPECT_EQ(intfEndpoints.size(), 0);
 }
 
@@ -149,18 +148,18 @@ TEST_F(TestAssociations, checkAssociationEndpointRemovesEpRemoveEpChanged)
         {DEFAULT_FWD_PATH, {DEFAULT_ENDPOINT + "/different"}},
         {DEFAULT_REV_PATH, {DEFAULT_SOURCE_PATH + "/different"}}};
 
-    auto assocOwners = createDefaultOwnerAssociation();
-    auto assocInterfaces = createDefaultInterfaceAssociation(server);
+    AssociationMaps assocMaps;
+    assocMaps.owners = createDefaultOwnerAssociation();
+    assocMaps.ifaces = createDefaultInterfaceAssociation(server);
 
     checkAssociationEndpointRemoves(DEFAULT_SOURCE_PATH, DEFAULT_DBUS_SVC,
-                                    newAssocPaths, *server, assocOwners,
-                                    assocInterfaces);
+                                    newAssocPaths, *server, assocMaps);
 
     // Verify initial endpoints were deleted because of different endpoints
     auto intfEndpoints =
-        std::get<endpointsPos>(assocInterfaces[DEFAULT_FWD_PATH]);
+        std::get<endpointsPos>(assocMaps.ifaces[DEFAULT_FWD_PATH]);
     EXPECT_EQ(intfEndpoints.size(), 0);
-    intfEndpoints = std::get<endpointsPos>(assocInterfaces[DEFAULT_REV_PATH]);
+    intfEndpoints = std::get<endpointsPos>(assocMaps.ifaces[DEFAULT_REV_PATH]);
     EXPECT_EQ(intfEndpoints.size(), 0);
 }
 
@@ -169,18 +168,19 @@ TEST_F(TestAssociations, associationChangedEmptyEndpoint)
 {
     std::vector<Association> associations = {{"inventory", "error", ""}};
 
-    auto assocOwners = createDefaultOwnerAssociation();
-    auto assocInterfaces = createDefaultInterfaceAssociation(server);
+    AssociationMaps assocMaps;
+    assocMaps.owners = createDefaultOwnerAssociation();
+    assocMaps.ifaces = createDefaultInterfaceAssociation(server);
 
     // Empty endpoint will result in deletion of corresponding assocInterface
     associationChanged(*server, associations, DEFAULT_SOURCE_PATH,
-                       DEFAULT_DBUS_SVC, assocOwners, assocInterfaces);
+                       DEFAULT_DBUS_SVC, assocMaps);
 
     // Both of these should be 0 since we have an invalid endpoint
     auto intfEndpoints =
-        std::get<endpointsPos>(assocInterfaces[DEFAULT_FWD_PATH]);
+        std::get<endpointsPos>(assocMaps.ifaces[DEFAULT_FWD_PATH]);
     EXPECT_EQ(intfEndpoints.size(), 0);
-    intfEndpoints = std::get<endpointsPos>(assocInterfaces[DEFAULT_REV_PATH]);
+    intfEndpoints = std::get<endpointsPos>(assocMaps.ifaces[DEFAULT_REV_PATH]);
     EXPECT_EQ(intfEndpoints.size(), 0);
 }
 
@@ -190,21 +190,22 @@ TEST_F(TestAssociations, associationChangedAddNewAssoc)
     std::vector<Association> associations = {
         {"abc", "def", "/xyz/openbmc_project/new/endpoint"}};
 
-    auto assocOwners = createDefaultOwnerAssociation();
-    auto assocInterfaces = createDefaultInterfaceAssociation(server);
+    AssociationMaps assocMaps;
+    assocMaps.owners = createDefaultOwnerAssociation();
+    assocMaps.ifaces = createDefaultInterfaceAssociation(server);
 
     associationChanged(*server, associations, "/new/source/path",
-                       DEFAULT_DBUS_SVC, assocOwners, assocInterfaces);
+                       DEFAULT_DBUS_SVC, assocMaps);
 
     // Two source paths
-    EXPECT_EQ(assocOwners.size(), 2);
+    EXPECT_EQ(assocMaps.owners.size(), 2);
 
     // Four interfaces
-    EXPECT_EQ(assocInterfaces.size(), 4);
+    EXPECT_EQ(assocMaps.ifaces.size(), 4);
 
-    // New endpoint so assocInterfaces should be same size
+    // New endpoint so assocMaps.ifaces should be same size
     auto intfEndpoints =
-        std::get<endpointsPos>(assocInterfaces[DEFAULT_FWD_PATH]);
+        std::get<endpointsPos>(assocMaps.ifaces[DEFAULT_FWD_PATH]);
     EXPECT_EQ(intfEndpoints.size(), 1);
 }
 
@@ -219,22 +220,21 @@ TEST_F(TestAssociations, associationChangedAddNewAssocEmptyObj)
 
     // Empty objects because this test will ensure assocOwners adds the
     // changed association and interface
-    AssociationInterfaces assocInterfaces;
-    AssociationOwnersType assocOwners;
+    AssociationMaps assocMaps;
 
     associationChanged(*server, associations, DEFAULT_SOURCE_PATH,
-                       DEFAULT_DBUS_SVC, assocOwners, assocInterfaces);
+                       DEFAULT_DBUS_SVC, assocMaps);
 
     // New associations so ensure it now contains a single entry
-    EXPECT_EQ(assocOwners.size(), 1);
+    EXPECT_EQ(assocMaps.owners.size(), 1);
 
     // Verify corresponding assoc paths each have one endpoint in assoc
     // interfaces and that those endpoints match
-    auto singleOwner = assocOwners[DEFAULT_SOURCE_PATH];
+    auto singleOwner = assocMaps.owners[DEFAULT_SOURCE_PATH];
     auto singleIntf = singleOwner[DEFAULT_DBUS_SVC];
     for (auto i : singleIntf)
     {
-        auto intfEndpoints = std::get<endpointsPos>(assocInterfaces[i.first]);
+        auto intfEndpoints = std::get<endpointsPos>(assocMaps.ifaces[i.first]);
         EXPECT_EQ(intfEndpoints.size(), 1);
         EXPECT_EQ(intfEndpoints[0], *i.second.begin());
     }
@@ -248,22 +248,23 @@ TEST_F(TestAssociations, associationChangedAddNewAssocNewOwner)
         {"inventory", "error",
          "/xyz/openbmc_project/inventory/system/chassis"}};
 
-    auto assocOwners = createDefaultOwnerAssociation();
-    auto assocInterfaces = createDefaultInterfaceAssociation(server);
+    AssociationMaps assocMaps;
+    assocMaps.owners = createDefaultOwnerAssociation();
+    assocMaps.ifaces = createDefaultInterfaceAssociation(server);
 
     associationChanged(*server, associations, DEFAULT_SOURCE_PATH, newOwner,
-                       assocOwners, assocInterfaces);
+                       assocMaps);
 
     // New endpoint so assocOwners should be same size
-    EXPECT_EQ(assocOwners.size(), 1);
+    EXPECT_EQ(assocMaps.owners.size(), 1);
 
     // Ensure only one endpoint under first path
     auto intfEndpoints =
-        std::get<endpointsPos>(assocInterfaces[DEFAULT_FWD_PATH]);
+        std::get<endpointsPos>(assocMaps.ifaces[DEFAULT_FWD_PATH]);
     EXPECT_EQ(intfEndpoints.size(), 1);
 
     // Ensure the 2 new association endpoints are under the new owner
-    auto a = assocOwners.find(DEFAULT_SOURCE_PATH);
+    auto a = assocMaps.owners.find(DEFAULT_SOURCE_PATH);
     auto o = a->second.find(newOwner);
     EXPECT_EQ(o->second.size(), 2);
 }
@@ -274,26 +275,27 @@ TEST_F(TestAssociations, associationChangedAddNewAssocSameInterface)
     std::vector<Association> associations = {
         {"abc", "error", "/xyz/openbmc_project/inventory/system/chassis"}};
 
-    auto assocOwners = createDefaultOwnerAssociation();
-    auto assocInterfaces = createDefaultInterfaceAssociation(server);
+    AssociationMaps assocMaps;
+    assocMaps.owners = createDefaultOwnerAssociation();
+    assocMaps.ifaces = createDefaultInterfaceAssociation(server);
 
     associationChanged(*server, associations, DEFAULT_SOURCE_PATH,
-                       DEFAULT_DBUS_SVC, assocOwners, assocInterfaces);
+                       DEFAULT_DBUS_SVC, assocMaps);
 
     // Should have 3 entries in AssociationInterfaces, one is just missing an
     // endpoint
-    EXPECT_EQ(assocInterfaces.size(), 3);
+    EXPECT_EQ(assocMaps.ifaces.size(), 3);
 
     // Change to existing interface so it will be removed here
     auto intfEndpoints =
-        std::get<endpointsPos>(assocInterfaces[DEFAULT_FWD_PATH]);
+        std::get<endpointsPos>(assocMaps.ifaces[DEFAULT_FWD_PATH]);
     EXPECT_EQ(intfEndpoints.size(), 0);
 
     // The new endpoint should exist though in it's place
     intfEndpoints = std::get<endpointsPos>(
-        assocInterfaces[DEFAULT_SOURCE_PATH + "/" + "abc"]);
+        assocMaps.ifaces[DEFAULT_SOURCE_PATH + "/" + "abc"]);
     EXPECT_EQ(intfEndpoints.size(), 1);
 
     // Added to an existing owner path so still 1
-    EXPECT_EQ(assocOwners.size(), 1);
+    EXPECT_EQ(assocMaps.owners.size(), 1);
 }
