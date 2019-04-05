@@ -1,6 +1,7 @@
 #include "associations.hpp"
 #include "processing.hpp"
 #include "src/argument.hpp"
+#include "types.hpp"
 
 #include <tinyxml2.h>
 

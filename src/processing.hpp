@@ -1,6 +1,7 @@
 #pragma once
 
 #include "associations.hpp"
+#include "types.hpp"
 
 #include <boost/container/flat_map.hpp>
 #include <boost/container/flat_set.hpp>
@@ -42,17 +43,6 @@ inline std::string getAssocDefPropName(std::string_view iface)
     assert(isAssocDefIface(iface));
     return (iface == assocDefsInterface) ? "Associations" : "associations";
 }
-
-/** @brief interface_map_type is the underlying datastructure the mapper uses.
- *
- * The 3 levels of map are
- * object paths
- *   connection names
- *      interface names
- */
-using interface_map_type = boost::container::flat_map<
-    std::string, boost::container::flat_map<
-                     std::string, boost::container::flat_set<std::string>>>;
 
 /** @brief InterfacesAdded represents the dbus data from the signal
  *
