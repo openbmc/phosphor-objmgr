@@ -18,8 +18,7 @@
 constexpr const char* OBJECT_MAPPER_DBUS_NAME =
     "xyz.openbmc_project.ObjectMapper";
 
-AssociationInterfaces associationInterfaces;
-AssociationOwnersType associationOwners;
+AssociationMaps associationMaps;
 
 static WhiteBlackList service_whitelist;
 static WhiteBlackList service_blacklist;
@@ -146,7 +145,7 @@ void do_associations(sdbusplus::asio::connection* system_bus,
                 sdbusplus::message::variant_ns::get<std::vector<Association>>(
                     variantAssociations);
             associationChanged(objectServer, associations, path, processName,
-                               associationOwners, associationInterfaces);
+                               associationMaps);
         },
         processName, path, "org.freedesktop.DBus.Properties", "Get",
         assocDefIface, getAssocDefPropName(assocDefIface));
@@ -465,8 +464,7 @@ int main(int argc, char** argv)
             if (!old_owner.empty())
             {
                 processNameChangeDelete(name_owners, name, old_owner,
-                                        interface_map, associationOwners,
-                                        associationInterfaces, server);
+                                        interface_map, associationMaps, server);
             }
 
             if (!new_owner.empty())
@@ -510,8 +508,7 @@ int main(int argc, char** argv)
                                  service_blacklist))
             {
                 processInterfaceAdded(interface_map, obj_path, interfaces_added,
-                                      well_known, associationOwners,
-                                      associationInterfaces, server);
+                                      well_known, associationMaps, server);
             }
         };
 
@@ -548,7 +545,7 @@ int main(int argc, char** argv)
                 if (isAssocDefIface(interface))
                 {
                     removeAssociation(obj_path.str, sender, server,
-                                      associationOwners, associationInterfaces);
+                                      associationMaps);
                 }
 
                 interface_set->second.erase(interface);
@@ -603,8 +600,7 @@ int main(int argc, char** argv)
                     return;
                 }
                 associationChanged(server, associations, message.get_path(),
-                                   well_known, associationOwners,
-                                   associationInterfaces);
+                                   well_known, associationMaps);
             }
         };
     sdbusplus::bus::match::match assocChangedMatch(
