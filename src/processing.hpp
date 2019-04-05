@@ -56,16 +56,14 @@ bool needToIntrospect(const std::string& processName,
  * @param[in]     wellKnown       - Well known name that has new owner
  * @param[in]     oldOwner        - Old unique name
  * @param[in,out] interfaceMap    - Map of interfaces
- * @param[in,out] assocOwners     - Owners of associations
- * @param[in,out] assocInterfaces - Associations endpoints
+ * @param[in,out] assocMaps       - The association maps
  * @param[in,out] server          - sdbus system object
  *
  */
 void processNameChangeDelete(
     boost::container::flat_map<std::string, std::string>& nameOwners,
     const std::string& wellKnown, const std::string& oldOwner,
-    interface_map_type& interfaceMap, AssociationOwnersType& assocOwners,
-    AssociationInterfaces& assocInterfaces,
+    interface_map_type& interfaceMap, AssociationMaps& assocMaps,
     sdbusplus::asio::object_server& server);
 
 /** @brief Handle an interfaces added signal
@@ -74,8 +72,7 @@ void processNameChangeDelete(
  * @param[in]     objPath         - New path to process
  * @param[in]     interfacesAdded - New interfaces to process
  * @param[in]     wellKnown       - Well known name that has new owner
- * @param[in,out] assocOwners     - Owners of associations
- * @param[in,out] assocInterfaces - Associations endpoints
+ * @param[in,out] assocMaps       - The association maps
  * @param[in,out] server          - sdbus system object
  *
  */
@@ -83,6 +80,5 @@ void processInterfaceAdded(interface_map_type& interfaceMap,
                            const sdbusplus::message::object_path& objPath,
                            const InterfacesAdded& intfAdded,
                            const std::string& wellKnown,
-                           AssociationOwnersType& assocOwners,
-                           AssociationInterfaces& assocInterfaces,
+                           AssociationMaps& assocMaps,
                            sdbusplus::asio::object_server& server);

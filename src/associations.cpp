@@ -4,8 +4,7 @@
 
 void removeAssociation(const std::string& sourcePath, const std::string& owner,
                        sdbusplus::asio::object_server& server,
-                       AssociationOwnersType& assocOwners,
-                       AssociationInterfaces& assocInterfaces)
+                       AssociationMaps& assocMaps)
 {
     // Use associationOwners to find the association paths and endpoints
     // that the passed in object path and service own.  Remove all of
@@ -17,8 +16,8 @@ void removeAssociation(const std::string& sourcePath, const std::string& owner,
     // association path itself.
 
     // Find the services that have associations for this object path
-    auto owners = assocOwners.find(sourcePath);
-    if (owners == assocOwners.end())
+    auto owners = assocMaps.owners.find(sourcePath);
+    if (owners == assocMaps.owners.end())
     {
         return;
     }
@@ -34,24 +33,24 @@ void removeAssociation(const std::string& sourcePath, const std::string& owner,
     for (const auto& [assocPath, endpointsToRemove] : assocs->second)
     {
         removeAssociationEndpoints(server, assocPath, endpointsToRemove,
-                                   assocInterfaces);
+                                   assocMaps);
     }
 
     // Remove the associationOwners entries for this owning path/service.
     owners->second.erase(assocs);
     if (owners->second.empty())
     {
-        assocOwners.erase(owners);
+        assocMaps.owners.erase(owners);
     }
 }
 
 void removeAssociationEndpoints(
     sdbusplus::asio::object_server& objectServer, const std::string& assocPath,
     const boost::container::flat_set<std::string>& endpointsToRemove,
-    AssociationInterfaces& assocInterfaces)
+    AssociationMaps& assocMaps)
 {
-    auto assoc = assocInterfaces.find(assocPath);
-    if (assoc == assocInterfaces.end())
+    auto assoc = assocMaps.ifaces.find(assocPath);
+    if (assoc == assocMaps.ifaces.end())
     {
         return;
     }
@@ -85,12 +84,11 @@ void removeAssociationEndpoints(
 void checkAssociationEndpointRemoves(
     const std::string& sourcePath, const std::string& owner,
     const AssociationPaths& newAssociations,
-    sdbusplus::asio::object_server& objectServer,
-    AssociationOwnersType& assocOwners, AssociationInterfaces& assocInterfaces)
+    sdbusplus::asio::object_server& objectServer, AssociationMaps& assocMaps)
 {
     // Find the services that have associations on this path.
-    auto originalOwners = assocOwners.find(sourcePath);
-    if (originalOwners == assocOwners.end())
+    auto originalOwners = assocMaps.owners.find(sourcePath);
+    if (originalOwners == assocMaps.owners.end())
     {
         return;
     }
@@ -115,7 +113,7 @@ void checkAssociationEndpointRemoves(
         if (newEndpoints == newAssociations.end())
         {
             removeAssociationEndpoints(objectServer, originalAssocPath,
-                                       originalEndpoints, assocInterfaces);
+                                       originalEndpoints, assocMaps);
         }
         else
         {
@@ -135,7 +133,7 @@ void checkAssociationEndpointRemoves(
             if (!toRemove.empty())
             {
                 removeAssociationEndpoints(objectServer, originalAssocPath,
-                                           toRemove, assocInterfaces);
+                                           toRemove, assocMaps);
             }
         }
     }
@@ -144,8 +142,7 @@ void checkAssociationEndpointRemoves(
 void associationChanged(sdbusplus::asio::object_server& objectServer,
                         const std::vector<Association>& associations,
                         const std::string& path, const std::string& owner,
-                        AssociationOwnersType& assocOwners,
-                        AssociationInterfaces& assocInterfaces)
+                        AssociationMaps& assocMaps)
 {
     AssociationPaths objects;
 
@@ -175,7 +172,7 @@ void associationChanged(sdbusplus::asio::object_server& objectServer,
         // the mapper exposes the new association interface but intakes
         // the old
 
-        auto& iface = assocInterfaces[object.first];
+        auto& iface = assocMaps.ifaces[object.first];
         auto& i = std::get<ifacePos>(iface);
         auto& endpoints = std::get<endpointsPos>(iface);
 
@@ -206,11 +203,11 @@ void associationChanged(sdbusplus::asio::object_server& objectServer,
 
     // Check for endpoints being removed instead of added
     checkAssociationEndpointRemoves(path, owner, objects, objectServer,
-                                    assocOwners, assocInterfaces);
+                                    assocMaps);
 
     // Update associationOwners with the latest info
-    auto a = assocOwners.find(path);
-    if (a != assocOwners.end())
+    auto a = assocMaps.owners.find(path);
+    if (a != assocMaps.owners.end())
     {
         auto o = a->second.find(owner);
         if (o != a->second.end())
@@ -226,6 +223,6 @@ void associationChanged(sdbusplus::asio::object_server& objectServer,
     {
         boost::container::flat_map<std::string, AssociationPaths> owners;
         owners.emplace(owner, std::move(objects));
-        assocOwners.emplace(path, owners);
+        assocMaps.owners.emplace(path, owners);
     }
 }

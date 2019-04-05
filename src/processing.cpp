@@ -42,8 +42,7 @@ bool needToIntrospect(const std::string& processName,
 void processNameChangeDelete(
     boost::container::flat_map<std::string, std::string>& nameOwners,
     const std::string& wellKnown, const std::string& oldOwner,
-    interface_map_type& interfaceMap, AssociationOwnersType& assocOwners,
-    AssociationInterfaces& assocInterfaces,
+    interface_map_type& interfaceMap, AssociationMaps& assocMaps,
     sdbusplus::asio::object_server& server)
 {
     if (boost::starts_with(oldOwner, ":"))
@@ -68,8 +67,7 @@ void processNameChangeDelete(
                                    ASSOCIATIONS_INTERFACE);
             if (assoc != ifaces->second.end())
             {
-                removeAssociation(pathIt->first, wellKnown, server, assocOwners,
-                                  assocInterfaces);
+                removeAssociation(pathIt->first, wellKnown, server, assocMaps);
             }
         }
         pathIt->second.erase(wellKnown);
@@ -88,8 +86,7 @@ void processInterfaceAdded(interface_map_type& interfaceMap,
                            const sdbusplus::message::object_path& objPath,
                            const InterfacesAdded& intfAdded,
                            const std::string& wellKnown,
-                           AssociationOwnersType& assocOwners,
-                           AssociationInterfaces& assocInterfaces,
+                           AssociationMaps& assocMaps,
                            sdbusplus::asio::object_server& server)
 {
     auto& ifaceList = interfaceMap[objPath.str];
@@ -119,7 +116,7 @@ void processInterfaceAdded(interface_map_type& interfaceMap,
                 sdbusplus::message::variant_ns::get<std::vector<Association>>(
                     *variantAssociations);
             associationChanged(server, associations, objPath.str, wellKnown,
-                               assocOwners, assocInterfaces);
+                               assocMaps);
         }
     }
 
