@@ -62,3 +62,12 @@ using AssociationOwnersType = boost::container::flat_map<
  * ["inventory", "activation", "/xyz/openbmc_project/inventory/system/chassis"]
  */
 using Association = std::tuple<std::string, std::string, std::string>;
+
+/**
+ * Keeps all association related maps together.
+ */
+struct AssociationMaps
+{
+    AssociationInterfaces ifaces;
+    AssociationOwnersType owners;
+};
