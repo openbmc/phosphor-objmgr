@@ -58,3 +58,14 @@ interface_map_type createInterfaceMap(
     interface_map_type interfaceMap = {{path, connectionMap}};
     return interfaceMap;
 }
+
+// Create a default interface_map_type with 2 entries with the same
+// owner.
+interface_map_type createDefaultInterfaceMap()
+{
+    interface_map_type interfaceMap = {
+        {DEFAULT_SOURCE_PATH, {{DEFAULT_DBUS_SVC, {"a"}}}},
+        {DEFAULT_ENDPOINT, {{DEFAULT_DBUS_SVC, {"b"}}}}};
+
+    return interfaceMap;
+}

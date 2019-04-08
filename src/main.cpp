@@ -127,11 +127,12 @@ struct InProgressIntrospect
 };
 
 void do_associations(sdbusplus::asio::connection* system_bus,
+                     interface_map_type& interfaceMap,
                      sdbusplus::asio::object_server& objectServer,
                      const std::string& processName, const std::string& path)
 {
     system_bus->async_method_call(
-        [&objectServer, path, processName](
+        [&objectServer, path, processName, &interfaceMap](
             const boost::system::error_code ec,
             const sdbusplus::message::variant<std::vector<Association>>&
                 variantAssociations) {
@@ -143,7 +144,7 @@ void do_associations(sdbusplus::asio::connection* system_bus,
                 sdbusplus::message::variant_ns::get<std::vector<Association>>(
                     variantAssociations);
             associationChanged(objectServer, associations, path, processName,
-                               associationMaps);
+                               interfaceMap, associationMaps);
         },
         processName, path, "org.freedesktop.DBus.Properties", "Get",
         ASSOCIATIONS_INTERFACE, "associations");
@@ -200,7 +201,7 @@ void do_introspect(sdbusplus::asio::connection* system_bus,
 
                 if (std::strcmp(iface_name, ASSOCIATIONS_INTERFACE) == 0)
                 {
-                    do_associations(system_bus, objectServer,
+                    do_associations(system_bus, interface_map, objectServer,
                                     transaction->process_name, path);
                 }
 
@@ -571,31 +572,31 @@ int main(int argc, char** argv)
         interfacesRemovedHandler);
 
     std::function<void(sdbusplus::message::message & message)>
-        associationChangedHandler =
-            [&server, &name_owners](sdbusplus::message::message& message) {
-                std::string objectName;
-                boost::container::flat_map<
-                    std::string,
-                    sdbusplus::message::variant<std::vector<Association>>>
-                    values;
-                message.read(objectName, values);
-                auto findAssociations = values.find("associations");
-                if (findAssociations != values.end())
-                {
-                    std::vector<Association> associations =
-                        sdbusplus::message::variant_ns::get<
-                            std::vector<Association>>(findAssociations->second);
+        associationChangedHandler = [&server, &name_owners, &interface_map](
+                                        sdbusplus::message::message& message) {
+            std::string objectName;
+            boost::container::flat_map<
+                std::string,
+                sdbusplus::message::variant<std::vector<Association>>>
+                values;
+            message.read(objectName, values);
+            auto findAssociations = values.find("associations");
+            if (findAssociations != values.end())
+            {
+                std::vector<Association> associations =
+                    sdbusplus::message::variant_ns::get<
+                        std::vector<Association>>(findAssociations->second);
 
-                    std::string well_known;
-                    if (!getWellKnown(name_owners, message.get_sender(),
-                                      well_known))
-                    {
-                        return;
-                    }
-                    associationChanged(server, associations, message.get_path(),
-                                       well_known, associationMaps);
+                std::string well_known;
+                if (!getWellKnown(name_owners, message.get_sender(),
+                                  well_known))
+                {
+                    return;
                 }
-            };
+                associationChanged(server, associations, message.get_path(),
+                                   well_known, interface_map, associationMaps);
+            }
+        };
     sdbusplus::bus::match::match associationChanged(
         static_cast<sdbusplus::bus::bus&>(*system_bus),
         sdbusplus::bus::match::rules::interface(

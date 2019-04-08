@@ -33,7 +33,8 @@ InterfacesAdded createInterfacesAdded()
 // Verify good path of interfaces added function
 TEST_F(TestInterfacesAdded, InterfacesAddedGoodPath)
 {
-    interface_map_type interfaceMap;
+    interface_map_type interfaceMap = {
+        {DEFAULT_ENDPOINT, {{DEFAULT_DBUS_SVC, {"b"}}}}};
     AssociationMaps assocMaps;
     auto intfAdded = createInterfacesAdded();
 
@@ -41,9 +42,8 @@ TEST_F(TestInterfacesAdded, InterfacesAddedGoodPath)
                           DEFAULT_DBUS_SVC, assocMaps, *server);
 
     // Interface map will get the following:
-    // /logging/entry/1 /logging/entry /logging/ /
-    // dump_InterfaceMapType(interfaceMap);
-    EXPECT_EQ(interfaceMap.size(), 4);
+    // /logging/entry/1 /logging/entry /logging/ /  system/chassis
+    EXPECT_EQ(interfaceMap.size(), 5);
 
     // New association ower created so ensure it now contains a single entry
     // dump_AssociationOwnersType(assocOwners);
@@ -52,4 +52,7 @@ TEST_F(TestInterfacesAdded, InterfacesAddedGoodPath)
     // Ensure the 2 association interfaces were created
     // dump_AssociationInterfaces(assocInterfaces);
     EXPECT_EQ(assocMaps.ifaces.size(), 2);
+
+    // No pending associations
+    EXPECT_EQ(assocMaps.pending.size(), 0);
 }

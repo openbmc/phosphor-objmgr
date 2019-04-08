@@ -73,6 +73,7 @@ void checkAssociationEndpointRemoves(
  *                                  org.openbmc.Associations
  * @param[in] owner               - The Dbus service having it's associatons
  *                                  changed
+ * @param[in] interfaceMap        - The full interface map
  * @param[in,out] assocMaps       - The association maps
  *
  * @return Void, objectServer and assocMaps updated if needed
@@ -80,4 +81,32 @@ void checkAssociationEndpointRemoves(
 void associationChanged(sdbusplus::asio::object_server& objectServer,
                         const std::vector<Association>& associations,
                         const std::string& path, const std::string& owner,
+                        const interface_map_type& interfaceMap,
                         AssociationMaps& assocMaps);
+
+/** @brief Add a pending associations entry
+ *
+ *  Used when a client wants to create an association between
+ *  2 D-Bus endpoint paths, but one of the paths doesn't exist.
+ *  When the path does show up in D-Bus, if there is a pending
+ *  association then the real association objects can be created.
+ *
+ * @param[in] objectPath    - The D-Bus object path that should be an
+ *                            association endpoint but doesn't exist
+ *                            on D-Bus.
+ * @param[in] type          - The association type.  Gets used in the final
+ *                            association path of <objectPath>/<type>.
+ * @param[in] endpointPath  - The D-Bus path on the other side
+ *                            of the association. This path exists.
+ * @param[in] endpointType  - The endpoint association type. Gets used
+ *                            in the final association path of
+ *                            <endpointPath>/<endpointType>.
+ * @param[in] owner         - The service name that owns the association.
+ * @param[in,out] assocMaps - The association maps
+ */
+void addPendingAssociation(const std::string& objectPath,
+                           const std::string& type,
+                           const std::string& endpointPath,
+                           const std::string& endpointType,
+                           const std::string& owner,
+                           AssociationMaps& assocMaps);
