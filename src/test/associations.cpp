@@ -454,3 +454,30 @@ TEST_F(TestAssociations, testRemoveFromPendingAssociations)
     removeFromPendingAssociations(DEFAULT_ENDPOINT, assocMaps);
     EXPECT_EQ(assocMaps.pending.size(), 0);
 }
+
+// Test moving a pending association to a real one
+TEST_F(TestAssociations, checkIfPending)
+{
+    AssociationMaps assocMaps;
+    interface_map_type interfaceMap = {
+        {DEFAULT_SOURCE_PATH, {{DEFAULT_DBUS_SVC, {"a"}}}},
+        {DEFAULT_ENDPOINT, {{DEFAULT_DBUS_SVC, {"b"}}}}};
+
+    addPendingAssociation(DEFAULT_SOURCE_PATH, "inventory", DEFAULT_ENDPOINT,
+                          "error", DEFAULT_DBUS_SVC, assocMaps);
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+
+    // Move the pending association to a real association
+    checkIfPendingAssociation(DEFAULT_SOURCE_PATH, interfaceMap, assocMaps,
+                              *server);
+
+    EXPECT_TRUE(assocMaps.pending.empty());
+    EXPECT_EQ(assocMaps.owners.size(), 1);
+    EXPECT_EQ(assocMaps.ifaces.size(), 2);
+
+    // This shouldn't do anything, since /new/path isn't pending
+    checkIfPendingAssociation("/new/path", interfaceMap, assocMaps, *server);
+    EXPECT_TRUE(assocMaps.pending.empty());
+    EXPECT_EQ(assocMaps.owners.size(), 1);
+    EXPECT_EQ(assocMaps.ifaces.size(), 2);
+}
