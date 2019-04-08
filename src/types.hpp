@@ -64,10 +64,26 @@ using AssociationOwnersType = boost::container::flat_map<
 using Association = std::tuple<std::string, std::string, std::string>;
 
 /**
+ * PendingAssociations tracks associations that cannot be created because
+ * the endpoint (the last element of the Association tuple) doesn't exist.
+ * When that endpoint shows up on D-Bus, both association paths can then
+ * be created.  Also, if a valid association has an endpoint removed from
+ * D-Bus, then a new PendingAssociations entry will be created until it
+ * reappears.  It has all of the information it needs to recreate the
+ * association.
+ */
+constexpr auto ownerPos = 0;
+constexpr auto assocPos = 1;
+using ExistingEndpoint = std::tuple<std::string, Association>;
+using ExistingEndpoints = std::vector<ExistingEndpoint>;
+using PendingAssociations = std::map<std::string, ExistingEndpoints>;
+
+/**
  * Keeps all association related maps together.
  */
 struct AssociationMaps
 {
     AssociationInterfaces ifaces;
     AssociationOwnersType owners;
+    PendingAssociations pending;
 };

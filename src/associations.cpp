@@ -142,6 +142,7 @@ void checkAssociationEndpointRemoves(
 void associationChanged(sdbusplus::asio::object_server& objectServer,
                         const std::vector<Association>& associations,
                         const std::string& path, const std::string& owner,
+                        const interface_map_type& interfaceMap,
                         AssociationMaps& assocMaps)
 {
     AssociationPaths objects;
@@ -158,6 +159,15 @@ void associationChanged(sdbusplus::asio::object_server& objectServer,
             std::cerr << "Found invalid association on path " << path << "\n";
             continue;
         }
+
+        // Can't create this association if the endpoint isn't on D-Bus.
+        if (interfaceMap.find(endpoint) == interfaceMap.end())
+        {
+            addPendingAssociation(endpoint, reverse, path, forward, owner,
+                                  assocMaps);
+            continue;
+        }
+
         if (forward.size())
         {
             objects[path + "/" + forward].emplace(endpoint);
@@ -205,24 +215,60 @@ void associationChanged(sdbusplus::asio::object_server& objectServer,
     checkAssociationEndpointRemoves(path, owner, objects, objectServer,
                                     assocMaps);
 
-    // Update associationOwners with the latest info
-    auto a = assocMaps.owners.find(path);
-    if (a != assocMaps.owners.end())
+    if (!objects.empty())
     {
-        auto o = a->second.find(owner);
-        if (o != a->second.end())
+        // Update associationOwners with the latest info
+        auto a = assocMaps.owners.find(path);
+        if (a != assocMaps.owners.end())
         {
-            o->second = std::move(objects);
+            auto o = a->second.find(owner);
+            if (o != a->second.end())
+            {
+                o->second = std::move(objects);
+            }
+            else
+            {
+                a->second.emplace(owner, std::move(objects));
+            }
         }
         else
         {
-            a->second.emplace(owner, std::move(objects));
+            boost::container::flat_map<std::string, AssociationPaths> owners;
+            owners.emplace(owner, std::move(objects));
+            assocMaps.owners.emplace(path, owners);
         }
+    }
+}
+
+void addPendingAssociation(const std::string& objectPath,
+                           const std::string& type,
+                           const std::string& endpointPath,
+                           const std::string& endpointType,
+                           const std::string& owner, AssociationMaps& assocMaps)
+{
+    Association assoc{type, endpointType, endpointPath};
+
+    auto p = assocMaps.pending.find(objectPath);
+    if (p == assocMaps.pending.end())
+    {
+        ExistingEndpoints ee;
+        ee.emplace_back(owner, std::move(assoc));
+        assocMaps.pending.emplace(objectPath, std::move(ee));
     }
     else
     {
-        boost::container::flat_map<std::string, AssociationPaths> owners;
-        owners.emplace(owner, std::move(objects));
-        assocMaps.owners.emplace(path, owners);
+        // Already waiting on this path for another association,
+        // so just add this endpoint and owner.
+        auto& endpoints = p->second;
+        auto e =
+            std::find_if(endpoints.begin(), endpoints.end(),
+                         [&assoc, &owner](const auto& endpoint) {
+                             return (std::get<ownerPos>(endpoint) == owner) &&
+                                    (std::get<assocPos>(endpoint) == assoc);
+                         });
+        if (e == endpoints.end())
+        {
+            endpoints.emplace_back(owner, std::move(assoc));
+        }
     }
 }
