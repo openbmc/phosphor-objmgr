@@ -164,3 +164,18 @@ void checkIfPendingAssociation(const std::string& objectPath,
 void findAssociations(
     const std::string& endpointPath, AssociationMaps& assocMaps,
     std::vector<std::tuple<std::string, Association>>& associationData);
+
+/** @brief If endpointPath is in an association, move that association
+ *         to pending and remove the association objects.
+ *
+ *  Called when a path is going off of D-Bus.  If this path is an
+ *  association endpoint (the path that owns the association is still
+ *  on D-Bus), then move the association it's involved in to pending.
+ *
+ * @param[in] endpointPath - the D-Bus endpoint path to check
+ * @param[in,out] assocMaps - The association maps
+ * @param[in,out] server - sdbus system object
+ */
+void moveAssociationToPending(const std::string& endpointPath,
+                              AssociationMaps& assocMaps,
+                              sdbusplus::asio::object_server& server);
