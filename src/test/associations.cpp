@@ -167,6 +167,7 @@ TEST_F(TestAssociations, checkAssociationEndpointRemovesEpRemoveEpChanged)
 TEST_F(TestAssociations, associationChangedEmptyEndpoint)
 {
     std::vector<Association> associations = {{"inventory", "error", ""}};
+    interface_map_type interfaceMap;
 
     AssociationMaps assocMaps;
     assocMaps.owners = createDefaultOwnerAssociation();
@@ -174,7 +175,7 @@ TEST_F(TestAssociations, associationChangedEmptyEndpoint)
 
     // Empty endpoint will result in deletion of corresponding assocInterface
     associationChanged(*server, associations, DEFAULT_SOURCE_PATH,
-                       DEFAULT_DBUS_SVC, assocMaps);
+                       DEFAULT_DBUS_SVC, interfaceMap, assocMaps);
 
     // Both of these should be 0 since we have an invalid endpoint
     auto intfEndpoints =
@@ -182,6 +183,8 @@ TEST_F(TestAssociations, associationChangedEmptyEndpoint)
     EXPECT_EQ(intfEndpoints.size(), 0);
     intfEndpoints = std::get<endpointsPos>(assocMaps.ifaces[DEFAULT_REV_PATH]);
     EXPECT_EQ(intfEndpoints.size(), 0);
+
+    EXPECT_EQ(assocMaps.pending.size(), 0);
 }
 
 // Add a new association with endpoint
@@ -194,14 +197,22 @@ TEST_F(TestAssociations, associationChangedAddNewAssoc)
     assocMaps.owners = createDefaultOwnerAssociation();
     assocMaps.ifaces = createDefaultInterfaceAssociation(server);
 
+    // Make it look like the assoc endpoints are on D-Bus
+    interface_map_type interfaceMap = {
+        {"/new/source/path", {{DEFAULT_DBUS_SVC, {"a"}}}},
+        {"/xyz/openbmc_project/new/endpoint", {{DEFAULT_DBUS_SVC, {"a"}}}}};
+
     associationChanged(*server, associations, "/new/source/path",
-                       DEFAULT_DBUS_SVC, assocMaps);
+                       DEFAULT_DBUS_SVC, interfaceMap, assocMaps);
 
     // Two source paths
     EXPECT_EQ(assocMaps.owners.size(), 2);
 
     // Four interfaces
     EXPECT_EQ(assocMaps.ifaces.size(), 4);
+
+    // Nothing pending
+    EXPECT_EQ(assocMaps.pending.size(), 0);
 
     // New endpoint so assocMaps.ifaces should be same size
     auto intfEndpoints =
@@ -222,11 +233,17 @@ TEST_F(TestAssociations, associationChangedAddNewAssocEmptyObj)
     // changed association and interface
     AssociationMaps assocMaps;
 
+    // Make it look like the assoc endpoints are on D-Bus
+    interface_map_type interfaceMap = createDefaultInterfaceMap();
+
     associationChanged(*server, associations, DEFAULT_SOURCE_PATH,
-                       DEFAULT_DBUS_SVC, assocMaps);
+                       DEFAULT_DBUS_SVC, interfaceMap, assocMaps);
 
     // New associations so ensure it now contains a single entry
     EXPECT_EQ(assocMaps.owners.size(), 1);
+
+    // Nothing pending
+    EXPECT_EQ(assocMaps.pending.size(), 0);
 
     // Verify corresponding assoc paths each have one endpoint in assoc
     // interfaces and that those endpoints match
@@ -248,12 +265,15 @@ TEST_F(TestAssociations, associationChangedAddNewAssocNewOwner)
         {"inventory", "error",
          "/xyz/openbmc_project/inventory/system/chassis"}};
 
+    // Make it look like the assoc endpoints are on D-Bus
+    interface_map_type interfaceMap = createDefaultInterfaceMap();
+
     AssociationMaps assocMaps;
     assocMaps.owners = createDefaultOwnerAssociation();
     assocMaps.ifaces = createDefaultInterfaceAssociation(server);
 
     associationChanged(*server, associations, DEFAULT_SOURCE_PATH, newOwner,
-                       assocMaps);
+                       interfaceMap, assocMaps);
 
     // New endpoint so assocOwners should be same size
     EXPECT_EQ(assocMaps.owners.size(), 1);
@@ -267,6 +287,9 @@ TEST_F(TestAssociations, associationChangedAddNewAssocNewOwner)
     auto a = assocMaps.owners.find(DEFAULT_SOURCE_PATH);
     auto o = a->second.find(newOwner);
     EXPECT_EQ(o->second.size(), 2);
+
+    // Nothing pending
+    EXPECT_EQ(assocMaps.pending.size(), 0);
 }
 
 // Add a new association to existing interface path
@@ -275,12 +298,15 @@ TEST_F(TestAssociations, associationChangedAddNewAssocSameInterface)
     std::vector<Association> associations = {
         {"abc", "error", "/xyz/openbmc_project/inventory/system/chassis"}};
 
+    // Make it look like the assoc endpoints are on D-Bus
+    interface_map_type interfaceMap = createDefaultInterfaceMap();
+
     AssociationMaps assocMaps;
     assocMaps.owners = createDefaultOwnerAssociation();
     assocMaps.ifaces = createDefaultInterfaceAssociation(server);
 
     associationChanged(*server, associations, DEFAULT_SOURCE_PATH,
-                       DEFAULT_DBUS_SVC, assocMaps);
+                       DEFAULT_DBUS_SVC, interfaceMap, assocMaps);
 
     // Should have 3 entries in AssociationInterfaces, one is just missing an
     // endpoint
@@ -298,4 +324,6 @@ TEST_F(TestAssociations, associationChangedAddNewAssocSameInterface)
 
     // Added to an existing owner path so still 1
     EXPECT_EQ(assocMaps.owners.size(), 1);
+
+    EXPECT_EQ(assocMaps.pending.size(), 0);
 }
