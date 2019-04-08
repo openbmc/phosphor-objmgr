@@ -469,3 +469,130 @@ void findAssociations(const std::string& endpointPath,
         }
     }
 }
+
+/** @brief Remove an endpoint for a particular association from D-Bus.
+ *
+ * If the last endpoint is gone, remove the whole association interface,
+ * otherwise just update the D-Bus endpoints property.
+ *
+ * @param[in] assocPath     - the association path
+ * @param[in] endpointPath  - the endpoint path to find and remove
+ * @param[in,out] assocMaps - the association maps
+ * @param[in,out] server    - sdbus system object
+ */
+void removeAssociationIfacesEntry(const std::string& assocPath,
+                                  const std::string& endpointPath,
+                                  AssociationMaps& assocMaps,
+                                  sdbusplus::asio::object_server& server)
+{
+    auto assoc = assocMaps.ifaces.find(assocPath);
+    if (assoc != assocMaps.ifaces.end())
+    {
+        auto& endpoints = std::get<endpointsPos>(assoc->second);
+        auto e = std::find(endpoints.begin(), endpoints.end(), endpointPath);
+        if (e != endpoints.end())
+        {
+            endpoints.erase(e);
+
+            if (endpoints.empty())
+            {
+                server.remove_interface(std::get<ifacePos>(assoc->second));
+                std::get<ifacePos>(assoc->second) = nullptr;
+            }
+            else
+            {
+                std::get<ifacePos>(assoc->second)
+                    ->set_property("endpoints", endpoints);
+            }
+        }
+    }
+}
+
+/** @brief Remove an endpoint from the association owners map.
+ *
+ * For a specific association path and owner, remove the endpoint.
+ * Remove all remaining artifacts of that endpoint in the owners map
+ * based on what frees up after the erase.
+ *
+ * @param[in] assocPath     - the association object path
+ * @param[in] endpointPath  - the endpoint object path
+ * @param[in] owner         - the owner of the association
+ * @param[in,out] assocMaps - the association maps
+ * @param[in,out] server    - sdbus system object
+ */
+void removeAssociationOwnersEntry(const std::string& assocPath,
+                                  const std::string& endpointPath,
+                                  const std::string& owner,
+                                  AssociationMaps& assocMaps,
+                                  sdbusplus::asio::object_server& server)
+{
+    auto sources = assocMaps.owners.begin();
+    while (sources != assocMaps.owners.end())
+    {
+        auto owners = sources->second.find(owner);
+        if (owners != sources->second.end())
+        {
+            auto entry = owners->second.find(assocPath);
+            if (entry != owners->second.end())
+            {
+                auto e = std::find(entry->second.begin(), entry->second.end(),
+                                   endpointPath);
+                if (e != entry->second.end())
+                {
+                    entry->second.erase(e);
+                    if (entry->second.empty())
+                    {
+                        owners->second.erase(entry);
+                    }
+                }
+            }
+
+            if (owners->second.empty())
+            {
+                sources->second.erase(owners);
+            }
+        }
+
+        if (sources->second.empty())
+        {
+            sources = assocMaps.owners.erase(sources);
+            continue;
+        }
+        sources++;
+    }
+}
+
+void moveAssociationToPending(const std::string& endpointPath,
+                              AssociationMaps& assocMaps,
+                              sdbusplus::asio::object_server& server)
+{
+    FindAssocResults associationData;
+
+    // Check which associations this path is an endpoint of, and
+    // then add them to the pending associations map and remove
+    // the associations objects.
+    findAssociations(endpointPath, assocMaps, associationData);
+
+    for (const auto& [owner, association] : associationData)
+    {
+        const auto& forwardPath = endpointPath;
+        const auto& forwardType = std::get<forwardTypePos>(association);
+        const auto& reversePath = std::get<reversePathPos>(association);
+        const auto& reverseType = std::get<reverseTypePos>(association);
+
+        addPendingAssociation(forwardPath, forwardType, reversePath,
+                              reverseType, owner, assocMaps);
+
+        // Remove both sides of the association from assocMaps.ifaces
+        removeAssociationIfacesEntry(forwardPath + '/' + forwardType,
+                                     reversePath, assocMaps, server);
+        removeAssociationIfacesEntry(reversePath + '/' + reverseType,
+                                     forwardPath, assocMaps, server);
+
+        // Remove both sides of the association from assocMaps.owners
+        removeAssociationOwnersEntry(forwardPath + '/' + forwardType,
+                                     reversePath, owner, assocMaps, server);
+        removeAssociationOwnersEntry(reversePath + '/' + reverseType,
+                                     forwardPath, owner, assocMaps, server);
+    }
+}
