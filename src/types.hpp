@@ -82,6 +82,12 @@ using ExistingEndpoints = std::vector<ExistingEndpoint>;
 using PendingAssociations = std::map<std::string, ExistingEndpoints>;
 
 /**
+ *  The return type of findAssociations().
+ *  The string in the tuple is the association owner.
+ */
+using FindAssocResults = std::vector<std::tuple<std::string, Association>>;
+
+/**
  * Keeps all association related maps together.
  */
 struct AssociationMaps

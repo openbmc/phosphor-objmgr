@@ -471,3 +471,49 @@ TEST_F(TestAssociations, checkIfPending)
     EXPECT_EQ(assocMaps.owners.size(), 1);
     EXPECT_EQ(assocMaps.ifaces.size(), 2);
 }
+
+TEST_F(TestAssociations, findAssociations)
+{
+    std::vector<std::tuple<std::string, Association>> associationData;
+    AssociationMaps assocMaps;
+
+    assocMaps.owners = {
+        {"pathA",
+         {{"ownerA",
+           {{"pathA/typeA", {"endpointA", "endpointB"}},
+            {"endpointA/type0", {"pathA"}}}}}},
+
+        {"pathJ",
+         {{"ownerC",
+           {{"pathJ/typeA", {"endpointF"}}, {"endpointF/type0", {"pathJ"}}}}}},
+
+        {"pathX",
+         {{"ownerB",
+           {{"pathX/typeB", {"endpointA"}}, {"endpointA/type1", {"pathX"}}}}}}};
+
+    findAssociations("endpointA", assocMaps, associationData);
+    ASSERT_EQ(associationData.size(), 2);
+
+    {
+        auto ad = std::find_if(
+            associationData.begin(), associationData.end(),
+            [](const auto& ad) { return std::get<0>(ad) == "ownerA"; });
+        ASSERT_NE(ad, associationData.end());
+
+        auto& a = std::get<1>(*ad);
+        ASSERT_EQ(std::get<0>(a), "type0");
+        ASSERT_EQ(std::get<1>(a), "typeA");
+        ASSERT_EQ(std::get<2>(a), "pathA");
+    }
+    {
+        auto ad = std::find_if(
+            associationData.begin(), associationData.end(),
+            [](const auto& ad) { return std::get<0>(ad) == "ownerB"; });
+        ASSERT_NE(ad, associationData.end());
+
+        auto& a = std::get<1>(*ad);
+        ASSERT_EQ(std::get<0>(a), "type1");
+        ASSERT_EQ(std::get<1>(a), "typeB");
+        ASSERT_EQ(std::get<2>(a), "pathX");
+    }
+}
