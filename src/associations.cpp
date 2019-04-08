@@ -42,6 +42,10 @@ void removeAssociation(const std::string& sourcePath, const std::string& owner,
     {
         assocMaps.owners.erase(owners);
     }
+
+    // If we were still waiting on the other side of this association to
+    // show up, cancel that wait.
+    removeFromPendingAssociations(sourcePath, assocMaps);
 }
 
 void removeAssociationEndpoints(
@@ -270,5 +274,34 @@ void addPendingAssociation(const std::string& objectPath,
         {
             endpoints.emplace_back(owner, std::move(assoc));
         }
+    }
+}
+
+void removeFromPendingAssociations(const std::string& endpointPath,
+                                   AssociationMaps& assocMaps)
+{
+    auto assoc = assocMaps.pending.begin();
+    while (assoc != assocMaps.pending.end())
+    {
+        auto endpoint = assoc->second.begin();
+        while (endpoint != assoc->second.end())
+        {
+            auto& e = std::get<assocPos>(*endpoint);
+            if (std::get<reversePathPos>(e) == endpointPath)
+            {
+                endpoint = assoc->second.erase(endpoint);
+                continue;
+            }
+
+            endpoint++;
+        }
+
+        if (assoc->second.empty())
+        {
+            assoc = assocMaps.pending.erase(assoc);
+            continue;
+        }
+
+        assoc++;
     }
 }

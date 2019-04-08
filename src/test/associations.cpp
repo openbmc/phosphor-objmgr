@@ -415,3 +415,32 @@ TEST_F(TestAssociations, associationChangedPending)
     // 1 pending association
     EXPECT_EQ(assocMaps.pending.size(), 1);
 }
+
+// Test removing pending associations
+TEST_F(TestAssociations, testRemoveFromPendingAssociations)
+{
+    AssociationMaps assocMaps;
+
+    addPendingAssociation(DEFAULT_SOURCE_PATH, "inventory", DEFAULT_ENDPOINT,
+                          "error", DEFAULT_DBUS_SVC, assocMaps);
+
+    addPendingAssociation(DEFAULT_SOURCE_PATH, "inventory",
+                          "some/other/endpoint", "error", DEFAULT_DBUS_SVC,
+                          assocMaps);
+
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+
+    removeFromPendingAssociations("some/other/endpoint", assocMaps);
+
+    // Still 1 pending entry, but down to 1 endpoint
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+
+    auto assoc = assocMaps.pending.find(DEFAULT_SOURCE_PATH);
+    EXPECT_NE(assoc, assocMaps.pending.end());
+    auto& endpoints = assoc->second;
+    EXPECT_EQ(endpoints.size(), 1);
+
+    // Now nothing pending
+    removeFromPendingAssociations(DEFAULT_ENDPOINT, assocMaps);
+    EXPECT_EQ(assocMaps.pending.size(), 0);
+}
