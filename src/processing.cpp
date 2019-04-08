@@ -70,6 +70,19 @@ void processNameChangeDelete(
             {
                 removeAssociation(pathIt->first, wellKnown, server, assocMaps);
             }
+
+            // Instead of checking if every single path is the endpoint of an
+            // association that needs to be moved to pending, only check when
+            // we own this path as well, which would be because of an
+            // association.
+            if ((pathIt->second.size() == 2) &&
+                (pathIt->second.find("xyz.openbmc_project.ObjectMapper") !=
+                 pathIt->second.end()))
+            {
+                // Remove the 2 association D-Bus paths and move the
+                // association to pending.
+                moveAssociationToPending(pathIt->first, assocMaps, server);
+            }
         }
         pathIt->second.erase(wellKnown);
         if (pathIt->second.empty())
