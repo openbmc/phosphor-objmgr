@@ -517,3 +517,49 @@ TEST_F(TestAssociations, findAssociations)
         ASSERT_EQ(std::get<2>(a), "pathX");
     }
 }
+
+TEST_F(TestAssociations, moveAssocToPendingNoOp)
+{
+    AssociationMaps assocMaps;
+
+    // Not an association, so it shouldn't do anything
+    moveAssociationToPending(DEFAULT_ENDPOINT, assocMaps, *server);
+
+    EXPECT_TRUE(assocMaps.pending.empty());
+    EXPECT_TRUE(assocMaps.owners.empty());
+    EXPECT_TRUE(assocMaps.ifaces.empty());
+}
+
+TEST_F(TestAssociations, moveAssocToPending)
+{
+    AssociationMaps assocMaps;
+    assocMaps.owners = createDefaultOwnerAssociation();
+    assocMaps.ifaces = createDefaultInterfaceAssociation(server);
+
+    moveAssociationToPending(DEFAULT_ENDPOINT, assocMaps, *server);
+
+    // Check it's now pending
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+    EXPECT_EQ(assocMaps.pending.begin()->first, DEFAULT_ENDPOINT);
+
+    // No more assoc owners
+    EXPECT_TRUE(assocMaps.owners.empty());
+
+    // Check the association interfaces were removed
+    {
+        auto assocs = assocMaps.ifaces.find(DEFAULT_FWD_PATH);
+        auto& iface = std::get<ifacePos>(assocs->second);
+        auto& endpoints = std::get<endpointsPos>(assocs->second);
+
+        EXPECT_EQ(iface.get(), nullptr);
+        EXPECT_TRUE(endpoints.empty());
+    }
+    {
+        auto assocs = assocMaps.ifaces.find(DEFAULT_REV_PATH);
+        auto& iface = std::get<ifacePos>(assocs->second);
+        auto& endpoints = std::get<endpointsPos>(assocs->second);
+
+        EXPECT_EQ(iface.get(), nullptr);
+        EXPECT_TRUE(endpoints.empty());
+    }
+}

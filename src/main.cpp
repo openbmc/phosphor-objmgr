@@ -558,11 +558,27 @@ int main(int argc, char** argv)
                 }
 
                 interface_set->second.erase(interface);
-                // If this was the last interface on this connection,
-                // erase the connection
+
                 if (interface_set->second.empty())
                 {
+                    // If this was the last interface on this connection,
+                    // erase the connection
                     connection_map->second.erase(interface_set);
+
+                    // Instead of checking if every single path is the endpoint
+                    // of an association that needs to be moved to pending,
+                    // only check when the only remaining owner of this path is
+                    // ourself, which would be because we still own the
+                    // association path.
+                    if ((connection_map->second.size() == 1) &&
+                        (connection_map->second.begin()->first ==
+                         "xyz.openbmc_project.ObjectMapper"))
+                    {
+                        // Remove the 2 association D-Bus paths and move the
+                        // association to pending.
+                        moveAssociationToPending(obj_path.str, associationMaps,
+                                                 server);
+                    }
                 }
             }
             // If this was the last connection on this object path,
