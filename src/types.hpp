@@ -61,6 +61,9 @@ using AssociationOwnersType = boost::container::flat_map<
  * For example:
  * ["inventory", "activation", "/xyz/openbmc_project/inventory/system/chassis"]
  */
+constexpr auto forwardTypePos = 0;
+constexpr auto reverseTypePos = 1;
+constexpr auto reversePathPos = 2;
 using Association = std::tuple<std::string, std::string, std::string>;
 
 /**
