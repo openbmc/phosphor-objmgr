@@ -152,3 +152,15 @@ void checkIfPendingAssociation(const std::string& objectPath,
                                const interface_map_type& interfaceMap,
                                AssociationMaps& assocMaps,
                                sdbusplus::asio::object_server& server);
+
+/** @brief Find all associations in the association owners map with the
+ *         specified endpoint path.
+ *
+ * @param[in] endpointPath - the endpoint path to look for
+ *
+ * @param[out] associationData - A vector of {owner, Association} tuples
+ *                               of all the associations with that endpoint.
+ */
+void findAssociations(
+    const std::string& endpointPath, AssociationMaps& assocMaps,
+    std::vector<std::tuple<std::string, Association>>& associationData);

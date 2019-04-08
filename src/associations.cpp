@@ -1,5 +1,6 @@
 #include "associations.hpp"
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <iostream>
 
 void removeAssociation(const std::string& sourcePath, const std::string& owner,
@@ -426,5 +427,60 @@ void checkIfPendingAssociation(const std::string& objectPath,
     if (pending->second.empty())
     {
         assocMaps.pending.erase(objectPath);
+    }
+}
+
+void findAssociations(
+    const std::string& endpointPath, AssociationMaps& assocMaps,
+    std::vector<std::tuple<std::string, Association>>& associationData)
+{
+    for (const auto& [sourcePath, owners] : assocMaps.owners)
+    {
+        for (const auto& [owner, assocs] : owners)
+        {
+            for (const auto& [assocPath, endpoints] : assocs)
+            {
+                if (std::find(endpoints.begin(), endpoints.end(),
+                              endpointPath) != endpoints.end())
+                {
+                    // assocPath is <path>/<type> which tells us what is on the
+                    // other side of the association.
+                    auto pos = assocPath.rfind('/');
+                    auto otherPath = assocPath.substr(0, pos);
+                    auto otherType = assocPath.substr(pos + 1);
+
+                    // Now we need to find the endpointPath/<type> ->
+                    // [otherPath] entry so that we can get the type for
+                    // endpointPath's side of the assoc.  Do this by finding
+                    // otherPath as an endpoint, and also checking for
+                    // 'endpointPath/*' as the key.
+                    auto a = std::find_if(
+                        assocs.begin(), assocs.end(),
+                        [&endpointPath, &otherPath](const auto& ap) {
+                            const auto& endpoints = ap.second;
+                            auto endpoint = std::find(
+                                endpoints.begin(), endpoints.end(), otherPath);
+                            if (endpoint != endpoints.end())
+                            {
+                                return boost::starts_with(ap.first,
+                                                          endpointPath + '/');
+                            }
+                            return false;
+                        });
+
+                    if (a != assocs.end())
+                    {
+                        // Pull out the type from endpointPath/<type>
+                        pos = a->first.rfind('/');
+                        auto thisType = a->first.substr(pos + 1);
+
+                        // Now we know the full association:
+                        // endpointPath/thisType -> otherPath/otherType
+                        Association association{thisType, otherType, otherPath};
+                        associationData.emplace_back(owner, association);
+                    }
+                }
+            }
+        }
     }
 }
