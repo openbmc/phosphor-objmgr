@@ -327,3 +327,91 @@ TEST_F(TestAssociations, associationChangedAddNewAssocSameInterface)
 
     EXPECT_EQ(assocMaps.pending.size(), 0);
 }
+
+// Add 2 pending associations
+TEST_F(TestAssociations, addPendingAssocs)
+{
+    AssociationMaps assocMaps;
+
+    addPendingAssociation(DEFAULT_SOURCE_PATH, "inventory", DEFAULT_ENDPOINT,
+                          "error", DEFAULT_DBUS_SVC, assocMaps);
+
+    EXPECT_TRUE(assocMaps.ifaces.empty());
+    EXPECT_TRUE(assocMaps.owners.empty());
+
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+
+    addPendingAssociation("some/other/path", "inventory", DEFAULT_ENDPOINT,
+                          "error", DEFAULT_DBUS_SVC, assocMaps);
+
+    EXPECT_TRUE(assocMaps.ifaces.empty());
+    EXPECT_TRUE(assocMaps.owners.empty());
+
+    EXPECT_EQ(assocMaps.pending.size(), 2);
+}
+
+// Test adding a new endpoint to a pending association
+TEST_F(TestAssociations, addPendingAssocsNewEndpoints)
+{
+    AssociationMaps assocMaps;
+
+    addPendingAssociation(DEFAULT_SOURCE_PATH, "inventory", DEFAULT_ENDPOINT,
+                          "error", DEFAULT_DBUS_SVC, assocMaps);
+
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+
+    addPendingAssociation(DEFAULT_SOURCE_PATH, "inventory",
+                          "some/other/endpoint", "error", DEFAULT_DBUS_SVC,
+                          assocMaps);
+
+    // Same pending path, so still just 1 entry
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+
+    auto assoc = assocMaps.pending.find(DEFAULT_SOURCE_PATH);
+    EXPECT_NE(assoc, assocMaps.pending.end());
+
+    auto& endpoints = assoc->second;
+    EXPECT_EQ(endpoints.size(), 2);
+}
+
+// Test adding a new owner to a pending association
+TEST_F(TestAssociations, addPendingAssocsNewOwner)
+{
+    AssociationMaps assocMaps;
+
+    addPendingAssociation(DEFAULT_SOURCE_PATH, "inventory", DEFAULT_ENDPOINT,
+                          "error", DEFAULT_DBUS_SVC, assocMaps);
+
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+
+    addPendingAssociation(DEFAULT_SOURCE_PATH, "inventory", DEFAULT_ENDPOINT,
+                          "error", "new owner", assocMaps);
+
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+
+    auto assoc = assocMaps.pending.find(DEFAULT_SOURCE_PATH);
+    EXPECT_NE(assoc, assocMaps.pending.end());
+
+    auto& endpoints = assoc->second;
+    EXPECT_EQ(endpoints.size(), 2);
+}
+
+// Add a pending association inside associationChanged
+TEST_F(TestAssociations, associationChangedPending)
+{
+    std::vector<Association> associations = {
+        {"abc", "def", "/xyz/openbmc_project/new/endpoint"}};
+
+    AssociationMaps assocMaps;
+    interface_map_type interfaceMap;
+
+    associationChanged(*server, associations, "/new/source/path",
+                       DEFAULT_DBUS_SVC, interfaceMap, assocMaps);
+
+    // No associations were actually added
+    EXPECT_EQ(assocMaps.owners.size(), 0);
+    EXPECT_EQ(assocMaps.ifaces.size(), 0);
+
+    // 1 pending association
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+}
