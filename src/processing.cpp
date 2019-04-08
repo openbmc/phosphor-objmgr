@@ -164,4 +164,7 @@ void processInterfaceAdded(interface_map_type& interfaceMap,
 
         pos = parent.find_last_of('/');
     }
+
+    // The new interface might have an association pending
+    checkIfPendingAssociation(objPath.str, interfaceMap, assocMaps, server);
 }

@@ -143,6 +143,38 @@ void checkAssociationEndpointRemoves(
     }
 }
 
+void addEndpointsToAssocIfaces(
+    sdbusplus::asio::object_server& objectServer, const std::string& assocPath,
+    const boost::container::flat_set<std::string>& endpointPaths,
+    AssociationMaps& assocMaps)
+{
+    auto& iface = assocMaps.ifaces[assocPath];
+    auto& i = std::get<ifacePos>(iface);
+    auto& endpoints = std::get<endpointsPos>(iface);
+
+    // Only add new endpoints
+    for (auto& e : endpointPaths)
+    {
+        if (std::find(endpoints.begin(), endpoints.end(), e) == endpoints.end())
+        {
+            endpoints.push_back(e);
+        }
+    }
+
+    // If the interface already exists, only need to update
+    // the property value, otherwise create it
+    if (i)
+    {
+        i->set_property("endpoints", endpoints);
+    }
+    else
+    {
+        i = objectServer.add_interface(assocPath, XYZ_ASSOCIATION_INTERFACE);
+        i->register_property("endpoints", endpoints);
+        i->initialize();
+    }
+}
+
 void associationChanged(sdbusplus::asio::object_server& objectServer,
                         const std::vector<Association>& associations,
                         const std::string& path, const std::string& owner,
@@ -183,36 +215,8 @@ void associationChanged(sdbusplus::asio::object_server& objectServer,
     }
     for (const auto& object : objects)
     {
-        // the mapper exposes the new association interface but intakes
-        // the old
-
-        auto& iface = assocMaps.ifaces[object.first];
-        auto& i = std::get<ifacePos>(iface);
-        auto& endpoints = std::get<endpointsPos>(iface);
-
-        // Only add new endpoints
-        for (auto& e : object.second)
-        {
-            if (std::find(endpoints.begin(), endpoints.end(), e) ==
-                endpoints.end())
-            {
-                endpoints.push_back(e);
-            }
-        }
-
-        // If the interface already exists, only need to update
-        // the property value, otherwise create it
-        if (i)
-        {
-            i->set_property("endpoints", endpoints);
-        }
-        else
-        {
-            i = objectServer.add_interface(object.first,
-                                           XYZ_ASSOCIATION_INTERFACE);
-            i->register_property("endpoints", endpoints);
-            i->initialize();
-        }
+        addEndpointsToAssocIfaces(objectServer, object.first, object.second,
+                                  assocMaps);
     }
 
     // Check for endpoints being removed instead of added
@@ -303,5 +307,109 @@ void removeFromPendingAssociations(const std::string& endpointPath,
         }
 
         assoc++;
+    }
+}
+
+void addSingleAssociation(sdbusplus::asio::object_server& server,
+                          const std::string& assocPath,
+                          const std::string& endpoint, const std::string& owner,
+                          const std::string& ownerPath,
+                          AssociationMaps& assocMaps)
+{
+    boost::container::flat_set<std::string> endpoints{endpoint};
+
+    addEndpointsToAssocIfaces(server, assocPath, endpoints, assocMaps);
+
+    AssociationPaths objects;
+    boost::container::flat_set e{endpoint};
+    objects.emplace(assocPath, e);
+
+    auto a = assocMaps.owners.find(ownerPath);
+    if (a != assocMaps.owners.end())
+    {
+        auto o = a->second.find(owner);
+        if (o != a->second.end())
+        {
+            auto p = o->second.find(assocPath);
+            if (p != o->second.end())
+            {
+                p->second.emplace(endpoint);
+            }
+            else
+            {
+                o->second.emplace(assocPath, e);
+            }
+        }
+        else
+        {
+            a->second.emplace(owner, std::move(objects));
+        }
+    }
+    else
+    {
+        boost::container::flat_map<std::string, AssociationPaths> owners;
+        owners.emplace(owner, std::move(objects));
+        assocMaps.owners.emplace(endpoint, owners);
+    }
+}
+
+void checkIfPendingAssociation(const std::string& objectPath,
+                               const interface_map_type& interfaceMap,
+                               AssociationMaps& assocMaps,
+                               sdbusplus::asio::object_server& server)
+{
+    auto pending = assocMaps.pending.find(objectPath);
+    if (pending == assocMaps.pending.end())
+    {
+        return;
+    }
+
+    if (interfaceMap.find(objectPath) == interfaceMap.end())
+    {
+        return;
+    }
+
+    auto endpoint = pending->second.begin();
+
+    while (endpoint != pending->second.end())
+    {
+        const auto& e = std::get<assocPos>(*endpoint);
+
+        // Ensure the other side of the association still exists
+        if (interfaceMap.find(std::get<reversePathPos>(e)) ==
+            interfaceMap.end())
+        {
+            endpoint++;
+            continue;
+        }
+
+        // Add both sides of the association:
+        //  objectPath/forwardType and reversePath/reverseType
+        //
+        // The ownerPath is the reversePath - i.e. the endpoint that
+        // is on D-Bus and owns the org.openbmc.Associations iface.
+        //
+        const auto& ownerPath = std::get<reversePathPos>(e);
+        const auto& owner = std::get<ownerPos>(*endpoint);
+
+        auto assocPath = objectPath + '/' + std::get<forwardTypePos>(e);
+        auto endpointPath = ownerPath;
+
+        addSingleAssociation(server, assocPath, endpointPath, owner, ownerPath,
+                             assocMaps);
+
+        // Now the reverse direction (still the same owner and ownerPath)
+        assocPath = endpointPath + '/' + std::get<reverseTypePos>(e);
+        endpointPath = objectPath;
+        addSingleAssociation(server, assocPath, endpointPath, owner, ownerPath,
+                             assocMaps);
+
+        // Not pending anymore
+        endpoint = pending->second.erase(endpoint);
+    }
+
+    if (pending->second.empty())
+    {
+        assocMaps.pending.erase(objectPath);
     }
 }

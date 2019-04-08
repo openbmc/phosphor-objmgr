@@ -80,7 +80,7 @@ struct InProgressIntrospect
 {
     InProgressIntrospect(
         sdbusplus::asio::connection* system_bus, boost::asio::io_service& io,
-        const std::string& process_name
+        const std::string& process_name, AssociationMaps& am
 #ifdef DEBUG
         ,
         std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
@@ -88,7 +88,7 @@ struct InProgressIntrospect
 #endif
         ) :
         system_bus(system_bus),
-        io(io), process_name(process_name)
+        io(io), process_name(process_name), assocMaps(am)
 #ifdef DEBUG
         ,
         global_start_time(global_start_time),
@@ -119,6 +119,7 @@ struct InProgressIntrospect
     sdbusplus::asio::connection* system_bus;
     boost::asio::io_service& io;
     std::string process_name;
+    AssociationMaps& assocMaps;
 #ifdef DEBUG
     std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
         global_start_time;
@@ -208,6 +209,11 @@ void do_introspect(sdbusplus::asio::connection* system_bus,
                 pElement = pElement->NextSiblingElement("interface");
             }
 
+            // Check if this new path has a pending association that can
+            // now be completed.
+            checkIfPendingAssociation(path, interface_map,
+                                      transaction->assocMaps, objectServer);
+
             pElement = pRoot->FirstChildElement("node");
             while (pElement != nullptr)
             {
@@ -233,6 +239,7 @@ void do_introspect(sdbusplus::asio::connection* system_bus,
 void start_new_introspect(
     sdbusplus::asio::connection* system_bus, boost::asio::io_service& io,
     interface_map_type& interface_map, const std::string& process_name,
+    AssociationMaps& assocMaps,
 #ifdef DEBUG
     std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
         global_start_time,
@@ -242,7 +249,8 @@ void start_new_introspect(
     if (needToIntrospect(process_name, service_whitelist, service_blacklist))
     {
         std::shared_ptr<InProgressIntrospect> transaction =
-            std::make_shared<InProgressIntrospect>(system_bus, io, process_name
+            std::make_shared<InProgressIntrospect>(system_bus, io, process_name,
+                                                   assocMaps
 #ifdef DEBUG
                                                    ,
                                                    global_start_time
@@ -279,11 +287,11 @@ void doListNames(
     boost::asio::io_service& io, interface_map_type& interface_map,
     sdbusplus::asio::connection* system_bus,
     boost::container::flat_map<std::string, std::string>& name_owners,
-    sdbusplus::asio::object_server& objectServer)
+    AssociationMaps& assocMaps, sdbusplus::asio::object_server& objectServer)
 {
     system_bus->async_method_call(
-        [&io, &interface_map, &name_owners, &objectServer,
-         system_bus](const boost::system::error_code ec,
+        [&io, &interface_map, &name_owners, &objectServer, system_bus,
+         &assocMaps](const boost::system::error_code ec,
                      std::vector<std::string> process_names) {
             if (ec)
             {
@@ -305,7 +313,7 @@ void doListNames(
                                      service_blacklist))
                 {
                     start_new_introspect(system_bus, io, interface_map,
-                                         process_name,
+                                         process_name, assocMaps,
 #ifdef DEBUG
                                          global_start_time,
 #endif
@@ -480,7 +488,7 @@ int main(int argc, char** argv)
                 {
                     name_owners[new_owner] = name;
                     start_new_introspect(system_bus.get(), io, interface_map,
-                                         name,
+                                         name, associationMaps,
 #ifdef DEBUG
                                          transaction,
 #endif
@@ -813,7 +821,8 @@ int main(int argc, char** argv)
     iface->initialize();
 
     io.post([&]() {
-        doListNames(io, interface_map, system_bus.get(), name_owners, server);
+        doListNames(io, interface_map, system_bus.get(), name_owners,
+                    associationMaps, server);
     });
 
     io.run();
