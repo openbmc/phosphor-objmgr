@@ -110,3 +110,13 @@ void addPendingAssociation(const std::string& objectPath,
                            const std::string& endpointType,
                            const std::string& owner,
                            AssociationMaps& assocMaps);
+
+/** @brief Removes an endpoint from the pending associations map
+ *
+ * If the last endpoint is removed, removes the whole entry
+ *
+ * @param[in] endpointPath  - the endpoint path to remove
+ * @param[in,out] assocMaps - The association maps
+ */
+void removeFromPendingAssociations(const std::string& endpointPath,
+                                   AssociationMaps& assocMaps);
