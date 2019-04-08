@@ -120,3 +120,35 @@ void addPendingAssociation(const std::string& objectPath,
  */
 void removeFromPendingAssociations(const std::string& endpointPath,
                                    AssociationMaps& assocMaps);
+
+/** @brief Adds a single association D-Bus object (<path>/<type>)
+ *
+ * @param[in,out] server    - sdbus system object
+ * @param[in] assocPath     - The association D-Bus path
+ * @param[in] endpoint      - The association's D-Bus endpoint path
+ * @param[in] owner         - The owning D-Bus well known name
+ * @param[in] ownerPath     - The D-Bus path hosting the Associations property
+ * @param[in,out] assocMaps - The association maps
+ */
+void addSingleAssociation(sdbusplus::asio::object_server& server,
+                          const std::string& assocPath,
+                          const std::string& endpoint, const std::string& owner,
+                          const std::string& ownerPath,
+                          AssociationMaps& assocMaps);
+
+/** @brief Create a real association out of a pending association
+ *         if there is one for this path.
+ *
+ * If objectPath is now on D-Bus, and it is also in the pending associations
+ * map, create the 2 real association objects and remove its pending
+ * associations entry.  Used when a new path shows up in D-Bus.
+ *
+ * @param[in] objectPath    - the path to check
+ * @param[in] interfaceMap  - The master interface map
+ * @param[in,out] assocMaps - The association maps
+ * @param[in,out] server    - sdbus system object
+ */
+void checkIfPendingAssociation(const std::string& objectPath,
+                               const interface_map_type& interfaceMap,
+                               AssociationMaps& assocMaps,
+                               sdbusplus::asio::object_server& server);
