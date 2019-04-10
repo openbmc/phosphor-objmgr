@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "processing.hpp"
 
 #include <boost/algorithm/string/predicate.hpp>
@@ -75,8 +77,7 @@ void processNameChangeDelete(
             // we own this path as well, which would be because of an
             // association.
             if ((pathIt->second.size() == 2) &&
-                (pathIt->second.find("xyz.openbmc_project.ObjectMapper") !=
-                 pathIt->second.end()))
+                (pathIt->second.find(MAPPER_BUSNAME) != pathIt->second.end()))
             {
                 // Remove the 2 association D-Bus paths and move the
                 // association to pending.
