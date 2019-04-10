@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "associations.hpp"
 #include "processing.hpp"
 #include "src/argument.hpp"
@@ -13,9 +15,6 @@
 #include <iostream>
 #include <sdbusplus/asio/connection.hpp>
 #include <sdbusplus/asio/object_server.hpp>
-
-constexpr const char* OBJECT_MAPPER_DBUS_NAME =
-    "xyz.openbmc_project.ObjectMapper";
 
 AssociationMaps associationMaps;
 
@@ -70,8 +69,8 @@ void send_introspection_complete_signal(sdbusplus::asio::connection* system_bus,
     // introspect right now.  Find out how to register signals in
     // sdbusplus
     sdbusplus::message::message m = system_bus->new_signal(
-        "/xyz/openbmc_project/object_mapper",
-        "xyz.openbmc_project.ObjectMapper.Private", "IntrospectionComplete");
+        MAPPER_PATH, "xyz.openbmc_project.ObjectMapper.Private",
+        "IntrospectionComplete");
     m.append(process_name);
     m.signal_send();
 }
@@ -449,7 +448,7 @@ int main(int argc, char** argv)
     boost::container::flat_set<std::string> iface_whitelist;
     splitArgs(options["interface-namespaces"], iface_whitelist);
 
-    system_bus->request_name(OBJECT_MAPPER_DBUS_NAME);
+    system_bus->request_name(MAPPER_BUSNAME);
     sdbusplus::asio::object_server server(system_bus);
 
     // Construct a signal set registered for process termination.
@@ -571,7 +570,7 @@ int main(int argc, char** argv)
                     // association path.
                     if ((connection_map->second.size() == 1) &&
                         (connection_map->second.begin()->first ==
-                         "xyz.openbmc_project.ObjectMapper"))
+                         MAPPER_BUSNAME))
                     {
                         // Remove the 2 association D-Bus paths and move the
                         // association to pending.
@@ -630,8 +629,7 @@ int main(int argc, char** argv)
         associationChangedHandler);
 
     std::shared_ptr<sdbusplus::asio::dbus_interface> iface =
-        server.add_interface("/xyz/openbmc_project/object_mapper",
-                             "xyz.openbmc_project.ObjectMapper");
+        server.add_interface(MAPPER_PATH, MAPPER_INTERFACE);
 
     iface->register_method(
         "GetAncestors", [&interface_map](std::string& req_path,
