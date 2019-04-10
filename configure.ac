@@ -1,7 +1,7 @@
 # Initialization
 AC_PREREQ([2.69])
 AC_INIT([phosphor-objmgr], [1.0], [https://github.com/openbmc/phosphor-objmgr/issues])
-AC_CONFIG_HEADERS([libmapper/config.h])
+AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([subdir-objects -Wall -Wno-portability -Werror foreign dist-xz])
 AM_SILENT_RULES([yes])
