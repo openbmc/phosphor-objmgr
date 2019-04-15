@@ -25,8 +25,8 @@ InterfacesAdded createInterfacesAdded()
         associations};
     std::vector<std::pair<
         std::string, sdbusplus::message::variant<std::vector<Association>>>>
-        vecMethToAssoc = {{"associations", sdbVecAssoc}};
-    InterfacesAdded intfAdded = {{ASSOCIATIONS_INTERFACE, vecMethToAssoc}};
+        vecMethToAssoc = {{"Associations", sdbVecAssoc}};
+    InterfacesAdded intfAdded = {{ASSOC_DEFS_INTERFACE, vecMethToAssoc}};
     return intfAdded;
 }
 
