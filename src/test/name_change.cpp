@@ -33,7 +33,7 @@ TEST_F(TestNameChange, UniqueNameAssociationsAndInterface)
         {":1.99", DEFAULT_DBUS_SVC}};
     std::string oldOwner = {":1.99"};
     boost::container::flat_set<std::string> assocInterfacesSet = {
-        ASSOCIATIONS_INTERFACE};
+        assocDefsInterface};
 
     // Build up these objects so that an associated interface will match
     // with the associated owner being removed

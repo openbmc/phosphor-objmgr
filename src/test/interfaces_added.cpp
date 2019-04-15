@@ -16,7 +16,8 @@ sdbusplus::asio::object_server*
 
 // This is the data structure that comes in via the InterfacesAdded
 // signal
-InterfacesAdded createInterfacesAdded()
+InterfacesAdded createInterfacesAdded(const std::string& interface,
+                                      const std::string& property)
 {
     std::vector<Association> associations = {
         {"inventory", "error",
@@ -25,8 +26,8 @@ InterfacesAdded createInterfacesAdded()
         associations};
     std::vector<std::pair<
         std::string, sdbusplus::message::variant<std::vector<Association>>>>
-        vecMethToAssoc = {{"associations", sdbVecAssoc}};
-    InterfacesAdded intfAdded = {{ASSOCIATIONS_INTERFACE, vecMethToAssoc}};
+        vecMethToAssoc = {{property, sdbVecAssoc}};
+    InterfacesAdded intfAdded = {{interface, vecMethToAssoc}};
     return intfAdded;
 }
 
@@ -36,7 +37,35 @@ TEST_F(TestInterfacesAdded, InterfacesAddedGoodPath)
     interface_map_type interfaceMap;
     AssociationOwnersType assocOwners;
     AssociationInterfaces assocInterfaces;
-    auto intfAdded = createInterfacesAdded();
+    auto intfAdded = createInterfacesAdded(
+        assocDefsInterface, getAssocDefPropName(assocDefsInterface));
+
+    processInterfaceAdded(interfaceMap, DEFAULT_SOURCE_PATH, intfAdded,
+                          DEFAULT_DBUS_SVC, assocOwners, assocInterfaces,
+                          *server);
+
+    // Interface map will get the following:
+    // /logging/entry/1 /logging/entry /logging/ /
+    // dump_InterfaceMapType(interfaceMap);
+    EXPECT_EQ(interfaceMap.size(), 4);
+
+    // New association ower created so ensure it now contains a single entry
+    // dump_AssociationOwnersType(assocOwners);
+    EXPECT_EQ(assocOwners.size(), 1);
+
+    // Ensure the 2 association interfaces were created
+    // dump_AssociationInterfaces(assocInterfaces);
+    EXPECT_EQ(assocInterfaces.size(), 2);
+}
+
+TEST_F(TestInterfacesAdded, OrgOpenBmcInterfacesAddedGoodPath)
+{
+    interface_map_type interfaceMap;
+    AssociationOwnersType assocOwners;
+    AssociationInterfaces assocInterfaces;
+    auto intfAdded = createInterfacesAdded(
+        orgOpenBMCAssocDefsInterface,
+        getAssocDefPropName(orgOpenBMCAssocDefsInterface));
 
     processInterfaceAdded(interfaceMap, DEFAULT_SOURCE_PATH, intfAdded,
                           DEFAULT_DBUS_SVC, assocOwners, assocInterfaces,
