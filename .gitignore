@@ -119,3 +119,5 @@ src/test/interfaces_added
 src/test/need_to_introspect
 src/test/well_known
 src/test/name_change
+subprojects/*
+!subprojects/*.wrap
