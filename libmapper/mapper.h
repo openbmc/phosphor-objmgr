@@ -13,7 +13,7 @@ typedef struct mapper_async_subtree mapper_async_subtree;
 void mapper_wait_async_free(mapper_async_wait*);
 void mapper_subtree_async_free(mapper_async_subtree*);
 
-int mapper_wait_async(sd_bus*, sd_event*, char* [], void (*)(int, void*), void*,
+int mapper_wait_async(sd_bus*, sd_event*, char*[], void (*)(int, void*), void*,
                       mapper_async_wait**);
 int mapper_subtree_async(sd_bus*, sd_event*, char*, char*, void (*)(int, void*),
                          void*, mapper_async_subtree**, int);
