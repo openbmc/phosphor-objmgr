@@ -11,38 +11,12 @@
 /** @brief Define white list and black list data structure */
 using WhiteBlackList = boost::container::flat_set<std::string>;
 
-/** @brief The old associations definitions interface */
-constexpr const char* orgOpenBMCAssocDefsInterface = "org.openbmc.Associations";
-/** @brief The new associations definitions interface */
+/** @brief The associations definitions interface */
 constexpr const char* assocDefsInterface =
     "xyz.openbmc_project.Association.Definitions";
 
-/** @brief Says if the interface is the association definition interface.
- * Supports either the new or old interface.
- *
- * @param[in] iface - the interface to check
- * @return bool - if the interface is one of the association definition
- *                ones.
- */
-inline bool isAssocDefIface(std::string_view iface)
-{
-    return (iface == assocDefsInterface) ||
-           (iface == orgOpenBMCAssocDefsInterface);
-}
-
-/** @brief Returns the property name used by the defs iface.
- *
- * The old interface broke convention and used a lower case property
- * name.  This was resolved with the new interface.
- *
- * @param[in] iface - the interface to check
- * @return std::string - the property name
- */
-inline std::string getAssocDefPropName(std::string_view iface)
-{
-    assert(isAssocDefIface(iface));
-    return (iface == assocDefsInterface) ? "Associations" : "associations";
-}
+/** @brief The associations definitions property name */
+constexpr const char* assocDefsProperty = "Associations";
 
 /** @brief InterfacesAdded represents the dbus data from the signal
  *

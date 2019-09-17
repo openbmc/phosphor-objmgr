@@ -65,9 +65,8 @@ void processNameChangeDelete(
         auto ifaces = pathIt->second.find(wellKnown);
         if (ifaces != pathIt->second.end())
         {
-            auto assoc = std::find_if(
-                ifaces->second.begin(), ifaces->second.end(),
-                [](const auto& iface) { return isAssocDefIface(iface); });
+            auto assoc = std::find(ifaces->second.begin(), ifaces->second.end(),
+                                   assocDefsInterface);
             if (assoc != ifaces->second.end())
             {
                 removeAssociation(pathIt->first, wellKnown, server, assocMaps);
@@ -110,13 +109,13 @@ void processInterfaceAdded(interface_map_type& interfaceMap,
     {
         ifaceList[wellKnown].emplace(interfacePair.first);
 
-        if (isAssocDefIface(interfacePair.first))
+        if (interfacePair.first == assocDefsInterface)
         {
             const sdbusplus::message::variant<std::vector<Association>>*
                 variantAssociations = nullptr;
             for (const auto& interface : interfacePair.second)
             {
-                if (interface.first == getAssocDefPropName(interfacePair.first))
+                if (interface.first == assocDefsProperty)
                 {
                     variantAssociations = &(interface.second);
                 }
