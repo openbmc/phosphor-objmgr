@@ -8,7 +8,6 @@
 #include <tinyxml2.h>
 
 #include <atomic>
-#include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/container/flat_map.hpp>
 #include <chrono>
@@ -130,8 +129,7 @@ struct InProgressIntrospect
 void do_associations(sdbusplus::asio::connection* system_bus,
                      interface_map_type& interfaceMap,
                      sdbusplus::asio::object_server& objectServer,
-                     const std::string& processName, const std::string& path,
-                     const std::string& assocDefIface)
+                     const std::string& processName, const std::string& path)
 {
     system_bus->async_method_call(
         [&objectServer, path, processName, &interfaceMap](
@@ -149,7 +147,7 @@ void do_associations(sdbusplus::asio::connection* system_bus,
                                interfaceMap, associationMaps);
         },
         processName, path, "org.freedesktop.DBus.Properties", "Get",
-        assocDefIface, getAssocDefPropName(assocDefIface));
+        assocDefsInterface, assocDefsProperty);
 }
 
 void do_introspect(sdbusplus::asio::connection* system_bus,
@@ -199,11 +197,10 @@ void do_introspect(sdbusplus::asio::connection* system_bus,
 
                 thisPathMap[transaction->process_name].emplace(iface_name);
 
-                if (isAssocDefIface(iface_name))
+                if (std::strcmp(iface_name, assocDefsInterface) == 0)
                 {
                     do_associations(system_bus, interface_map, objectServer,
-                                    transaction->process_name, path,
-                                    iface_name);
+                                    transaction->process_name, path);
                 }
 
                 pElement = pElement->NextSiblingElement("interface");
@@ -550,7 +547,7 @@ int main(int argc, char** argv)
                     continue;
                 }
 
-                if (isAssocDefIface(interface))
+                if (interface == assocDefsInterface)
                 {
                     removeAssociation(obj_path.str, sender, server,
                                       associationMaps);
@@ -604,13 +601,7 @@ int main(int argc, char** argv)
                 sdbusplus::message::variant<std::vector<Association>>>
                 values;
             message.read(objectName, values);
-
-            auto prop =
-                std::find_if(values.begin(), values.end(), [](const auto& v) {
-                    using namespace boost::algorithm;
-                    return to_lower_copy(v.first) == "associations";
-                });
-
+            auto prop = values.find(assocDefsProperty);
             if (prop != values.end())
             {
                 std::vector<Association> associations =
@@ -633,14 +624,6 @@ int main(int argc, char** argv)
             "org.freedesktop.DBus.Properties") +
             sdbusplus::bus::match::rules::member("PropertiesChanged") +
             sdbusplus::bus::match::rules::argN(0, assocDefsInterface),
-        associationChangedHandler);
-
-    sdbusplus::bus::match::match orgOpenbmcAssocChangedMatch(
-        static_cast<sdbusplus::bus::bus&>(*system_bus),
-        sdbusplus::bus::match::rules::interface(
-            "org.freedesktop.DBus.Properties") +
-            sdbusplus::bus::match::rules::member("PropertiesChanged") +
-            sdbusplus::bus::match::rules::argN(0, orgOpenBMCAssocDefsInterface),
         associationChangedHandler);
 
     std::shared_ptr<sdbusplus::asio::dbus_interface> iface =
