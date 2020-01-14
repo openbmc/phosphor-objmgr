@@ -154,14 +154,22 @@ void do_introspect(sdbusplus::asio::connection* system_bus,
                    std::shared_ptr<InProgressIntrospect> transaction,
                    interface_map_type& interface_map,
                    sdbusplus::asio::object_server& objectServer,
-                   std::string path)
+                   std::string path, int timeoutRetries = 0)
 {
+    constexpr int maxTimeoutRetries = 3;
     system_bus->async_method_call(
-        [&interface_map, &objectServer, transaction, path,
-         system_bus](const boost::system::error_code ec,
-                     const std::string& introspect_xml) {
+        [&interface_map, &objectServer, transaction, path, system_bus,
+         timeoutRetries](const boost::system::error_code ec,
+                         const std::string& introspect_xml) {
             if (ec)
             {
+                if (ec.value() == boost::system::errc::timed_out &&
+                    timeoutRetries < maxTimeoutRetries)
+                {
+                    do_introspect(system_bus, transaction, interface_map,
+                                  objectServer, path, timeoutRetries + 1);
+                    return;
+                }
                 std::cerr << "Introspect call failed with error: " << ec << ", "
                           << ec.message()
                           << " on process: " << transaction->process_name
