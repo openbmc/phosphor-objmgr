@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <systemd/sd-bus.h>
 #include <systemd/sd-event.h>
+#include <unistd.h>
 
 #include "mapper.h"
 
@@ -34,6 +35,8 @@ static int wait_main(int argc, char* argv[])
     sd_bus* conn = NULL;
     sd_event* loop = NULL;
     mapper_async_wait* wait = NULL;
+    size_t attempts = 0;
+    const size_t max_attempts = 4;
 
     if (argc < 3)
     {
@@ -41,43 +44,75 @@ static int wait_main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
-    r = sd_bus_default_system(&conn);
-    if (r < 0)
+    /* Mapper waits are typically run early in the boot process, and in some
+     * cases the CPU and/or object manager daemon are so busy that the
+     * GetObject call may fail with a timeout and cause the event loop to exit.
+     * If this happens, retry a few times.  Don't retry on other failures.
+     */
+    while (1)
     {
-        fprintf(stderr, "Error connecting to system bus: %s\n", strerror(-r));
-        goto finish;
-    }
+        attempts++;
 
-    r = sd_event_default(&loop);
-    if (r < 0)
-    {
-        fprintf(stderr, "Error obtaining event loop: %s\n", strerror(-r));
+        r = sd_bus_default_system(&conn);
+        if (r < 0)
+        {
+            fprintf(stderr, "Error connecting to system bus: %s\n",
+                    strerror(-r));
+            goto finish;
+        }
 
-        goto finish;
-    }
+        r = sd_event_default(&loop);
+        if (r < 0)
+        {
+            fprintf(stderr, "Error obtaining event loop: %s\n", strerror(-r));
 
-    r = sd_bus_attach_event(conn, loop, SD_EVENT_PRIORITY_NORMAL);
-    if (r < 0)
-    {
-        fprintf(stderr,
-                "Failed to attach system "
-                "bus to event loop: %s\n",
-                strerror(-r));
-        goto finish;
-    }
+            goto finish;
+        }
 
-    r = mapper_wait_async(conn, loop, argv + 2, quit, loop, &wait);
-    if (r < 0)
-    {
-        fprintf(stderr, "Error configuring waitlist: %s\n", strerror(-r));
-        goto finish;
-    }
+        r = sd_bus_attach_event(conn, loop, SD_EVENT_PRIORITY_NORMAL);
+        if (r < 0)
+        {
+            fprintf(stderr,
+                    "Failed to attach system "
+                    "bus to event loop: %s\n",
+                    strerror(-r));
+            goto finish;
+        }
 
-    r = sd_event_loop(loop);
-    if (r < 0)
-    {
-        fprintf(stderr, "Error starting event loop: %s\n", strerror(-r));
-        goto finish;
+        r = mapper_wait_async(conn, loop, argv + 2, quit, loop, &wait);
+        if (r < 0)
+        {
+            fprintf(stderr, "Error configuring waitlist: %s\n", strerror(-r));
+            goto finish;
+        }
+
+        r = sd_event_loop(loop);
+        if (r < 0)
+        {
+            fprintf(stderr, "Event loop exited: %s\n", strerror(-r));
+
+            if (-r == ETIMEDOUT)
+            {
+                if (attempts <= max_attempts)
+                {
+                    fprintf(stderr, "Retrying in 5s\n");
+                    sleep(5);
+                    sd_event_unref(loop);
+                    sd_bus_unref(conn);
+                    continue;
+                }
+                else
+                {
+                    fprintf(stderr, "Giving up\n");
+                }
+            }
+            else
+            {
+                goto finish;
+            }
+        }
+
+        break;
     }
 
 finish:
