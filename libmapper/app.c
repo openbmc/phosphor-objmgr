@@ -91,7 +91,7 @@ static int wait_main(int argc, char* argv[])
         {
             fprintf(stderr, "Event loop exited: %s\n", strerror(-r));
 
-            if (-r == ETIMEDOUT)
+            if (-r == ETIMEDOUT || -r == EHOSTUNREACH)
             {
                 if (attempts <= max_attempts)
                 {
