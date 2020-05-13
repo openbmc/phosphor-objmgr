@@ -141,8 +141,7 @@ void do_associations(sdbusplus::asio::connection* system_bus,
                 std::cerr << "Error getting associations from " << path << "\n";
             }
             std::vector<Association> associations =
-                sdbusplus::message::variant_ns::get<std::vector<Association>>(
-                    variantAssociations);
+                std::get<std::vector<Association>>(variantAssociations);
             associationChanged(objectServer, associations, path, processName,
                                interfaceMap, associationMaps);
         },
@@ -613,8 +612,7 @@ int main(int argc, char** argv)
             if (prop != values.end())
             {
                 std::vector<Association> associations =
-                    sdbusplus::message::variant_ns::get<
-                        std::vector<Association>>(prop->second);
+                    std::get<std::vector<Association>>(prop->second);
 
                 std::string well_known;
                 if (!getWellKnown(name_owners, message.get_sender(),

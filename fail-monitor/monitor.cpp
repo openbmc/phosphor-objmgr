@@ -64,7 +64,7 @@ bool Monitor::inFailedState(const std::string&& path)
 
     reply.read(property);
 
-    auto value = sdbusplus::message::variant_ns::get<std::string>(property);
+    auto value = std::get<std::string>(property);
     return (value == FAILED_STATE);
 }
 

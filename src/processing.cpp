@@ -127,8 +127,7 @@ void processInterfaceAdded(interface_map_type& interfaceMap,
                 continue;
             }
             std::vector<Association> associations =
-                sdbusplus::message::variant_ns::get<std::vector<Association>>(
-                    *variantAssociations);
+                std::get<std::vector<Association>>(*variantAssociations);
             associationChanged(server, associations, objPath.str, wellKnown,
                                interfaceMap, assocMaps);
         }
