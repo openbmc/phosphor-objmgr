@@ -22,10 +22,8 @@ InterfacesAdded createInterfacesAdded(const std::string& interface,
     std::vector<Association> associations = {
         {"inventory", "error",
          "/xyz/openbmc_project/inventory/system/chassis"}};
-    sdbusplus::message::variant<std::vector<Association>> sdbVecAssoc = {
-        associations};
-    std::vector<std::pair<
-        std::string, sdbusplus::message::variant<std::vector<Association>>>>
+    std::variant<std::vector<Association>> sdbVecAssoc = {associations};
+    std::vector<std::pair<std::string, std::variant<std::vector<Association>>>>
         vecMethToAssoc = {{property, sdbVecAssoc}};
     InterfacesAdded intfAdded = {{interface, vecMethToAssoc}};
     return intfAdded;

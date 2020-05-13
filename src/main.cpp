@@ -134,8 +134,7 @@ void do_associations(sdbusplus::asio::connection* system_bus,
     system_bus->async_method_call(
         [&objectServer, path, processName, &interfaceMap](
             const boost::system::error_code ec,
-            const sdbusplus::message::variant<std::vector<Association>>&
-                variantAssociations) {
+            const std::variant<std::vector<Association>>& variantAssociations) {
             if (ec)
             {
                 std::cerr << "Error getting associations from " << path << "\n";
@@ -603,9 +602,8 @@ int main(int argc, char** argv)
         associationChangedHandler = [&server, &name_owners, &interface_map](
                                         sdbusplus::message::message& message) {
             std::string objectName;
-            boost::container::flat_map<
-                std::string,
-                sdbusplus::message::variant<std::vector<Association>>>
+            boost::container::flat_map<std::string,
+                                       std::variant<std::vector<Association>>>
                 values;
             message.read(objectName, values);
             auto prop = values.find(assocDefsProperty);

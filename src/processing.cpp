@@ -111,8 +111,8 @@ void processInterfaceAdded(interface_map_type& interfaceMap,
 
         if (interfacePair.first == assocDefsInterface)
         {
-            const sdbusplus::message::variant<std::vector<Association>>*
-                variantAssociations = nullptr;
+            const std::variant<std::vector<Association>>* variantAssociations =
+                nullptr;
             for (const auto& interface : interfacePair.second)
             {
                 if (interface.first == assocDefsProperty)

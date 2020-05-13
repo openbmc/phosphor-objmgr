@@ -25,9 +25,8 @@ constexpr const char* assocDefsProperty = "Associations";
  * pair2: D-bus Method,vector[Associations]
  */
 using InterfacesAdded = std::vector<std::pair<
-    std::string,
-    std::vector<std::pair<
-        std::string, sdbusplus::message::variant<std::vector<Association>>>>>>;
+    std::string, std::vector<std::pair<
+                     std::string, std::variant<std::vector<Association>>>>>>;
 
 /** @brief Get well known name of input unique name
  *

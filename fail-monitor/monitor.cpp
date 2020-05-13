@@ -46,7 +46,7 @@ void Monitor::analyze()
 
 bool Monitor::inFailedState(const std::string&& path)
 {
-    sdbusplus::message::variant<std::string> property;
+    std::variant<std::string> property;
 
     auto method = bus.new_method_call(SYSTEMD_SERVICE, path.c_str(),
                                       SYSTEMD_PROPERTY_INTERFACE, "Get");
