@@ -2,6 +2,7 @@
 
 #include <sdbusplus/asio/connection.hpp>
 #include <sdbusplus/asio/object_server.hpp>
+#include <sdbusplus/test/sdbus_mock.hpp>
 
 /* @brief Will contain path and name of test application */
 const char* appname = program_invocation_name;
