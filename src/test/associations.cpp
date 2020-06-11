@@ -166,7 +166,8 @@ TEST_F(TestAssociations, checkAssociationEndpointRemovesEpRemoveEpChanged)
 // Verify existing endpoint deleted when empty endpoint is provided
 TEST_F(TestAssociations, associationChangedEmptyEndpoint)
 {
-    std::vector<Association> associations = {{"inventory", "error", ""}};
+    std::vector<Association> associations = {
+        {"inventory_cee", "error_cee", ""}};
     interface_map_type interfaceMap;
 
     AssociationMaps assocMaps;
@@ -226,7 +227,7 @@ TEST_F(TestAssociations, associationChangedAddNewAssocEmptyObj)
     std::string sourcePath = "/logging/entry/1";
     std::string owner = "xyz.openbmc_project.Test";
     std::vector<Association> associations = {
-        {"inventory", "error",
+        {"inventory_canaeo", "error_canaeo",
          "/xyz/openbmc_project/inventory/system/chassis"}};
 
     // Empty objects because this test will ensure assocOwners adds the
@@ -262,7 +263,7 @@ TEST_F(TestAssociations, associationChangedAddNewAssocNewOwner)
 {
     std::string newOwner = "xyz.openbmc_project.Test2";
     std::vector<Association> associations = {
-        {"inventory", "error",
+        {"inventory_canano", "error_canano",
          "/xyz/openbmc_project/inventory/system/chassis"}};
 
     // Make it look like the assoc endpoints are on D-Bus
@@ -453,8 +454,9 @@ TEST_F(TestAssociations, checkIfPending)
         {DEFAULT_SOURCE_PATH, {{DEFAULT_DBUS_SVC, {"a"}}}},
         {DEFAULT_ENDPOINT, {{DEFAULT_DBUS_SVC, {"b"}}}}};
 
-    addPendingAssociation(DEFAULT_SOURCE_PATH, "inventory", DEFAULT_ENDPOINT,
-                          "error", DEFAULT_DBUS_SVC, assocMaps);
+    addPendingAssociation(DEFAULT_SOURCE_PATH, "inventory_cip",
+                          DEFAULT_ENDPOINT, "error_cip", DEFAULT_DBUS_SVC,
+                          assocMaps);
     EXPECT_EQ(assocMaps.pending.size(), 1);
 
     // Move the pending association to a real association
