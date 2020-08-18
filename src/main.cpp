@@ -9,6 +9,8 @@
 
 #include <atomic>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/signal_set.hpp>
 #include <boost/container/flat_map.hpp>
 #include <chrono>
 #include <iomanip>
@@ -78,7 +80,7 @@ void send_introspection_complete_signal(sdbusplus::asio::connection* system_bus,
 struct InProgressIntrospect
 {
     InProgressIntrospect(
-        sdbusplus::asio::connection* system_bus, boost::asio::io_service& io,
+        sdbusplus::asio::connection* system_bus, boost::asio::io_context& io,
         const std::string& process_name, AssociationMaps& am
 #ifdef DEBUG
         ,
@@ -116,7 +118,7 @@ struct InProgressIntrospect
 #endif
     }
     sdbusplus::asio::connection* system_bus;
-    boost::asio::io_service& io;
+    boost::asio::io_context& io;
     std::string process_name;
     AssociationMaps& assocMaps;
 #ifdef DEBUG
@@ -240,7 +242,7 @@ void do_introspect(sdbusplus::asio::connection* system_bus,
 }
 
 void start_new_introspect(
-    sdbusplus::asio::connection* system_bus, boost::asio::io_service& io,
+    sdbusplus::asio::connection* system_bus, boost::asio::io_context& io,
     interface_map_type& interface_map, const std::string& process_name,
     AssociationMaps& assocMaps,
 #ifdef DEBUG
@@ -287,7 +289,7 @@ bool intersect(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2)
 }
 
 void doListNames(
-    boost::asio::io_service& io, interface_map_type& interface_map,
+    boost::asio::io_context& io, interface_map_type& interface_map,
     sdbusplus::asio::connection* system_bus,
     boost::container::flat_map<std::string, std::string>& name_owners,
     AssociationMaps& assocMaps, sdbusplus::asio::object_server& objectServer)
@@ -440,7 +442,7 @@ void removeUnneededParents(const std::string& objectPath,
 int main(int argc, char** argv)
 {
     auto options = ArgumentParser(argc, argv);
-    boost::asio::io_service io;
+    boost::asio::io_context io;
     std::shared_ptr<sdbusplus::asio::connection> system_bus =
         std::make_shared<sdbusplus::asio::connection>(io);
 
