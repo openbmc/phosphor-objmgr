@@ -452,7 +452,6 @@ int main(int argc, char** argv)
     boost::container::flat_set<std::string> iface_whitelist;
     splitArgs(options["interface-namespaces"], iface_whitelist);
 
-    system_bus->request_name(MAPPER_BUSNAME);
     sdbusplus::asio::object_server server(system_bus);
 
     // Construct a signal set registered for process termination.
@@ -840,6 +839,8 @@ int main(int argc, char** argv)
         doListNames(io, interface_map, system_bus.get(), name_owners,
                     associationMaps, server);
     });
+
+    system_bus->request_name(MAPPER_BUSNAME);
 
     io.run();
 }
