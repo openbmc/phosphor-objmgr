@@ -28,7 +28,7 @@ struct NotFoundException final : public sdbusplus::exception_t
 {
     const char* name() const noexcept override
     {
-        return "org.freedesktop.DBus.Error.FileNotFound";
+        return "xyz.openbmc_project.Common.ResourceNotFound";
     };
     const char* description() const noexcept override
     {
@@ -36,7 +36,7 @@ struct NotFoundException final : public sdbusplus::exception_t
     };
     const char* what() const noexcept override
     {
-        return "org.freedesktop.DBus.Error.FileNotFound: "
+        return "xyz.openbmc_project.Common.ResourceNotFound: "
                "The requested object was not found";
     };
 };
