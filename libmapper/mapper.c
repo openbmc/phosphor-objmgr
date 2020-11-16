@@ -178,9 +178,11 @@ static int async_wait_getobject_callback(sd_bus_message* m, void* userdata,
     if (wait->finished)
         goto exit;
 
-    r = sd_bus_message_get_errno(m);
-    if (r == ENOENT)
+    if (sd_bus_message_is_method_error(
+            m, "xyz.openbmc_project.Common.Error.ResourceNotFound"))
         goto exit;
+
+    r = sd_bus_message_get_errno(m);
 
     if ((r == EBUSY || r == ENOBUFS) && data->retry < mapper_busy_retries)
     {
@@ -412,7 +414,8 @@ static int async_subtree_getpaths_callback(sd_bus_message* m, void* userdata,
 
     r = sd_bus_message_get_errno(m);
 
-    if (r == ENOENT)
+    if (sd_bus_message_is_method_error(
+            m, "xyz.openbmc_project.Common.Error.ResourceNotFound"))
     {
         if (subtree->op == MAPPER_OP_REMOVE)
             r = 0;
