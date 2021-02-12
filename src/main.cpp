@@ -131,14 +131,24 @@ struct InProgressIntrospect
 void do_associations(sdbusplus::asio::connection* system_bus,
                      interface_map_type& interfaceMap,
                      sdbusplus::asio::object_server& objectServer,
-                     const std::string& processName, const std::string& path)
+                     const std::string& processName, const std::string& path,
+                     int timeoutRetries = 0)
 {
+    constexpr int maxTimeoutRetries = 3;
     system_bus->async_method_call(
-        [&objectServer, path, processName, &interfaceMap](
+        [&objectServer, path, processName, &interfaceMap, system_bus,
+         timeoutRetries](
             const boost::system::error_code ec,
             const std::variant<std::vector<Association>>& variantAssociations) {
             if (ec)
             {
+                if (ec.value() == boost::system::errc::timed_out &&
+                    timeoutRetries < maxTimeoutRetries)
+                {
+                    do_associations(system_bus, interfaceMap, objectServer,
+                                    processName, path, timeoutRetries + 1);
+                    return;
+                }
                 std::cerr << "Error getting associations from " << path << "\n";
             }
             std::vector<Association> associations =
