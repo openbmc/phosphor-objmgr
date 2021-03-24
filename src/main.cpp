@@ -168,6 +168,13 @@ void do_introspect(sdbusplus::asio::connection* system_bus,
                                   objectServer, path, timeoutRetries + 1);
                     return;
                 }
+                if (ec.value() == EBADR && timeoutRetries < maxTimeoutRetries)
+                {
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                    do_introspect(system_bus, transaction, interface_map,
+                                  objectServer, path, timeoutRetries + 1);
+                    return;
+                }
                 std::cerr << "Introspect call failed with error: " << ec << ", "
                           << ec.message()
                           << " on process: " << transaction->process_name
