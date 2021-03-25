@@ -118,6 +118,30 @@
       "revId": "12d735a8f025188f64e32bd3b7facbdde584ac42",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "28ff13a1_0479f109",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1000857
+      },
+      "writtenOn": "2021-03-25T23:25:15Z",
+      "side": 1,
+      "message": "You are right about the instantiation sequence of ObjectMapper and pid-control. I was confused about that before. But this fix should stand still. \n\n\u003e No, the error is caused by the object manager being instantiated after the name is requested. \nThis statement is correct, partially. A more precise description is: introspect from mapper is triggered after name request but BEFORE object add. \n\nThe correct event chain is: \nmapper start -\u003e pid start -\u003e pid name request -\u003e mapper handler trigger ~\u003d pid add object -\u003e mapper introspect\n\nWhen error happens: \nmapper start -\u003e pid start -\u003e pid name request -\u003e mapper handler trigger -\u003e mapper introspect -\u003e pid add object. \n\nMapper have no control over the time interval between name-request and object-add within other process. The issue is currently more observable since pid introduced longer delay in between by accident. But it is safer to have such retry mechanism here in ObjectMapper.",
+      "parentUuid": "5413ae46_8dd4cb68",
+      "range": {
+        "startLine": 183,
+        "startChar": 34,
+        "endLine": 183,
+        "endChar": 39
+      },
+      "revId": "12d735a8f025188f64e32bd3b7facbdde584ac42",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": false
     }
   ]
 }
