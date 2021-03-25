@@ -94,6 +94,30 @@
       "revId": "12d735a8f025188f64e32bd3b7facbdde584ac42",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5413ae46_8dd4cb68",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1000188
+      },
+      "writtenOn": "2021-03-25T17:42:39Z",
+      "side": 1,
+      "message": "No, the error is caused by the object manager being instantiated after the name is requested. You wouldn\u0027t have the race condition if you re-ordered it on the other side.\n\nThere is no object manager added before this line for the hostBus\nhttps://github.com/openbmc/phosphor-pid-control/blob/b6a0b89e4419aeef4a2cdfde1a9119ae6b9be25f/main.cpp#L260\n\nYou can see that the object manager gets added after this line, which is why the mapper hits this error.",
+      "parentUuid": "13f5fc6b_5ada13cf",
+      "range": {
+        "startLine": 183,
+        "startChar": 34,
+        "endLine": 183,
+        "endChar": 39
+      },
+      "revId": "12d735a8f025188f64e32bd3b7facbdde584ac42",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": false
     }
   ]
 }
