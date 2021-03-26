@@ -142,6 +142,30 @@
       "revId": "12d735a8f025188f64e32bd3b7facbdde584ac42",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ebdb8337_1edc6bc9",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1000188
+      },
+      "writtenOn": "2021-03-26T00:25:34Z",
+      "side": 1,
+      "message": "I should correct what I said before, this call is for Introspection, not for GetManagedObjects. this actually has nothing to do with the ObjectMapper and when it gets added to the object.\n\nThat being said, it seems like we need to define the appropriate behavior for the object manager here. I don\u0027t think you should retry if the root object of a services doesn\u0027t implement the introspectable interface. It\u0027s not reasonable to believe that a named service has to own any objects immediately, and we don\u0027t want to block all users of the mapper waiting around for a service to become introspectable. It seems reasonable to expect that a service which already requested a name would add an object manager prior to instantiating objects so that they emit InterfacesAdded. Alternatively, they would just request the name a second time to trigger the objmanager to look them up again.",
+      "parentUuid": "28ff13a1_0479f109",
+      "range": {
+        "startLine": 183,
+        "startChar": 34,
+        "endLine": 183,
+        "endChar": 39
+      },
+      "revId": "12d735a8f025188f64e32bd3b7facbdde584ac42",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": false
     }
   ]
 }
