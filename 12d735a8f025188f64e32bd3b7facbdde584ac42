@@ -166,6 +166,30 @@
       "revId": "12d735a8f025188f64e32bd3b7facbdde584ac42",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bf56b624_9f094aac",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1000857
+      },
+      "writtenOn": "2021-03-26T01:14:17Z",
+      "side": 1,
+      "message": "Sorry for mixing object mapper and obj manager. The obj manager code is under bin name of mapperx. \n\n\u003e It seems reasonable to expect that a service which already requested a name would add an object manager prior to instantiating objects so that they emit InterfacesAdded. Alternatively, they would just request the name a second time to trigger the objmanager to look them up again.\n\nIf we can make the obligation of what you said, the retry here, of course, makes no sense. But pid-control is obviously not in that case. Otherwise we wouldn\u0027t have seen the error. pid-control seems following \"name request\" - \"soon enough\" - \"init object\" pattern. \n\nThe question is whether we want to make such obligation or we want to make a objmanager lenient enough for its customers. \n\n\u003e and we don\u0027t want to block all users of the mapper waiting around for a service to become introspectable\n\nI am not comfortable with the sleep either, given no matter how small the sleep time is. I would turn to a delayed timer (or yeild_until kind-of function of coroutine) so other client can continue the io_context, if we really want such a fix.",
+      "parentUuid": "ebdb8337_1edc6bc9",
+      "range": {
+        "startLine": 183,
+        "startChar": 34,
+        "endLine": 183,
+        "endChar": 39
+      },
+      "revId": "12d735a8f025188f64e32bd3b7facbdde584ac42",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": false
     }
   ]
 }
