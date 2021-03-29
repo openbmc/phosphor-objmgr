@@ -214,6 +214,30 @@
       "revId": "12d735a8f025188f64e32bd3b7facbdde584ac42",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b4aee67_8b9a1f26",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1000857
+      },
+      "writtenOn": "2021-03-29T21:30:21Z",
+      "side": 1,
+      "message": "Since both Walliam and Brad vote for the former design philosophy, I will abandon the fix on objmgr side and leave the duty on phosphor-pid-control (and other clients).",
+      "parentUuid": "4a15f277_32e98c64",
+      "range": {
+        "startLine": 183,
+        "startChar": 34,
+        "endLine": 183,
+        "endChar": 39
+      },
+      "revId": "12d735a8f025188f64e32bd3b7facbdde584ac42",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": false
     }
   ]
 }
