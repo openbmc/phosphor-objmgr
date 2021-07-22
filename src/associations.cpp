@@ -2,6 +2,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <iostream>
+#include <sdbusplus/exception.hpp>
 
 void removeAssociation(const std::string& sourcePath, const std::string& owner,
                        sdbusplus::asio::object_server& server,
@@ -399,11 +400,25 @@ void checkIfPendingAssociation(const std::string& objectPath,
         addSingleAssociation(server, assocPath, endpointPath, owner, ownerPath,
                              assocMaps);
 
-        // Now the reverse direction (still the same owner and ownerPath)
-        assocPath = endpointPath + '/' + std::get<reverseTypePos>(e);
-        endpointPath = objectPath;
-        addSingleAssociation(server, assocPath, endpointPath, owner, ownerPath,
-                             assocMaps);
+        try
+        {
+            // Now the reverse direction (still the same owner and ownerPath)
+            assocPath = endpointPath + '/' + std::get<reverseTypePos>(e);
+            endpointPath = objectPath;
+            addSingleAssociation(server, assocPath, endpointPath, owner,
+                                 ownerPath, assocMaps);
+        }
+        catch (const sdbusplus::exception::exception& e)
+        {
+            // In some case the interface could not be created on DBus and an
+            // exception is thrown. mapper has no control of the interface/path
+            // of the associations, so it has to catch the error and drop the
+            // association request.
+            fprintf(stderr,
+                    "Error adding association: assocPath %s, endpointPath %s, "
+                    "what: %s\n",
+                    assocPath.c_str(), endpointPath.c_str(), e.what());
+        }
 
         // Not pending anymore
         endpoint = pending->second.erase(endpoint);
