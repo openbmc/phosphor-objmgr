@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d77220e7_85c0e2d3",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-07-23T04:15:55Z",
+      "side": 1,
+      "message": "I\u0027d prefer we don\u0027t catch this type but either sdbusplus::exception::exception or sdbusplus::exception::internal_exception.  I want to do some major rearranging to the exceptions because SdBusError is not particularly useful in most cases.",
+      "range": {
+        "startLine": 411,
+        "startChar": 43,
+        "endLine": 411,
+        "endChar": 53
+      },
+      "revId": "02bae10c2ef55f0b3df7860808fe6eaa2434eec1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a597e4fd_ef068471",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-07-23T04:15:55Z",
+      "side": 1,
+      "message": "We should probably put a comment around this.  Something like \"we can get garbage from a client which causes the association to not be able to be made, violating dbus requirements.  Rather than try to find all those requirements, catch the error that is reported and drop the association request.\"  (You can probably word better than copy/pasting this)",
+      "range": {
+        "startLine": 411,
+        "startChar": 0,
+        "endLine": 411,
+        "endChar": 57
+      },
+      "revId": "02bae10c2ef55f0b3df7860808fe6eaa2434eec1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a29ba91_d7e3d012",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 413,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-07-23T04:15:55Z",
+      "side": 1,
+      "message": "Suggest logging e.what() also.",
+      "revId": "02bae10c2ef55f0b3df7860808fe6eaa2434eec1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    }
+  ]
+}
