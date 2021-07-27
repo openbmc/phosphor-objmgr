@@ -38,6 +38,8 @@ include_HEADERS = libmapper/mapper.h
 
 SUBDIRS = fail-monitor
 
+pkgconfig_DATA = phosphor-objmgr.pc
+
 check_PROGRAMS =
 XFAIL_TESTS =
 

@@ -160,6 +160,9 @@ AS_IF([test "x$enable_unpatched_systemd" == "xyes"],
     ]
 )
 
+AC_CONFIG_FILES([phosphor-objmgr.pc])
+PKG_INSTALLDIR
+
 # Create configured output
 AC_CONFIG_FILES([Makefile fail-monitor/Makefile])
 AC_OUTPUT
