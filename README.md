@@ -1,10 +1,16 @@
-## To Build
-```
-To build this package, do the following steps:
+## Prerequisites
+Non-OpenBMC build dependencies are:
+ - meson/ninja
+ - boost
+ - libsystemd
+ - systemd
+ - tinyxml2
 
-    1. ./bootstrap.sh
-    2. ./configure ${CONFIGURE_FLAGS}
-    3. make
+## Build
+`meson build && ninja -C build`
 
-To clean the repository run `./bootstrap.sh clean`.
-```
+## Run Unit Tests
+`meson build && ninja -C build test`
+
+## Clean the repository
+`rm -rf build`
