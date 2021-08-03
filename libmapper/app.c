@@ -53,7 +53,7 @@ static int wait_main(int argc, char* argv[])
     {
         attempts++;
 
-        r = sd_bus_default_system(&conn);
+        r = sd_bus_default(&conn);
         if (r < 0)
         {
             fprintf(stderr, "Error connecting to system bus: %s\n",
@@ -150,7 +150,7 @@ static int subtree_main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
-    r = sd_bus_default_system(&conn);
+    r = sd_bus_default(&conn);
     if (r < 0)
     {
         fprintf(stderr, "Error connecting to system bus: %s\n", strerror(-r));
@@ -215,7 +215,7 @@ static int get_service_main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
-    r = sd_bus_default_system(&conn);
+    r = sd_bus_default(&conn);
     if (r < 0)
     {
         fprintf(stderr, "Error connecting to system bus: %s\n", strerror(-r));
