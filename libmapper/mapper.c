@@ -334,7 +334,10 @@ _public_ int mapper_wait_async(sd_bus* conn, sd_event* loop, char* objs[],
     wait->userdata = userdata;
     wait->count = sarraylen(objs);
     if (!wait->count)
-        return 0;
+    {
+        r = 0;
+        goto free_wait;
+    }
 
     wait->objs = sarraydup(objs);
     if (!wait->objs)
