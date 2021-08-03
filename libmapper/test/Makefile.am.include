@@ -1,0 +1,5 @@
+libmapper_test_mapper_SOURCES = %reldir%/mapper.cpp \
+		libmapper/mapper.c
+
+check_PROGRAMS += \
+	%reldir%/mapper
