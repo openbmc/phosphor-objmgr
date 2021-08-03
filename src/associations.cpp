@@ -539,7 +539,7 @@ void removeAssociationOwnersEntry(const std::string& assocPath,
                                   const std::string& endpointPath,
                                   const std::string& owner,
                                   AssociationMaps& assocMaps,
-                                  sdbusplus::asio::object_server& server)
+                                  sdbusplus::asio::object_server&)
 {
     auto sources = assocMaps.owners.begin();
     while (sources != assocMaps.owners.end())

@@ -30,6 +30,7 @@
 #include "internal.h"
 
 #define _public_ __attribute__((__visibility__("default")))
+#define UNUSED(x) (void)(x)
 
 static const char* async_wait_introspection_match =
     "type='signal',"
@@ -154,6 +155,8 @@ error:
 static int async_wait_timeout_callback(sd_event_source* s, uint64_t usec,
                                        void* userdata)
 {
+    UNUSED(s);
+    UNUSED(usec);
     int r;
     struct async_wait_callback_data* data = userdata;
     mapper_async_wait* wait = data->wait;
@@ -175,6 +178,7 @@ static int async_wait_timeout_callback(sd_event_source* s, uint64_t usec,
 static int async_wait_getobject_callback(sd_bus_message* m, void* userdata,
                                          sd_bus_error* e)
 {
+    UNUSED(e);
     int i, r;
     struct async_wait_callback_data* data = userdata;
     mapper_async_wait* wait = data->wait;
@@ -265,6 +269,8 @@ static int async_wait_get_objects(mapper_async_wait* wait)
 static int async_wait_match_introspection_complete(sd_bus_message* m, void* w,
                                                    sd_bus_error* e)
 {
+    UNUSED(e);
+    UNUSED(m);
     int r;
 
     mapper_async_wait* wait = w;
@@ -393,6 +399,8 @@ free_wait:
 static int async_subtree_timeout_callback(sd_event_source* s, uint64_t usec,
                                           void* userdata)
 {
+    UNUSED(s);
+    UNUSED(usec);
     int r;
     struct mapper_async_subtree* subtree = userdata;
 
@@ -410,6 +418,7 @@ static int async_subtree_timeout_callback(sd_event_source* s, uint64_t usec,
 static int async_subtree_getpaths_callback(sd_bus_message* m, void* userdata,
                                            sd_bus_error* e)
 {
+    UNUSED(e);
     int r;
     struct mapper_async_subtree* subtree = userdata;
     uint64_t next_retry;
@@ -506,6 +515,8 @@ static int async_subtree_getpaths(mapper_async_subtree* subtree)
 static int async_subtree_match_callback(sd_bus_message* m, void* t,
                                         sd_bus_error* e)
 {
+    UNUSED(e);
+    UNUSED(m);
     int r;
 
     mapper_async_subtree* subtree = t;
