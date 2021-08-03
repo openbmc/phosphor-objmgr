@@ -7,10 +7,6 @@ AM_INIT_AUTOMAKE([subdir-objects -Wall -Wno-portability -Werror foreign dist-xz]
 AM_SILENT_RULES([yes])
 AC_LANG([C++])
 
-# Modify header template
-AH_TOP([#pragma once])
-AH_BOTTOM([#include "libmapper/workaround/systemd.h"])
-
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
@@ -149,16 +145,6 @@ AX_ADD_AM_MACRO_STATIC([])
 AC_DEFINE([MAPPER_BUSNAME], ["xyz.openbmc_project.ObjectMapper"], [Object mapper bus name])
 AC_DEFINE([MAPPER_INTERFACE], ["xyz.openbmc_project.ObjectMapper"], [Object mapper interface])
 AC_DEFINE([MAPPER_PATH], ["/xyz/openbmc_project/object_mapper"], [Object mapper DBUS path])
-
-# Workaround for unpatched systemd installs
-AC_ARG_ENABLE([unpatched-systemd],
-    AS_HELP_STRING([--enable-unpatched-systemd], [Enable unpatched systemd workarounds]))
-AS_IF([test "x$enable_unpatched_systemd" == "xyes"],
-    AC_MSG_NOTICE([Enabling unpatched systemd workarounds])
-    [
-        AC_DEFINE([IS_UNPATCHED_SYSTEMD], ,[Enable unpatched systemd workarounds])
-    ]
-)
 
 # Create configured output
 AC_CONFIG_FILES([Makefile fail-monitor/Makefile])
