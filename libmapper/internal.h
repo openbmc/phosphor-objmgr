@@ -1,8 +1,9 @@
 #pragma once
+#include <stddef.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
-int sarraylen(char* array[]);
+size_t sarraylen(char* array[]);
 void sarrayfree(char* array[]);
 char** sarraydup(char* array[]);
 #ifdef __cplusplus
