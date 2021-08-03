@@ -468,8 +468,8 @@ int main(int argc, char** argv)
 
     // Construct a signal set registered for process termination.
     boost::asio::signal_set signals(io, SIGINT, SIGTERM);
-    signals.async_wait([&io](const boost::system::error_code& error,
-                             int signal_number) { io.stop(); });
+    signals.async_wait(
+        [&io](const boost::system::error_code&, int) { io.stop(); });
 
     interface_map_type interface_map;
     boost::container::flat_map<std::string, std::string> name_owners;

@@ -30,6 +30,7 @@
 #include "internal.h"
 
 #define _public_ __attribute__((__visibility__("default")))
+#define _unused_ __attribute__((unused))
 
 static const char* async_wait_introspection_match =
     "type='signal',"
@@ -150,8 +151,8 @@ error:
     return NULL;
 }
 
-static int async_wait_timeout_callback(sd_event_source* s, uint64_t usec,
-                                       void* userdata)
+static int async_wait_timeout_callback(_unused_ sd_event_source* s,
+                                       _unused_ uint64_t usec, void* userdata)
 {
     int r;
     struct async_wait_callback_data* data = userdata;
@@ -172,7 +173,7 @@ static int async_wait_timeout_callback(sd_event_source* s, uint64_t usec,
 }
 
 static int async_wait_getobject_callback(sd_bus_message* m, void* userdata,
-                                         sd_bus_error* e)
+                                         _unused_ sd_bus_error* e)
 {
     int i, r;
     struct async_wait_callback_data* data = userdata;
@@ -261,8 +262,9 @@ static int async_wait_get_objects(mapper_async_wait* wait)
     return 0;
 }
 
-static int async_wait_match_introspection_complete(sd_bus_message* m, void* w,
-                                                   sd_bus_error* e)
+static int async_wait_match_introspection_complete(_unused_ sd_bus_message* m,
+                                                   void* w,
+                                                   _unused_ sd_bus_error* e)
 {
     int r;
 
@@ -389,7 +391,8 @@ free_wait:
     return r;
 }
 
-static int async_subtree_timeout_callback(sd_event_source* s, uint64_t usec,
+static int async_subtree_timeout_callback(_unused_ sd_event_source* s,
+                                          _unused_ uint64_t usec,
                                           void* userdata)
 {
     int r;
@@ -407,7 +410,7 @@ static int async_subtree_timeout_callback(sd_event_source* s, uint64_t usec,
 }
 
 static int async_subtree_getpaths_callback(sd_bus_message* m, void* userdata,
-                                           sd_bus_error* e)
+                                           _unused_ sd_bus_error* e)
 {
     int r;
     struct mapper_async_subtree* subtree = userdata;
@@ -502,8 +505,8 @@ static int async_subtree_getpaths(mapper_async_subtree* subtree)
     return 0;
 }
 
-static int async_subtree_match_callback(sd_bus_message* m, void* t,
-                                        sd_bus_error* e)
+static int async_subtree_match_callback(_unused_ sd_bus_message* m, void* t,
+                                        _unused_ sd_bus_error* e)
 {
     int r;
 
