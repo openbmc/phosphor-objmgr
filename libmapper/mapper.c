@@ -27,6 +27,8 @@
 #include <systemd/sd-event.h>
 #include <unistd.h>
 
+#include "internal.h"
+
 #define _public_ __attribute__((__visibility__("default")))
 
 static const char* async_wait_introspection_match =
@@ -99,7 +101,7 @@ static int async_subtree_getpaths(mapper_async_subtree*);
 static int async_subtree_getpaths_callback(sd_bus_message*, void*,
                                            sd_bus_error*);
 
-static int sarraylen(char* array[])
+int sarraylen(char* array[])
 {
     int count = 0;
     char** p = array;
@@ -113,7 +115,7 @@ static int sarraylen(char* array[])
     return count;
 }
 
-static void sarrayfree(char* array[])
+void sarrayfree(char* array[])
 {
     char** p = array;
     while (*p != NULL)
@@ -124,13 +126,13 @@ static void sarrayfree(char* array[])
     free(array);
 }
 
-static char** sarraydup(char* array[])
+char** sarraydup(char* array[])
 {
     int count = sarraylen(array);
     int i;
     char** ret = NULL;
 
-    ret = malloc(sizeof(*ret) * count);
+    ret = calloc(count + 1, sizeof(*ret));
     if (!ret)
         return NULL;
 
