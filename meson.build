@@ -2,11 +2,12 @@ project(
     'phosphor-objmgr',
     'c', 'cpp',
     default_options: [
-        'cpp_std=c++17',
+        'cpp_std=c++20',
         'warning_level=3',
         'werror=true',
     ],
     license: 'Apache-2.0',
+    meson_version: '>=0.57.0',
     version: '1.0',
 )
 
