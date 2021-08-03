@@ -61,7 +61,7 @@ struct mapper_async_wait
     sd_bus_slot* introspection_slot;
     sd_bus_slot* intf_slot;
     int* status;
-    int count;
+    size_t count;
     int finished;
     int r;
 };
@@ -102,9 +102,9 @@ static int async_subtree_getpaths(mapper_async_subtree*);
 static int async_subtree_getpaths_callback(sd_bus_message*, void*,
                                            sd_bus_error*);
 
-int sarraylen(char* array[])
+size_t sarraylen(char* array[])
 {
-    int count = 0;
+    size_t count = 0;
     char** p = array;
 
     while (*p != NULL)
@@ -129,8 +129,8 @@ void sarrayfree(char* array[])
 
 char** sarraydup(char* array[])
 {
-    int count = sarraylen(array);
-    int i;
+    size_t count = sarraylen(array);
+    size_t i;
     char** ret = NULL;
 
     ret = malloc(sizeof(*ret) * (count + 1));
@@ -179,7 +179,8 @@ static int async_wait_getobject_callback(sd_bus_message* m, void* userdata,
                                          sd_bus_error* e)
 {
     UNUSED(e);
-    int i, r;
+    size_t i;
+    int r;
     struct async_wait_callback_data* data = userdata;
     mapper_async_wait* wait = data->wait;
     uint64_t next_retry;
@@ -239,7 +240,8 @@ exit:
 
 static int async_wait_get_objects(mapper_async_wait* wait)
 {
-    int i, r;
+    size_t i;
+    int r;
     struct async_wait_callback_data* data = NULL;
 
     for (i = 0; i < wait->count; ++i)
@@ -299,7 +301,7 @@ static void async_wait_done(int r, mapper_async_wait* w)
 
 static int async_wait_check_done(mapper_async_wait* w)
 {
-    int i;
+    size_t i;
 
     if (w->finished)
         return 1;
