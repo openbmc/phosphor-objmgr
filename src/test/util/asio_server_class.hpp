@@ -19,7 +19,7 @@ class AsioServerClassTest : public testing::Test
     // NOTE - latest googltest changed to SetUpTestSuite()
     static void SetUpTestCase()
     {
-        boost::asio::io_context io;
+        static boost::asio::io_context io;
         auto conn = std::make_shared<sdbusplus::asio::connection>(io);
 
         // Need a distinct name for the bus since multiple test applications
