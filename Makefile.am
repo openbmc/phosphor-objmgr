@@ -45,5 +45,6 @@ XFAIL_TESTS =
 CODE_COVERAGE_IGNORE_PATTERN = '/include/*' '/usr/include/*' '$(includedir)/*'
 
 include src/test/Makefile.am.include
+include libmapper/test/Makefile.am.include
 
 TESTS = $(check_PROGRAMS)
