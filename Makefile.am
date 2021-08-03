@@ -27,7 +27,7 @@ libmapperdir = ${libdir}
 libmapper_LTLIBRARIES = libmapper.la
 libmapper_la_SOURCES = libmapper/mapper.c
 libmapper_la_LDFLAGS = $(SYSTEMD_LIBS) -version-info 1:0:0 -shared
-libmapper_la_CFLAGS = $(SYSTEMD_CFLAGS)
+libmapper_la_CFLAGS = $(SYSTEMD_CFLAGS) -fvisibility=hidden
 
 mapperx_SOURCES = src/main.cpp src/argument.cpp src/processing.cpp \
 	src/associations.cpp

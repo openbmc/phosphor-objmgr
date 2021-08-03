@@ -27,6 +27,8 @@
 #include <systemd/sd-event.h>
 #include <unistd.h>
 
+#define _public_ __attribute__((__visibility__("default")))
+
 static const char* async_wait_introspection_match =
     "type='signal',"
     "sender='xyz.openbmc_project.ObjectMapper',"
@@ -300,16 +302,16 @@ static int async_wait_check_done(mapper_async_wait* w)
     return 1;
 }
 
-void mapper_wait_async_free(mapper_async_wait* w)
+_public_ void mapper_wait_async_free(mapper_async_wait* w)
 {
     free(w->status);
     sarrayfree(w->objs);
     free(w);
 }
 
-int mapper_wait_async(sd_bus* conn, sd_event* loop, char* objs[],
-                      void (*callback)(int, void*), void* userdata,
-                      mapper_async_wait** w)
+_public_ int mapper_wait_async(sd_bus* conn, sd_event* loop, char* objs[],
+                               void (*callback)(int, void*), void* userdata,
+                               mapper_async_wait** w)
 {
     int r;
     mapper_async_wait* wait = NULL;
@@ -526,9 +528,10 @@ static void async_subtree_done(int r, mapper_async_subtree* t)
         t->callback(r, t->userdata);
 }
 
-int mapper_subtree_async(sd_bus* conn, sd_event* loop, char* namespace,
-                         char* interface, void (*callback)(int, void*),
-                         void* userdata, mapper_async_subtree** t, int op)
+_public_ int mapper_subtree_async(sd_bus* conn, sd_event* loop, char* namespace,
+                                  char* interface, void (*callback)(int, void*),
+                                  void* userdata, mapper_async_subtree** t,
+                                  int op)
 {
     int r = 0;
     mapper_async_subtree* subtree = NULL;
@@ -582,7 +585,8 @@ free_subtree:
     return r;
 }
 
-int mapper_get_object(sd_bus* conn, const char* obj, sd_bus_message** reply)
+_public_ int mapper_get_object(sd_bus* conn, const char* obj,
+                               sd_bus_message** reply)
 {
     sd_bus_message* request = NULL;
     int r, retry = 0;
@@ -624,7 +628,7 @@ exit:
     return r;
 }
 
-int mapper_get_service(sd_bus* conn, const char* obj, char** service)
+_public_ int mapper_get_service(sd_bus* conn, const char* obj, char** service)
 {
     sd_bus_message* reply = NULL;
     const char* tmp;
