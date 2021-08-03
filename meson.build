@@ -4,7 +4,7 @@ project(
     version: '1.0',
     license: 'Apache-2.0',
     default_options: [
-        'cpp_std=c++17',
+        'cpp_std=c++20',
         'werror=true',
     ],
 )
