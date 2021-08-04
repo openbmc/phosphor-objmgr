@@ -16,6 +16,24 @@
       "revId": "8e44582dd1de7de9c53ddd345a2160ebe06e95da",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e45b2e71_4208830a",
+        "filename": "libmapper/test/mapper.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2021-08-04T12:32:19Z",
+      "side": 1,
+      "message": "Nice!  That probably would have been easier.  Did you catch the -fvisibility\u003dhidden in the other patch?  Do you think I should include the c files instead of what I\u0027ve done there?  I do kind of like how -fvisibility\u003dhidden covers us even if you forget static.  We have a lot of c++ developers in the community...",
+      "parentUuid": "a9c5c745_55f46d24",
+      "revId": "8e44582dd1de7de9c53ddd345a2160ebe06e95da",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
     }
   ]
 }
