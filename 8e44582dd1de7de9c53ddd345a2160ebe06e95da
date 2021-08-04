@@ -2,6 +2,40 @@
   "comments": [
     {
       "key": {
+        "uuid": "5256f8f0_e39631a6",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1000188
+      },
+      "writtenOn": "2021-08-04T20:08:11Z",
+      "side": 1,
+      "message": "just use calloc?",
+      "revId": "8e44582dd1de7de9c53ddd345a2160ebe06e95da",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f56e8a05_b8a0b375",
+        "filename": "libmapper/test/mapper.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000188
+      },
+      "writtenOn": "2021-08-04T20:08:11Z",
+      "side": 1,
+      "message": "Fix the C style header files instead of doing this here.\n```\n#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n...\n\n#ifdef __cplusplus\n}\n#endif\n```",
+      "revId": "8e44582dd1de7de9c53ddd345a2160ebe06e95da",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a9c5c745_55f46d24",
         "filename": "libmapper/test/mapper.cpp",
         "patchSetId": 2
@@ -31,6 +65,75 @@
       "side": 1,
       "message": "Nice!  That probably would have been easier.  Did you catch the -fvisibility\u003dhidden in the other patch?  Do you think I should include the c files instead of what I\u0027ve done there?  I do kind of like how -fvisibility\u003dhidden covers us even if you forget static.  We have a lot of c++ developers in the community...",
       "parentUuid": "a9c5c745_55f46d24",
+      "revId": "8e44582dd1de7de9c53ddd345a2160ebe06e95da",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2a69b61b_39b994f7",
+        "filename": "libmapper/test/mapper.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1000188
+      },
+      "writtenOn": "2021-08-04T20:08:11Z",
+      "side": 1,
+      "message": "Reducing re-compilations would be nice though. I think the visibility change is fine although I  would just avoid it altogether.\n\nAlso, you should add the root to the include path if it isn\u0027t already and reference this as \u003clibmapper/internal.h\u003e.",
+      "parentUuid": "e45b2e71_4208830a",
+      "revId": "8e44582dd1de7de9c53ddd345a2160ebe06e95da",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f382cdbd_48dbff11",
+        "filename": "libmapper/test/mapper.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1000188
+      },
+      "writtenOn": "2021-08-04T20:08:11Z",
+      "side": 1,
+      "message": "I would be inclined to just test this inline with the dup function",
+      "revId": "8e44582dd1de7de9c53ddd345a2160ebe06e95da",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6175825c_c783f607",
+        "filename": "libmapper/test/mapper.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1000188
+      },
+      "writtenOn": "2021-08-04T20:08:11Z",
+      "side": 1,
+      "message": "Not really needed as a separate test as other cases cover the behavior.",
+      "revId": "8e44582dd1de7de9c53ddd345a2160ebe06e95da",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f99c744a_c1c8a852",
+        "filename": "libmapper/test/utils.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1000188
+      },
+      "writtenOn": "2021-08-04T20:08:11Z",
+      "side": 1,
+      "message": "nit: Free already internalizes the null check and doesn\u0027t need this extra if",
       "revId": "8e44582dd1de7de9c53ddd345a2160ebe06e95da",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
       "unresolved": true
