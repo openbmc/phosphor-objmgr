@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "6ba8d619_5099c7d4",
+        "filename": ".gitignore",
+        "patchSetId": 3
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2021-08-04T15:47:54Z",
+      "side": 1,
+      "message": "yep, good idea.",
+      "parentUuid": "c5b9016c_fe9669ab",
+      "revId": "3ee4254315ee6e4a2e8d15d1988e160c8164cbd0",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "423c5fcc_6eb439be",
         "filename": "meson.build",
         "patchSetId": 3
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "e6a27937_6b17041c",
+        "filename": "meson.build",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2021-08-04T15:47:54Z",
+      "side": 1,
+      "message": "agreed.  I\u0027ll probably do that in a commit on top.",
+      "parentUuid": "423c5fcc_6eb439be",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 55
+      },
+      "revId": "3ee4254315ee6e4a2e8d15d1988e160c8164cbd0",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2bdee813_c14eaa33",
         "filename": "meson.build",
         "patchSetId": 3
@@ -53,6 +95,24 @@
       "writtenOn": "2021-08-04T01:40:32Z",
       "side": 1,
       "message": "I\u0027m curious if this does actually save us much of anything.  Maybe I should look at doing that in some of the other libraries.",
+      "revId": "3ee4254315ee6e4a2e8d15d1988e160c8164cbd0",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "741fec69_88dea385",
+        "filename": "meson.build",
+        "patchSetId": 3
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2021-08-04T15:47:54Z",
+      "side": 1,
+      "message": "The motivation was for unit writing c unit tests - I wanted to remove the static keyword on my functions without exposing them.",
+      "parentUuid": "2bdee813_c14eaa33",
       "revId": "3ee4254315ee6e4a2e8d15d1988e160c8164cbd0",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
       "unresolved": true
