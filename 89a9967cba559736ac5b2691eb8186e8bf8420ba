@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b08e7afc_c5c860f0",
+        "filename": "src/test/util/asio_server_class.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1000188
+      },
+      "writtenOn": "2021-08-04T20:11:26Z",
+      "side": 1,
+      "message": "You should really make this a class member so that it gets re-instantiated for each test case.",
+      "revId": "89a9967cba559736ac5b2691eb8186e8bf8420ba",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    }
+  ]
+}
