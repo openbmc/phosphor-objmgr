@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c5b9016c_fe9669ab",
+        "filename": ".gitignore",
+        "patchSetId": 3
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-08-04T01:40:32Z",
+      "side": 1,
+      "message": "You might want to add `build*/`.",
+      "revId": "3ee4254315ee6e4a2e8d15d1988e160c8164cbd0",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "423c5fcc_6eb439be",
+        "filename": "meson.build",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-08-04T01:40:32Z",
+      "side": 1,
+      "message": "You might consider getting rid of these.  I don\u0027t think anyone really configures these things, do they?  (I feel like we over configured autotools for no good reason.)",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 55
+      },
+      "revId": "3ee4254315ee6e4a2e8d15d1988e160c8164cbd0",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2bdee813_c14eaa33",
+        "filename": "meson.build",
+        "patchSetId": 3
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-08-04T01:40:32Z",
+      "side": 1,
+      "message": "I\u0027m curious if this does actually save us much of anything.  Maybe I should look at doing that in some of the other libraries.",
+      "revId": "3ee4254315ee6e4a2e8d15d1988e160c8164cbd0",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    }
+  ]
+}
