@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "fcfc3845_72683bb5",
+        "filename": "libmapper/test/mapper.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2021-08-05T00:15:11Z",
+      "side": 1,
+      "message": "Do we have some policy on which way this should be done?\n\nThis approach seems more explicit IMO and keeps C++isms out of C header files, but I realise this isn\u0027t everyone\u0027s preference.",
+      "parentUuid": "f56e8a05_b8a0b375",
+      "revId": "8e44582dd1de7de9c53ddd345a2160ebe06e95da",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a9c5c745_55f46d24",
         "filename": "libmapper/test/mapper.cpp",
         "patchSetId": 2
@@ -83,6 +101,24 @@
       "side": 1,
       "message": "Reducing re-compilations would be nice though. I think the visibility change is fine although I  would just avoid it altogether.\n\nAlso, you should add the root to the include path if it isn\u0027t already and reference this as \u003clibmapper/internal.h\u003e.",
       "parentUuid": "e45b2e71_4208830a",
+      "revId": "8e44582dd1de7de9c53ddd345a2160ebe06e95da",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aec73dc6_ce5f3cbd",
+        "filename": "libmapper/test/mapper.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2021-08-05T00:15:11Z",
+      "side": 1,
+      "message": "\u003e  I think the visibility change is fine although I  would just avoid it altogether.\n\nWhich approach are you suggesting here?",
+      "parentUuid": "2a69b61b_39b994f7",
       "revId": "8e44582dd1de7de9c53ddd345a2160ebe06e95da",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
       "unresolved": true
