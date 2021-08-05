@@ -54,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "39d58457_ac7d7a09",
+        "filename": "libmapper/test/mapper.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000188
+      },
+      "writtenOn": "2021-08-05T01:56:50Z",
+      "side": 1,
+      "message": "Generally if you look at c headers they do this sort of thing so that you don\u0027t have to know whether the header is for c or c++. gtest for example is indistinguishable from the #include statement, but the header itself is c++.",
+      "parentUuid": "fcfc3845_72683bb5",
+      "revId": "8e44582dd1de7de9c53ddd345a2160ebe06e95da",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a9c5c745_55f46d24",
         "filename": "libmapper/test/mapper.cpp",
         "patchSetId": 2
@@ -119,6 +137,24 @@
       "side": 1,
       "message": "\u003e  I think the visibility change is fine although I  would just avoid it altogether.\n\nWhich approach are you suggesting here?",
       "parentUuid": "2a69b61b_39b994f7",
+      "revId": "8e44582dd1de7de9c53ddd345a2160ebe06e95da",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "35de4f04_a93366e3",
+        "filename": "libmapper/test/mapper.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1000188
+      },
+      "writtenOn": "2021-08-05T01:56:50Z",
+      "side": 1,
+      "message": "I would just avoid adding the functions to public headers but ignore the fact that they become part of the linkage table. It\u0027s already a code smell if someone is forward declaring a function from another library, I don\u0027t think we need to go through the hassle of trying to manage visibility.",
+      "parentUuid": "aec73dc6_ce5f3cbd",
       "revId": "8e44582dd1de7de9c53ddd345a2160ebe06e95da",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
       "unresolved": true
