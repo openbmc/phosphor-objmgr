@@ -179,6 +179,24 @@
     },
     {
       "key": {
+        "uuid": "5357e6b1_366b5f22",
+        "filename": "libmapper/test/mapper.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1000188
+      },
+      "writtenOn": "2021-08-05T06:48:33Z",
+      "side": 1,
+      "message": "The good thing about creating a library out of the c file and then linking to the test is that code coverage is guaranteed to work correctly. It usually won\u0027t correctly identify the regenerated code if you include the C file.",
+      "parentUuid": "deef0953_f50d8d7b",
+      "revId": "8e44582dd1de7de9c53ddd345a2160ebe06e95da",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f382cdbd_48dbff11",
         "filename": "libmapper/test/mapper.cpp",
         "patchSetId": 2
