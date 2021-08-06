@@ -72,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "5fa7a986_eedca74c",
+        "filename": "libmapper/test/mapper.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2021-08-06T20:21:05Z",
+      "side": 1,
+      "message": "I think libraries that intend to support being called from c++ typically do what wak is suggesting here so I\u0027m going to go ahead and do that.",
+      "parentUuid": "39d58457_ac7d7a09",
+      "revId": "8e44582dd1de7de9c53ddd345a2160ebe06e95da",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a9c5c745_55f46d24",
         "filename": "libmapper/test/mapper.cpp",
         "patchSetId": 2
@@ -197,6 +215,24 @@
     },
     {
       "key": {
+        "uuid": "3a55457c_c4036e32",
+        "filename": "libmapper/test/mapper.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2021-08-06T20:21:05Z",
+      "side": 1,
+      "message": "\u003e I think the visibility change is fine although I  would just avoid it altogether.\n\u003e I don\u0027t think we need to go through the hassle of trying to manage visibility.\n\u003e then I don\u0027t mind taking another approach that has less noise than visibility/headers approach.\n\nWhat I\u0027ve done is an established pattern (so perhaps noisy, but recognizable?) and it wasn\u0027t really a \"hassle\" IMO.  I don\u0027t have a strong opinion here, though.  I\u0027m not detecting strong opinions from anyone else.  What now?",
+      "parentUuid": "5357e6b1_366b5f22",
+      "revId": "8e44582dd1de7de9c53ddd345a2160ebe06e95da",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f382cdbd_48dbff11",
         "filename": "libmapper/test/mapper.cpp",
         "patchSetId": 2
@@ -214,6 +250,24 @@
     },
     {
       "key": {
+        "uuid": "57ed8f74_0ff1ee68",
+        "filename": "libmapper/test/mapper.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2021-08-06T20:21:05Z",
+      "side": 1,
+      "message": "will do",
+      "parentUuid": "f382cdbd_48dbff11",
+      "revId": "8e44582dd1de7de9c53ddd345a2160ebe06e95da",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6175825c_c783f607",
         "filename": "libmapper/test/mapper.cpp",
         "patchSetId": 2
@@ -225,6 +279,24 @@
       "writtenOn": "2021-08-04T20:08:11Z",
       "side": 1,
       "message": "Not really needed as a separate test as other cases cover the behavior.",
+      "revId": "8e44582dd1de7de9c53ddd345a2160ebe06e95da",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "180aef83_3f310661",
+        "filename": "libmapper/test/mapper.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2021-08-06T20:21:05Z",
+      "side": 1,
+      "message": "ack",
+      "parentUuid": "6175825c_c783f607",
       "revId": "8e44582dd1de7de9c53ddd345a2160ebe06e95da",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
       "unresolved": true
