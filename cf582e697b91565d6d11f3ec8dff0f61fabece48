@@ -34,6 +34,24 @@
       "revId": "cf582e697b91565d6d11f3ec8dff0f61fabece48",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d00b723a_13961d37",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2021-08-07T11:22:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "235b6fbb_11f674c0",
+      "revId": "cf582e697b91565d6d11f3ec8dff0f61fabece48",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": false
     }
   ]
 }
