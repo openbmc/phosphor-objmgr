@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "64a18232_03b82d19",
+        "filename": ".gitignore",
+        "patchSetId": 3
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2021-08-09T20:46:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6ba8d619_5099c7d4",
+      "revId": "3ee4254315ee6e4a2e8d15d1988e160c8164cbd0",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "423c5fcc_6eb439be",
         "filename": "meson.build",
         "patchSetId": 3
