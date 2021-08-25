@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ff7a45e3_4b4872bf",
+        "filename": "meson.build",
+        "patchSetId": 4
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2021-08-25T05:38:56Z",
+      "side": 1,
+      "message": "Bit of a nit, but maybe let src/meson.build and libmapper/meson.build do the subdir() for their own tests?\n\nThough looking further, I see there\u0027s neither src/meson.build nor libmapper/meson.build.",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 28
+      },
+      "revId": "0aa159079ce32e078544be1ae5320b4ede834810",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c67470e1_02b27fa0",
+        "filename": "meson.build",
+        "patchSetId": 4
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2021-08-25T05:38:56Z",
+      "side": 1,
+      "message": "Do we actually care for this one any more given mapperx?",
+      "range": {
+        "startLine": 69,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 18
+      },
+      "revId": "0aa159079ce32e078544be1ae5320b4ede834810",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7d2ea71_e08c4348",
+        "filename": "subprojects/googletest.wrap",
+        "patchSetId": 4
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2021-08-25T05:38:56Z",
+      "side": 1,
+      "message": "What do you think about exploiting wraps from the wrapdb instead, and managing them with the `meson subproject` command? Would clean up the fallback behaviour in the top-level meson.build.\n\nhttps://wrapdb.mesonbuild.com/v2/gtest_1.10.0-1/gtest.wrap",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 3,
+        "endChar": 15
+      },
+      "revId": "0aa159079ce32e078544be1ae5320b4ede834810",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    }
+  ]
+}
