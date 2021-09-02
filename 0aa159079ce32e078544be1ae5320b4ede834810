@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "98f4c49f_fd18dc50",
+        "filename": "meson.build",
+        "patchSetId": 4
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2021-09-02T14:01:05Z",
+      "side": 1,
+      "message": "\u003e Though looking further, I see there\u0027s neither src/meson.build nor libmapper/meson.build.\n\nRight.  Willing to do some refactoring but I\u0027m not sure what it should look like.  Should \u0027src\u0027 be renamed to mapperx and then the toplevel dir is just a collection of subdirs?  These three applications don\u0027t have any shared code.  Should they all be subprojects?  What would the ideal layout look like?",
+      "parentUuid": "ff7a45e3_4b4872bf",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 28
+      },
+      "revId": "0aa159079ce32e078544be1ae5320b4ede834810",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c67470e1_02b27fa0",
         "filename": "meson.build",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "0aa159079ce32e078544be1ae5320b4ede834810",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e6be5b60_17d0d5cd",
+        "filename": "meson.build",
+        "patchSetId": 4
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2021-09-02T14:01:05Z",
+      "side": 1,
+      "message": "This is a client application that waits for objects to show up.  I would love to see its logic moved out of systemd unit dependencies and into the applications with the dbus object dependencies.",
+      "parentUuid": "c67470e1_02b27fa0",
+      "range": {
+        "startLine": 69,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 18
+      },
+      "revId": "0aa159079ce32e078544be1ae5320b4ede834810",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": false
     },
     {
       "key": {
@@ -92,6 +140,30 @@
       "revId": "0aa159079ce32e078544be1ae5320b4ede834810",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91c2a23c_a67f3cfa",
+        "filename": "subprojects/googletest.wrap",
+        "patchSetId": 4
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2021-09-02T14:01:05Z",
+      "side": 1,
+      "message": "I\u0027ll give that a try.",
+      "parentUuid": "4939849f_7cd2e460",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 3,
+        "endChar": 15
+      },
+      "revId": "0aa159079ce32e078544be1ae5320b4ede834810",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": false
     }
   ]
 }
