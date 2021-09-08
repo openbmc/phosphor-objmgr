@@ -39,6 +39,11 @@ struct NotFoundException final : public sdbusplus::exception_t
         return "xyz.openbmc_project.Common.Error.ResourceNotFound: "
                "The resource is not found.";
     };
+
+    int get_errno() const noexcept override
+    {
+        return ENOENT;
+    }
 };
 
 void update_owners(sdbusplus::asio::connection* conn,
