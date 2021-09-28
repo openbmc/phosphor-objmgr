@@ -454,6 +454,202 @@ void removeUnneededParents(const std::string& objectPath,
     }
 }
 
+std::vector<interface_map_type::value_type>
+    getAncestors(const interface_map_type& interface_map, std::string req_path,
+                 std::vector<std::string>& interfaces)
+{
+    // Interfaces need to be sorted for intersect to function
+    std::sort(interfaces.begin(), interfaces.end());
+
+    if (boost::ends_with(req_path, "/"))
+    {
+        req_path.pop_back();
+    }
+    if (req_path.size() && interface_map.find(req_path) == interface_map.end())
+    {
+        throw NotFoundException();
+    }
+
+    std::vector<interface_map_type::value_type> ret;
+    for (auto& object_path : interface_map)
+    {
+        auto& this_path = object_path.first;
+        if (boost::starts_with(req_path, this_path) && (req_path != this_path))
+        {
+            if (interfaces.empty())
+            {
+                ret.emplace_back(object_path);
+            }
+            else
+            {
+                for (auto& interface_map : object_path.second)
+                {
+
+                    if (intersect(interfaces.begin(), interfaces.end(),
+                                  interface_map.second.begin(),
+                                  interface_map.second.end()))
+                    {
+                        addObjectMapResult(ret, this_path, interface_map);
+                    }
+                }
+            }
+        }
+    }
+
+    return ret;
+}
+
+boost::container::flat_map<std::string, boost::container::flat_set<std::string>>
+    getObject(const interface_map_type& interface_map, const std::string& path,
+              std::vector<std::string>& interfaces)
+{
+    boost::container::flat_map<std::string,
+                               boost::container::flat_set<std::string>>
+        results;
+
+    // Interfaces need to be sorted for intersect to function
+    std::sort(interfaces.begin(), interfaces.end());
+    auto path_ref = interface_map.find(path);
+    if (path_ref == interface_map.end())
+    {
+        throw NotFoundException();
+    }
+    if (interfaces.empty())
+    {
+        return path_ref->second;
+    }
+    for (auto& interface_map : path_ref->second)
+    {
+        if (intersect(interfaces.begin(), interfaces.end(),
+                      interface_map.second.begin(), interface_map.second.end()))
+        {
+            results.emplace(interface_map.first, interface_map.second);
+        }
+    }
+
+    if (results.empty())
+    {
+        throw NotFoundException();
+    }
+
+    return results;
+}
+
+std::vector<interface_map_type::value_type>
+    getSubTree(interface_map_type& interface_map, std::string req_path,
+               int32_t depth, std::vector<std::string>& interfaces)
+{
+    if (depth <= 0)
+    {
+        depth = std::numeric_limits<int32_t>::max();
+    }
+    // Interfaces need to be sorted for intersect to function
+    std::sort(interfaces.begin(), interfaces.end());
+    std::vector<interface_map_type::value_type> ret;
+
+    if (boost::ends_with(req_path, "/"))
+    {
+        req_path.pop_back();
+    }
+    if (req_path.size() && interface_map.find(req_path) == interface_map.end())
+    {
+        throw NotFoundException();
+    }
+
+    for (auto& object_path : interface_map)
+    {
+        auto& this_path = object_path.first;
+
+        if (this_path == req_path)
+        {
+            continue;
+        }
+
+        if (boost::starts_with(this_path, req_path))
+        {
+            // count the number of slashes past the search term
+            int32_t this_depth = std::count(this_path.begin() + req_path.size(),
+                                            this_path.end(), '/');
+            if (this_depth <= depth)
+            {
+                for (auto& interface_map : object_path.second)
+                {
+                    if (intersect(interfaces.begin(), interfaces.end(),
+                                  interface_map.second.begin(),
+                                  interface_map.second.end()) ||
+                        interfaces.empty())
+                    {
+                        addObjectMapResult(ret, this_path, interface_map);
+                    }
+                }
+            }
+        }
+    }
+
+    return ret;
+}
+
+std::vector<std::string>
+    getSubTreePaths(const interface_map_type& interface_map,
+                    std::string req_path, int32_t depth,
+                    std::vector<std::string>& interfaces)
+{
+    if (depth <= 0)
+    {
+        depth = std::numeric_limits<int32_t>::max();
+    }
+    // Interfaces need to be sorted for intersect to function
+    std::sort(interfaces.begin(), interfaces.end());
+    std::vector<std::string> ret;
+
+    if (boost::ends_with(req_path, "/"))
+    {
+        req_path.pop_back();
+    }
+    if (req_path.size() && interface_map.find(req_path) == interface_map.end())
+    {
+        throw NotFoundException();
+    }
+
+    for (auto& object_path : interface_map)
+    {
+        auto& this_path = object_path.first;
+
+        if (this_path == req_path)
+        {
+            continue;
+        }
+
+        if (boost::starts_with(this_path, req_path))
+        {
+            // count the number of slashes past the search term
+            int this_depth = std::count(this_path.begin() + req_path.size(),
+                                        this_path.end(), '/');
+            if (this_depth <= depth)
+            {
+                bool add = interfaces.empty();
+                for (auto& interface_map : object_path.second)
+                {
+                    if (intersect(interfaces.begin(), interfaces.end(),
+                                  interface_map.second.begin(),
+                                  interface_map.second.end()))
+                    {
+                        add = true;
+                        break;
+                    }
+                }
+                if (add)
+                {
+                    // TODO(ed) this is a copy
+                    ret.emplace_back(this_path);
+                }
+            }
+        }
+    }
+
+    return ret;
+}
+
 int main(int argc, char** argv)
 {
     auto options = ArgumentParser(argc, argv);
@@ -652,202 +848,26 @@ int main(int argc, char** argv)
     iface->register_method(
         "GetAncestors", [&interface_map](std::string& req_path,
                                          std::vector<std::string>& interfaces) {
-            // Interfaces need to be sorted for intersect to function
-            std::sort(interfaces.begin(), interfaces.end());
-
-            if (boost::ends_with(req_path, "/"))
-            {
-                req_path.pop_back();
-            }
-            if (req_path.size() &&
-                interface_map.find(req_path) == interface_map.end())
-            {
-                throw NotFoundException();
-            }
-
-            std::vector<interface_map_type::value_type> ret;
-            for (auto& object_path : interface_map)
-            {
-                auto& this_path = object_path.first;
-                if (boost::starts_with(req_path, this_path) &&
-                    (req_path != this_path))
-                {
-                    if (interfaces.empty())
-                    {
-                        ret.emplace_back(object_path);
-                    }
-                    else
-                    {
-                        for (auto& interface_map : object_path.second)
-                        {
-
-                            if (intersect(interfaces.begin(), interfaces.end(),
-                                          interface_map.second.begin(),
-                                          interface_map.second.end()))
-                            {
-                                addObjectMapResult(ret, this_path,
-                                                   interface_map);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return ret;
+            return getAncestors(interface_map, req_path, interfaces);
         });
 
     iface->register_method(
         "GetObject", [&interface_map](const std::string& path,
                                       std::vector<std::string>& interfaces) {
-            boost::container::flat_map<std::string,
-                                       boost::container::flat_set<std::string>>
-                results;
-
-            // Interfaces need to be sorted for intersect to function
-            std::sort(interfaces.begin(), interfaces.end());
-            auto path_ref = interface_map.find(path);
-            if (path_ref == interface_map.end())
-            {
-                throw NotFoundException();
-            }
-            if (interfaces.empty())
-            {
-                return path_ref->second;
-            }
-            for (auto& interface_map : path_ref->second)
-            {
-                if (intersect(interfaces.begin(), interfaces.end(),
-                              interface_map.second.begin(),
-                              interface_map.second.end()))
-                {
-                    results.emplace(interface_map.first, interface_map.second);
-                }
-            }
-
-            if (results.empty())
-            {
-                throw NotFoundException();
-            }
-
-            return results;
+            return getObject(interface_map, path, interfaces);
         });
 
     iface->register_method(
         "GetSubTree", [&interface_map](std::string& req_path, int32_t depth,
                                        std::vector<std::string>& interfaces) {
-            if (depth <= 0)
-            {
-                depth = std::numeric_limits<int32_t>::max();
-            }
-            // Interfaces need to be sorted for intersect to function
-            std::sort(interfaces.begin(), interfaces.end());
-            std::vector<interface_map_type::value_type> ret;
-
-            if (boost::ends_with(req_path, "/"))
-            {
-                req_path.pop_back();
-            }
-            if (req_path.size() &&
-                interface_map.find(req_path) == interface_map.end())
-            {
-                throw NotFoundException();
-            }
-
-            for (auto& object_path : interface_map)
-            {
-                auto& this_path = object_path.first;
-
-                if (this_path == req_path)
-                {
-                    continue;
-                }
-
-                if (boost::starts_with(this_path, req_path))
-                {
-                    // count the number of slashes past the search term
-                    int32_t this_depth =
-                        std::count(this_path.begin() + req_path.size(),
-                                   this_path.end(), '/');
-                    if (this_depth <= depth)
-                    {
-                        for (auto& interface_map : object_path.second)
-                        {
-                            if (intersect(interfaces.begin(), interfaces.end(),
-                                          interface_map.second.begin(),
-                                          interface_map.second.end()) ||
-                                interfaces.empty())
-                            {
-                                addObjectMapResult(ret, this_path,
-                                                   interface_map);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return ret;
+            return getSubTree(interface_map, req_path, depth, interfaces);
         });
 
     iface->register_method(
         "GetSubTreePaths",
         [&interface_map](std::string& req_path, int32_t depth,
                          std::vector<std::string>& interfaces) {
-            if (depth <= 0)
-            {
-                depth = std::numeric_limits<int32_t>::max();
-            }
-            // Interfaces need to be sorted for intersect to function
-            std::sort(interfaces.begin(), interfaces.end());
-            std::vector<std::string> ret;
-
-            if (boost::ends_with(req_path, "/"))
-            {
-                req_path.pop_back();
-            }
-            if (req_path.size() &&
-                interface_map.find(req_path) == interface_map.end())
-            {
-                throw NotFoundException();
-            }
-
-            for (auto& object_path : interface_map)
-            {
-                auto& this_path = object_path.first;
-
-                if (this_path == req_path)
-                {
-                    continue;
-                }
-
-                if (boost::starts_with(this_path, req_path))
-                {
-                    // count the number of slashes past the search term
-                    int this_depth =
-                        std::count(this_path.begin() + req_path.size(),
-                                   this_path.end(), '/');
-                    if (this_depth <= depth)
-                    {
-                        bool add = interfaces.empty();
-                        for (auto& interface_map : object_path.second)
-                        {
-                            if (intersect(interfaces.begin(), interfaces.end(),
-                                          interface_map.second.begin(),
-                                          interface_map.second.end()))
-                            {
-                                add = true;
-                                break;
-                            }
-                        }
-                        if (add)
-                        {
-                            // TODO(ed) this is a copy
-                            ret.emplace_back(this_path);
-                        }
-                    }
-                }
-            }
-
-            return ret;
+            return getSubTreePaths(interface_map, req_path, depth, interfaces);
         });
 
     iface->initialize();
