@@ -537,14 +537,16 @@ boost::container::flat_map<std::string, boost::container::flat_set<std::string>>
 
 std::vector<interface_map_type::value_type>
     getSubTree(const interface_map_type& interface_map, std::string req_path,
-               int32_t depth, std::vector<std::string>& interfaces)
+               int32_t depth, std::vector<std::string>& required_interfaces,
+               std::vector<std::string>& optional_interfaces)
 {
     if (depth <= 0)
     {
         depth = std::numeric_limits<int32_t>::max();
     }
     // Interfaces need to be sorted for intersect to function
-    std::sort(interfaces.begin(), interfaces.end());
+    std::sort(required_interfaces.begin(), required_interfaces.end());
+    std::sort(optional_interfaces.begin(), optional_interfaces.end());
     std::vector<interface_map_type::value_type> ret;
 
     if (boost::ends_with(req_path, "/"))
@@ -572,14 +574,33 @@ std::vector<interface_map_type::value_type>
                                             this_path.end(), '/');
             if (this_depth <= depth)
             {
+                bool has_required_interface = false;
                 for (auto& interface_map : object_path.second)
                 {
-                    if (intersect(interfaces.begin(), interfaces.end(),
+                    if (intersect(required_interfaces.begin(),
+                                  required_interfaces.end(),
                                   interface_map.second.begin(),
                                   interface_map.second.end()) ||
-                        interfaces.empty())
+                        required_interfaces.empty())
                     {
                         addObjectMapResult(ret, this_path, interface_map);
+                        has_required_interface = true;
+                    }
+                }
+
+                // Now that we've determined that this object has the required
+                // interfaces, search again for optional interfaces
+                if (has_required_interface && !optional_interfaces.empty())
+                {
+                    for (auto& interface_map : object_path.second)
+                    {
+                        if (intersect(optional_interfaces.begin(),
+                                      optional_interfaces.end(),
+                                      interface_map.second.begin(),
+                                      interface_map.second.end()))
+                        {
+                            addObjectMapResult(ret, this_path, interface_map);
+                        }
                     }
                 }
             }
@@ -858,9 +879,21 @@ int main(int argc, char** argv)
         });
 
     iface->register_method(
-        "GetSubTree", [&interface_map](std::string& req_path, int32_t depth,
-                                       std::vector<std::string>& interfaces) {
-            return getSubTree(interface_map, req_path, depth, interfaces);
+        "GetSubTree",
+        [&interface_map](std::string& req_path, int32_t depth,
+                         std::vector<std::string>& required_interfaces) {
+            std::vector<std::string> optional_interfaces;
+            return getSubTree(interface_map, req_path, depth,
+                              required_interfaces, optional_interfaces);
+        });
+
+    iface->register_method(
+        "GetSubTreeEx",
+        [&interface_map](std::string& req_path, int32_t depth,
+                         std::vector<std::string>& required_interfaces,
+                         std::vector<std::string>& optional_interfaces) {
+            return getSubTree(interface_map, req_path, depth,
+                              required_interfaces, optional_interfaces);
         });
 
     iface->register_method(
