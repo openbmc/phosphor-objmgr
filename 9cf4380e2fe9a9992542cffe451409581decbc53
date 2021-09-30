@@ -22,6 +22,30 @@
       "revId": "9cf4380e2fe9a9992542cffe451409581decbc53",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "34ba5f8a_c67b265b",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 539,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2021-09-30T16:12:42Z",
+      "side": 1,
+      "message": "Yes it can.\n\nFixed.",
+      "parentUuid": "550e8721_5075cb97",
+      "range": {
+        "startLine": 539,
+        "startChar": 15,
+        "endLine": 539,
+        "endChar": 33
+      },
+      "revId": "9cf4380e2fe9a9992542cffe451409581decbc53",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
     }
   ]
 }
