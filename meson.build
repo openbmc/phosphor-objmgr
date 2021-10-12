@@ -45,12 +45,6 @@ if get_option('tests').enabled()
     subdir('libmapper/test')
 endif
 
-conf = configuration_data()
-conf.set_quoted('MAPPER_BUSNAME', 'xyz.openbmc_project.ObjectMapper')
-conf.set_quoted('MAPPER_INTERFACE', 'xyz.openbmc_project.ObjectMapper')
-conf.set_quoted('MAPPER_PATH', '/xyz/openbmc_project/object_mapper')
-configure_file(output: 'config.h', configuration: conf)
-
 install_headers('libmapper/mapper.h')
 
 libmapper = library(

@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "config.h"
-
 #include "mapper.h"
 
 #include <errno.h>
@@ -160,10 +158,11 @@ static int async_wait_timeout_callback(_unused_ sd_event_source* s,
     mapper_async_wait* wait = data->wait;
 
     sd_event_source_unref(data->event_source);
-    r = sd_bus_call_method_async(wait->conn, NULL, MAPPER_BUSNAME, MAPPER_PATH,
-                                 MAPPER_INTERFACE, "GetObject",
-                                 async_wait_getobject_callback, data, "sas",
-                                 data->path, 0, NULL);
+    r = sd_bus_call_method_async(
+        wait->conn, NULL, "xyz.openbmc_project.ObjectMapper",
+        "/xyz/openbmc_project/object_mapper",
+        "xyz.openbmc_project.ObjectMapper", "GetObject",
+        async_wait_getobject_callback, data, "sas", data->path, 0, NULL);
     if (r < 0)
     {
         async_wait_done(r, wait);
@@ -250,10 +249,11 @@ static int async_wait_get_objects(mapper_async_wait* wait)
         data->path = wait->objs[i];
         data->retry = 0;
         data->event_source = NULL;
-        r = sd_bus_call_method_async(wait->conn, NULL, MAPPER_BUSNAME,
-                                     MAPPER_PATH, MAPPER_INTERFACE, "GetObject",
-                                     async_wait_getobject_callback, data, "sas",
-                                     wait->objs[i], 0, NULL);
+        r = sd_bus_call_method_async(
+            wait->conn, NULL, "xyz.openbmc_project.ObjectMapper",
+            "/xyz/openbmc_project/object_mapper",
+            "xyz.openbmc_project.ObjectMapper", "GetObject",
+            async_wait_getobject_callback, data, "sas", wait->objs[i], 0, NULL);
         if (r < 0)
         {
             free(data);
@@ -406,9 +406,11 @@ static int async_subtree_timeout_callback(_unused_ sd_event_source* s,
 
     sd_event_source_unref(subtree->event_source);
     r = sd_bus_call_method_async(
-        subtree->conn, NULL, MAPPER_BUSNAME, MAPPER_PATH, MAPPER_INTERFACE,
-        "GetSubTreePaths", async_subtree_getpaths_callback, subtree, "sias",
-        subtree->namespace, 0, 1, subtree->interface);
+        subtree->conn, NULL, "xyz.openbmc_project.ObjectMapper",
+        "/xyz/openbmc_project/object_mapper",
+        "xyz.openbmc_project.ObjectMapper", "GetSubTreePaths",
+        async_subtree_getpaths_callback, subtree, "sias", subtree->namespace, 0,
+        1, subtree->interface);
     if (r < 0)
         async_subtree_done(r, subtree);
 
@@ -499,9 +501,11 @@ static int async_subtree_getpaths(mapper_async_subtree* subtree)
     subtree->retry = 0;
     subtree->event_source = NULL;
     r = sd_bus_call_method_async(
-        subtree->conn, NULL, MAPPER_BUSNAME, MAPPER_PATH, MAPPER_INTERFACE,
-        "GetSubTreePaths", async_subtree_getpaths_callback, subtree, "sias",
-        subtree->namespace, 0, 1, subtree->interface);
+        subtree->conn, NULL, "xyz.openbmc_project.ObjectMapper",
+        "/xyz/openbmc_project/object_mapper",
+        "xyz.openbmc_project.ObjectMapper", "GetSubTreePaths",
+        async_subtree_getpaths_callback, subtree, "sias", subtree->namespace, 0,
+        1, subtree->interface);
     if (r < 0)
     {
         fprintf(stderr, "Error invoking method: %s\n", strerror(-r));
@@ -602,9 +606,10 @@ _public_ int mapper_get_object(sd_bus* conn, const char* obj,
     sd_bus_message* request = NULL;
     int r, retry = 0;
 
-    r = sd_bus_message_new_method_call(conn, &request, MAPPER_BUSNAME,
-                                       MAPPER_PATH, MAPPER_INTERFACE,
-                                       "GetObject");
+    r = sd_bus_message_new_method_call(
+        conn, &request, "xyz.openbmc_project.ObjectMapper",
+        "/xyz/openbmc_project/object_mapper",
+        "xyz.openbmc_project.ObjectMapper", "GetObject");
     if (r < 0)
         goto exit;
 

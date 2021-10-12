@@ -1,5 +1,3 @@
-#include "config.h"
-
 #include "associations.hpp"
 #include "processing.hpp"
 #include "src/argument.hpp"
@@ -76,8 +74,8 @@ void send_introspection_complete_signal(sdbusplus::asio::connection* system_bus,
     // introspect right now.  Find out how to register signals in
     // sdbusplus
     sdbusplus::message::message m = system_bus->new_signal(
-        MAPPER_PATH, "xyz.openbmc_project.ObjectMapper.Private",
-        "IntrospectionComplete");
+        "/xyz/openbmc_project/object_mapper",
+        "xyz.openbmc_project.ObjectMapper.Private", "IntrospectionComplete");
     m.append(process_name);
     m.signal_send();
 }
@@ -590,7 +588,7 @@ int main(int argc, char** argv)
                     // association path.
                     if ((connection_map->second.size() == 1) &&
                         (connection_map->second.begin()->first ==
-                         MAPPER_BUSNAME))
+                         "xyz.openbmc_project.ObjectMapper"))
                     {
                         // Remove the 2 association D-Bus paths and move the
                         // association to pending.
@@ -647,7 +645,8 @@ int main(int argc, char** argv)
         associationChangedHandler);
 
     std::shared_ptr<sdbusplus::asio::dbus_interface> iface =
-        server.add_interface(MAPPER_PATH, MAPPER_INTERFACE);
+        server.add_interface("/xyz/openbmc_project/object_mapper",
+                             "xyz.openbmc_project.ObjectMapper");
 
     iface->register_method(
         "GetAncestors", [&interface_map](std::string& req_path,
@@ -857,7 +856,7 @@ int main(int argc, char** argv)
                     associationMaps, server);
     });
 
-    system_bus->request_name(MAPPER_BUSNAME);
+    system_bus->request_name("xyz.openbmc_project.ObjectMapper");
 
     io.run();
 }
