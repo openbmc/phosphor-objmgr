@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3124c885_fb087968",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-10-13T00:55:48Z",
+      "side": 1,
+      "message": "Do you want to consolidate any of these with a `static constexpr auto`?",
+      "range": {
+        "startLine": 162,
+        "startChar": 26,
+        "endLine": 162,
+        "endChar": 60
+      },
+      "revId": "a02cd54c61e19df89ac13623fbee595b740cf0c0",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    }
+  ]
+}
