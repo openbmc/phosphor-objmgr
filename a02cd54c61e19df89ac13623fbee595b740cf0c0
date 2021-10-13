@@ -22,6 +22,30 @@
       "revId": "a02cd54c61e19df89ac13623fbee595b740cf0c0",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fff33ea1_728e6d23",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2021-10-13T13:40:51Z",
+      "side": 1,
+      "message": "I\u0027m not sure.  Isn\u0027t the whole point here to make it harder to change these? \n Does a static constexpr auto do anything other than make it easier to change?  No strong feelings here either way but it feels like a somewhat pointless indirection?",
+      "parentUuid": "3124c885_fb087968",
+      "range": {
+        "startLine": 162,
+        "startChar": 26,
+        "endLine": 162,
+        "endChar": 60
+      },
+      "revId": "a02cd54c61e19df89ac13623fbee595b740cf0c0",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
     }
   ]
 }
