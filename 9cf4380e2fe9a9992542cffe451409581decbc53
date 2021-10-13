@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "5133d25e_ac9abaee",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 1001049
+      },
+      "writtenOn": "2021-10-13T15:57:18Z",
+      "side": 1,
+      "message": "nit:\nCan we use auto\u0026 ?",
+      "range": {
+        "startLine": 512,
+        "startChar": 4,
+        "endLine": 512,
+        "endChar": 17
+      },
+      "revId": "9cf4380e2fe9a9992542cffe451409581decbc53",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "550e8721_5075cb97",
         "filename": "src/main.cpp",
         "patchSetId": 2
@@ -66,6 +89,98 @@
         "startChar": 15,
         "endLine": 539,
         "endChar": 33
+      },
+      "revId": "9cf4380e2fe9a9992542cffe451409581decbc53",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4a82b38_16ef72eb",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 580,
+      "author": {
+        "id": 1001049
+      },
+      "writtenOn": "2021-10-13T15:57:18Z",
+      "side": 1,
+      "message": "nit:\nCan we make this the first condition in if statement?",
+      "range": {
+        "startLine": 580,
+        "startChar": 24,
+        "endLine": 580,
+        "endChar": 42
+      },
+      "revId": "9cf4380e2fe9a9992542cffe451409581decbc53",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e6fabfce_7d0dfe93",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 630,
+      "author": {
+        "id": 1001049
+      },
+      "writtenOn": "2021-10-13T15:57:18Z",
+      "side": 1,
+      "message": "nit:\nInstead of using bool add, can\u0027t we use the same logic used in line 577?",
+      "range": {
+        "startLine": 630,
+        "startChar": 16,
+        "endLine": 630,
+        "endChar": 46
+      },
+      "revId": "9cf4380e2fe9a9992542cffe451409581decbc53",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16341bb5_758913e8",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 640,
+      "author": {
+        "id": 1001049
+      },
+      "writtenOn": "2021-10-13T15:57:18Z",
+      "side": 1,
+      "message": "nit: \ncan we do\nif(interfaces.empty())\n    {\n    ret.emplace_back(this_path);\n    continue;\n    }\n\nthen \n\nfor (auto\u0026 interface_map : object_path.second)\n    {\n        if (intersect(interfaces.begin(), interfaces.end(),\n            interface_map.second.begin(),\n            interface_map.second.end()))\n        {\n            ret.emplace_back(this_path);\n            break;\n        }\n    }",
+      "range": {
+        "startLine": 631,
+        "startChar": 16,
+        "endLine": 640,
+        "endChar": 17
+      },
+      "revId": "9cf4380e2fe9a9992542cffe451409581decbc53",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59feb726_7c376521",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 643,
+      "author": {
+        "id": 1001049
+      },
+      "writtenOn": "2021-10-13T15:57:18Z",
+      "side": 1,
+      "message": "?",
+      "range": {
+        "startLine": 643,
+        "startChar": 20,
+        "endLine": 643,
+        "endChar": 46
       },
       "revId": "9cf4380e2fe9a9992542cffe451409581decbc53",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
