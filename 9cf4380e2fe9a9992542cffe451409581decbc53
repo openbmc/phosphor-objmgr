@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9fc9e550_84372db9",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2021-10-17T23:07:17Z",
+      "side": 1,
+      "message": "No.  find returns interface_map_type::iterator which can\u0027t be taken by reference.\n\nAlso, this code wasn\u0027t changed in this patchset.",
+      "parentUuid": "5133d25e_ac9abaee",
+      "range": {
+        "startLine": 512,
+        "startChar": 4,
+        "endLine": 512,
+        "endChar": 17
+      },
+      "revId": "9cf4380e2fe9a9992542cffe451409581decbc53",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "550e8721_5075cb97",
         "filename": "src/main.cpp",
         "patchSetId": 2
@@ -96,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "febd6129_3a68c7b7",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 539,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2021-10-17T23:07:17Z",
+      "side": 1,
+      "message": "um......  I pushed it, but it\u0027s not showing up on the gerrit GUI.  Will triage on Monday.  Could be my problem.",
+      "parentUuid": "855a466a_72bbd4bc",
+      "range": {
+        "startLine": 539,
+        "startChar": 15,
+        "endLine": 539,
+        "endChar": 33
+      },
+      "revId": "9cf4380e2fe9a9992542cffe451409581decbc53",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a4a82b38_16ef72eb",
         "filename": "src/main.cpp",
         "patchSetId": 2
@@ -107,6 +155,30 @@
       "writtenOn": "2021-10-13T15:57:18Z",
       "side": 1,
       "message": "nit:\nCan we make this the first condition in if statement?",
+      "range": {
+        "startLine": 580,
+        "startChar": 24,
+        "endLine": 580,
+        "endChar": 42
+      },
+      "revId": "9cf4380e2fe9a9992542cffe451409581decbc53",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52b13e09_1fa33bf1",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 580,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2021-10-17T23:07:17Z",
+      "side": 1,
+      "message": "Could we, yes, but this code wasn\u0027t changed, and the difference between the two is fairly arbitrary.",
+      "parentUuid": "a4a82b38_16ef72eb",
       "range": {
         "startLine": 580,
         "startChar": 24,
@@ -142,6 +214,30 @@
     },
     {
       "key": {
+        "uuid": "f42228a3_eb191d7a",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 630,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2021-10-17T23:07:17Z",
+      "side": 1,
+      "message": "This code wasn\u0027t changed as part of this commit.  If we made any changed, it would be in a different patchset.",
+      "parentUuid": "e6fabfce_7d0dfe93",
+      "range": {
+        "startLine": 630,
+        "startChar": 16,
+        "endLine": 630,
+        "endChar": 46
+      },
+      "revId": "9cf4380e2fe9a9992542cffe451409581decbc53",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "16341bb5_758913e8",
         "filename": "src/main.cpp",
         "patchSetId": 2
@@ -165,6 +261,30 @@
     },
     {
       "key": {
+        "uuid": "648eff73_63b0b8d3",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 640,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2021-10-17T23:07:17Z",
+      "side": 1,
+      "message": "This code wasn\u0027t changed as part of this commit.  If we made any changes, it would be in a different patchset",
+      "parentUuid": "16341bb5_758913e8",
+      "range": {
+        "startLine": 631,
+        "startChar": 16,
+        "endLine": 640,
+        "endChar": 17
+      },
+      "revId": "9cf4380e2fe9a9992542cffe451409581decbc53",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "59feb726_7c376521",
         "filename": "src/main.cpp",
         "patchSetId": 2
@@ -176,6 +296,30 @@
       "writtenOn": "2021-10-13T15:57:18Z",
       "side": 1,
       "message": "?",
+      "range": {
+        "startLine": 643,
+        "startChar": 20,
+        "endLine": 643,
+        "endChar": 46
+      },
+      "revId": "9cf4380e2fe9a9992542cffe451409581decbc53",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f4997699_d7ce8c82",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 643,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2021-10-17T23:07:17Z",
+      "side": 1,
+      "message": "This TODO is present in the original (I wrote this current iteration of the mapper)\n\nIf we wanted to remove this, we could in another patchset.",
+      "parentUuid": "59feb726_7c376521",
       "range": {
         "startLine": 643,
         "startChar": 20,
