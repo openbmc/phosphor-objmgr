@@ -1,4 +1,4 @@
-#include "src/associations.hpp"
+#include "associations.hpp"
 
 #include <sdbusplus/asio/connection.hpp>
 #include <sdbusplus/asio/object_server.hpp>

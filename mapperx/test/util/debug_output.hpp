@@ -1,4 +1,4 @@
-#include "src/associations.hpp"
+#include "associations.hpp"
 
 #include <iostream>
 

@@ -1,1 +1,2 @@
 option('tests', type: 'feature', description: 'Build tests', value: 'enabled')
+option('libonly', type: 'boolean', description: 'Build library only')

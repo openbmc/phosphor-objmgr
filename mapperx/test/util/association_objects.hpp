@@ -1,5 +1,5 @@
-#include "src/associations.hpp"
-#include "src/processing.hpp"
+#include "associations.hpp"
+#include "processing.hpp"
 
 const std::string DEFAULT_SOURCE_PATH = "/logging/entry/1";
 const std::string DEFAULT_DBUS_SVC = "xyz.openbmc_project.New.Interface";

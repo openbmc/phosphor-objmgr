@@ -1,4 +1,4 @@
-#include "../internal.h"
+#include "internal.h"
 #include "utils.h"
 
 #include <gtest/gtest.h>

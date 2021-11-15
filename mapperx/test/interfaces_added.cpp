@@ -1,7 +1,7 @@
-#include "src/processing.hpp"
-#include "src/test/util/asio_server_class.hpp"
-#include "src/test/util/association_objects.hpp"
-#include "src/test/util/debug_output.hpp"
+#include "processing.hpp"
+#include "util/asio_server_class.hpp"
+#include "util/association_objects.hpp"
+#include "util/debug_output.hpp"
 
 #include <sdbusplus/asio/connection.hpp>
 #include <sdbusplus/asio/object_server.hpp>

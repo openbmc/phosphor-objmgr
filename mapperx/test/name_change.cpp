@@ -1,6 +1,6 @@
-#include "src/processing.hpp"
-#include "src/test/util/asio_server_class.hpp"
-#include "src/test/util/association_objects.hpp"
+#include "processing.hpp"
+#include "util/asio_server_class.hpp"
+#include "util/association_objects.hpp"
 
 #include <gtest/gtest.h>
 
