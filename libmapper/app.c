@@ -244,7 +244,7 @@ int main(int argc, char* argv[])
         "  subtree-remove\n"
         "                 wait until the specified interface is not present\n"
         "                 in any of the subtrees of the specified namespace\n"
-        "  get-service    return the service identifier for input path\n";
+        "  get-service    returns a list of service identifier(s) for input path\n";
 
     if (argc < 2)
     {

@@ -647,29 +647,47 @@ exit:
 _public_ int mapper_get_service(sd_bus* conn, const char* obj, char** service)
 {
     sd_bus_message* reply = NULL;
-    const char* tmp;
+    char* service_list = NULL;
     int r;
 
     r = mapper_get_object(conn, obj, &reply);
     if (r < 0)
         goto exit;
 
-    r = sd_bus_message_enter_container(reply, 0, NULL);
+    r = sd_bus_message_enter_container(reply, SD_BUS_TYPE_ARRAY, "{sas}");
     if (r < 0)
         goto exit;
+    while ((r = sd_bus_message_enter_container(reply, SD_BUS_TYPE_DICT_ENTRY,
+                                               "sas")) > 0)
+    {
+        char* service_name;
+        r = sd_bus_message_read(reply, "s", &service_name);
+        if (r < 0)
+            goto exit;
+        r = sd_bus_message_skip(reply, "as");
+        if (r < 0)
+            goto exit;
+        r = sd_bus_message_exit_container(reply);
+        if (r < 0)
+            goto exit;
+        if (!service_list)
+        {
+            service_list = malloc(strlen(service_name) + 1);
+            sprintf(service_list, "%s", service_name);
+        }
+        else
+        {
+            service_list = realloc(service_list, strlen(service_name) +
+                                                     strlen(service_list) + 1);
+            sprintf(service_list + strlen(service_list), " %s", service_name);
+        }
 
-    r = sd_bus_message_enter_container(reply, 0, NULL);
-    if (r < 0)
-        goto exit;
-
-    r = sd_bus_message_read(reply, "s", &tmp);
-    if (r < 0)
-        goto exit;
-
-    *service = strdup(tmp);
+    }
+    *service = strdup(service_list);
 
 exit:
     sd_bus_message_unref(reply);
+    free(service_list);
 
     return r;
 }
