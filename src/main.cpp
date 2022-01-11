@@ -15,34 +15,12 @@
 #include <iostream>
 #include <sdbusplus/asio/connection.hpp>
 #include <sdbusplus/asio/object_server.hpp>
+#include <xyz/openbmc_project/Common/error.hpp>
 
 AssociationMaps associationMaps;
 
 static WhiteBlackList service_whitelist;
 static WhiteBlackList service_blacklist;
-
-/** Exception thrown when a path is not found in the object list. */
-struct NotFoundException final : public sdbusplus::exception_t
-{
-    const char* name() const noexcept override
-    {
-        return "xyz.openbmc_project.Common.Error.ResourceNotFound";
-    };
-    const char* description() const noexcept override
-    {
-        return "path or object not found";
-    };
-    const char* what() const noexcept override
-    {
-        return "xyz.openbmc_project.Common.Error.ResourceNotFound: "
-               "The resource is not found.";
-    };
-
-    int get_errno() const noexcept override
-    {
-        return ENOENT;
-    }
-};
 
 void update_owners(sdbusplus::asio::connection* conn,
                    boost::container::flat_map<std::string, std::string>& owners,
@@ -465,7 +443,8 @@ std::vector<interface_map_type::value_type>
     }
     if (req_path.size() && interface_map.find(req_path) == interface_map.end())
     {
-        throw NotFoundException();
+        throw sdbusplus::xyz::openbmc_project::Common::Error::
+            ResourceNotFound();
     }
 
     std::vector<interface_map_type::value_type> ret;
@@ -510,7 +489,8 @@ boost::container::flat_map<std::string, boost::container::flat_set<std::string>>
     auto path_ref = interface_map.find(path);
     if (path_ref == interface_map.end())
     {
-        throw NotFoundException();
+        throw sdbusplus::xyz::openbmc_project::Common::Error::
+            ResourceNotFound();
     }
     if (interfaces.empty())
     {
@@ -527,7 +507,8 @@ boost::container::flat_map<std::string, boost::container::flat_set<std::string>>
 
     if (results.empty())
     {
-        throw NotFoundException();
+        throw sdbusplus::xyz::openbmc_project::Common::Error::
+            ResourceNotFound();
     }
 
     return results;
@@ -551,7 +532,8 @@ std::vector<interface_map_type::value_type>
     }
     if (req_path.size() && interface_map.find(req_path) == interface_map.end())
     {
-        throw NotFoundException();
+        throw sdbusplus::xyz::openbmc_project::Common::Error::
+            ResourceNotFound();
     }
 
     for (auto& object_path : interface_map)
@@ -606,7 +588,8 @@ std::vector<std::string>
     }
     if (req_path.size() && interface_map.find(req_path) == interface_map.end())
     {
-        throw NotFoundException();
+        throw sdbusplus::xyz::openbmc_project::Common::Error::
+            ResourceNotFound();
     }
 
     for (auto& object_path : interface_map)
