@@ -11,14 +11,8 @@ project(
     version: '1.0',
 )
 
-phosphor_logging = dependency(
-    'phosphor-logging',
-    fallback: [
-        'phosphor-logging',
-        'phosphor_logging_dep'])
-sdbusplus = dependency(
-    'sdbusplus',
-    fallback: ['sdbusplus', 'sdbusplus_dep'])
+phosphor_logging = dependency('phosphor-logging')
+sdbusplus = dependency('sdbusplus')
 
 if get_option('tests').enabled()
     gtest = dependency('gtest', main: true, disabler: true, required: false)
