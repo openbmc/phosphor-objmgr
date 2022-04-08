@@ -34,7 +34,7 @@ static int wait_main(int argc, char* argv[])
     sd_event* loop = NULL;
     mapper_async_wait* wait = NULL;
     size_t attempts = 0;
-    const size_t max_attempts = 4;
+    const size_t max_attempts = 20;
 
     if (argc < 3)
     {
@@ -93,8 +93,8 @@ static int wait_main(int argc, char* argv[])
             {
                 if (attempts <= max_attempts)
                 {
-                    fprintf(stderr, "Retrying in 5s\n");
-                    sleep(5);
+                    fprintf(stderr, "Retrying in 1s\n");
+                    sleep(1);
                     sd_event_unref(loop);
                     sd_bus_unref(conn);
                     continue;
