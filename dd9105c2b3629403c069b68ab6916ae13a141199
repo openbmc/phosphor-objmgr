@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4c5ce1a1_2c6a2d2d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2022-04-08T16:25:45Z",
+      "side": 1,
+      "message": "Obviously QEMU is not the sole measure of performance here, but this change dropped the QEMU boot speed for Bletchley from 69s to 44s.\n\nApr 08 16:03:08 bletchley systemd-timesyncd[182]: Initial synchronization to time server 216.239.35.0:123 (time1.google.com).\nApr 08 16:04:17 bletchley systemd[1]: Reached target Multi-User System.\n\nApr 08 16:16:48 bletchley systemd-timesyncd[178]: Initial synchronization to time server 216.239.35.8:123 (time3.google.com).\nApr 08 16:17:32 bletchley systemd[1]: Reached target Multi-User System.",
+      "revId": "dd9105c2b3629403c069b68ab6916ae13a141199",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
