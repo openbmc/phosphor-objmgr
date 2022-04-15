@@ -1,0 +1,8 @@
+Verified+1: OpenBMC CI <openbmcbump-ci@yahoo.com>
+Code-Review+1: Andrew Geissler <andrew@geissonator.com>
+Code-Review+2: Matt Spinler <spinler@us.ibm.com>
+Submitted-by: Patrick Williams <patrick@stwcx.xyz>
+Submitted-at: Fri, 15 Apr 2022 16:02:43 +0000
+Reviewed-on: https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-objmgr/+/52762
+Project: openbmc/phosphor-objmgr
+Branch: refs/heads/master
