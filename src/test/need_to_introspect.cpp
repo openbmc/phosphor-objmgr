@@ -5,39 +5,39 @@
 // Verify if name is empty, false is returned
 TEST(NeedToIntrospect, PassEmptyName)
 {
-    WhiteBlackList whiteList;
-    WhiteBlackList blackList;
+    AllowDenyList allowList;
+    AllowDenyList denyList;
     std::string process_name;
 
-    EXPECT_FALSE(needToIntrospect(process_name, whiteList, blackList));
+    EXPECT_FALSE(needToIntrospect(process_name, allowList, denyList));
 }
 
-// Verify if name is on whitelist, true is returned
-TEST(NeedToIntrospect, ValidWhiteListName)
+// Verify if name is on allowlist, true is returned
+TEST(NeedToIntrospect, ValidAllowListName)
 {
-    WhiteBlackList whiteList = {"xyz.openbmc_project"};
-    WhiteBlackList blackList;
+    AllowDenyList allowList = {"xyz.openbmc_project"};
+    AllowDenyList denyList;
     std::string process_name = "xyz.openbmc_project.State.Host";
 
-    EXPECT_TRUE(needToIntrospect(process_name, whiteList, blackList));
+    EXPECT_TRUE(needToIntrospect(process_name, allowList, denyList));
 }
 
-// Verify if name is on blacklist, false is returned
-TEST(NeedToIntrospect, ValidBlackListName)
+// Verify if name is on denylist, false is returned
+TEST(NeedToIntrospect, ValidDenyListName)
 {
-    WhiteBlackList whiteList;
-    WhiteBlackList blackList = {"xyz.openbmc_project.State.Host"};
+    AllowDenyList allowList;
+    AllowDenyList denyList = {"xyz.openbmc_project.State.Host"};
     std::string process_name = "xyz.openbmc_project.State.Host";
 
-    EXPECT_FALSE(needToIntrospect(process_name, whiteList, blackList));
+    EXPECT_FALSE(needToIntrospect(process_name, allowList, denyList));
 }
 
-// Verify if name is on whitelist and blacklist, false is returned
-TEST(NeedToIntrospect, ValidWhiteAndBlackListName)
+// Verify if name is on allowlist and denylist, false is returned
+TEST(NeedToIntrospect, ValidAllowAndDenyListName)
 {
-    WhiteBlackList whiteList = {"xyz.openbmc_project"};
-    WhiteBlackList blackList = {"xyz.openbmc_project.State.Host"};
+    AllowDenyList allowList = {"xyz.openbmc_project"};
+    AllowDenyList denyList = {"xyz.openbmc_project.State.Host"};
     std::string process_name = "xyz.openbmc_project.State.Host";
 
-    EXPECT_FALSE(needToIntrospect(process_name, whiteList, blackList));
+    EXPECT_FALSE(needToIntrospect(process_name, allowList, denyList));
 }
