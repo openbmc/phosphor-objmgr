@@ -47,23 +47,23 @@ void addEndpointToInterfaceAssociation(AssociationInterfaces& interfaceAssoc)
     endpoints.push_back(EXTRA_ENDPOINT);
 }
 
-// Create a default interface_map_type with input values
-interface_map_type createInterfaceMap(
+// Create a default interfaceMapType with input values
+InterfaceMapType createInterfaceMap(
     const std::string& path, const std::string& connection_name,
     const boost::container::flat_set<std::string>& interface_names)
 {
     boost::container::flat_map<std::string,
                                boost::container::flat_set<std::string>>
         connectionMap = {{connection_name, interface_names}};
-    interface_map_type interfaceMap = {{path, connectionMap}};
+    InterfaceMapType interfaceMap = {{path, connectionMap}};
     return interfaceMap;
 }
 
-// Create a default interface_map_type with 2 entries with the same
+// Create a default interfaceMapType with 2 entries with the same
 // owner.
-interface_map_type createDefaultInterfaceMap()
+InterfaceMapType createDefaultInterfaceMap()
 {
-    interface_map_type interfaceMap = {
+    InterfaceMapType interfaceMap = {
         {DEFAULT_SOURCE_PATH, {{DEFAULT_DBUS_SVC, {"a"}}}},
         {DEFAULT_ENDPOINT, {{DEFAULT_DBUS_SVC, {"b"}}}}};
 

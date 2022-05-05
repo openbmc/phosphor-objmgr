@@ -166,7 +166,7 @@ TEST_F(TestAssociations, associationChangedEmptyEndpoint)
 {
     std::vector<Association> associations = {
         {"inventory_cee", "error_cee", ""}};
-    interface_map_type interfaceMap;
+    InterfaceMapType interfaceMap;
 
     AssociationMaps assocMaps;
     assocMaps.owners = createDefaultOwnerAssociation();
@@ -197,7 +197,7 @@ TEST_F(TestAssociations, associationChangedAddNewAssoc)
     assocMaps.ifaces = createDefaultInterfaceAssociation(server);
 
     // Make it look like the assoc endpoints are on D-Bus
-    interface_map_type interfaceMap = {
+    InterfaceMapType interfaceMap = {
         {"/new/source/path", {{DEFAULT_DBUS_SVC, {"a"}}}},
         {"/xyz/openbmc_project/new/endpoint", {{DEFAULT_DBUS_SVC, {"a"}}}}};
 
@@ -233,7 +233,7 @@ TEST_F(TestAssociations, associationChangedAddNewAssocEmptyObj)
     AssociationMaps assocMaps;
 
     // Make it look like the assoc endpoints are on D-Bus
-    interface_map_type interfaceMap = createDefaultInterfaceMap();
+    InterfaceMapType interfaceMap = createDefaultInterfaceMap();
 
     associationChanged(*server, associations, DEFAULT_SOURCE_PATH,
                        DEFAULT_DBUS_SVC, interfaceMap, assocMaps);
@@ -265,7 +265,7 @@ TEST_F(TestAssociations, associationChangedAddNewAssocNewOwner)
          "/xyz/openbmc_project/inventory/system/chassis"}};
 
     // Make it look like the assoc endpoints are on D-Bus
-    interface_map_type interfaceMap = createDefaultInterfaceMap();
+    InterfaceMapType interfaceMap = createDefaultInterfaceMap();
 
     AssociationMaps assocMaps;
     assocMaps.owners = createDefaultOwnerAssociation();
@@ -298,7 +298,7 @@ TEST_F(TestAssociations, associationChangedAddNewAssocSameInterface)
         {"abc", "error", "/xyz/openbmc_project/inventory/system/chassis"}};
 
     // Make it look like the assoc endpoints are on D-Bus
-    interface_map_type interfaceMap = createDefaultInterfaceMap();
+    InterfaceMapType interfaceMap = createDefaultInterfaceMap();
 
     AssociationMaps assocMaps;
     assocMaps.owners = createDefaultOwnerAssociation();
@@ -402,7 +402,7 @@ TEST_F(TestAssociations, associationChangedPending)
         {"abc", "def", "/xyz/openbmc_project/new/endpoint"}};
 
     AssociationMaps assocMaps;
-    interface_map_type interfaceMap;
+    InterfaceMapType interfaceMap;
 
     associationChanged(*server, associations, "/new/source/path",
                        DEFAULT_DBUS_SVC, interfaceMap, assocMaps);
@@ -448,7 +448,7 @@ TEST_F(TestAssociations, testRemoveFromPendingAssociations)
 TEST_F(TestAssociations, checkIfPending)
 {
     AssociationMaps assocMaps;
-    interface_map_type interfaceMap = {
+    InterfaceMapType interfaceMap = {
         {DEFAULT_SOURCE_PATH, {{DEFAULT_DBUS_SVC, {"a"}}}},
         {DEFAULT_ENDPOINT, {{DEFAULT_DBUS_SVC, {"b"}}}}};
 

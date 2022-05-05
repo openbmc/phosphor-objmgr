@@ -21,8 +21,8 @@
 #include <iostream>
 #include <iterator>
 
-const std::string ArgumentParser::true_string = "true";
-const std::string ArgumentParser::empty_string = "";
+const std::string ArgumentParser::trueString = "true";
+const std::string ArgumentParser::emptyString = "";
 
 const char* ArgumentParser::optionstr = "s:b:i:?h";
 const option ArgumentParser::options[] = {
@@ -50,7 +50,7 @@ ArgumentParser::ArgumentParser(int argc, char** argv)
             ++i;
 
         if (i->val)
-            arguments[i->name] = (i->has_arg ? optarg : true_string);
+            arguments[i->name] = (i->has_arg ? optarg : trueString);
     }
 }
 
@@ -59,7 +59,7 @@ const std::string& ArgumentParser::operator[](const std::string& opt)
     auto i = arguments.find(opt);
     if (i == arguments.end())
     {
-        return empty_string;
+        return emptyString;
     }
     else
     {

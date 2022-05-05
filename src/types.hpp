@@ -16,7 +16,7 @@
  *   connection names
  *      interface names
  */
-using interface_map_type = boost::container::flat_map<
+using InterfaceMapType = boost::container::flat_map<
     std::string, boost::container::flat_map<
                      std::string, boost::container::flat_set<std::string>>>;
 
