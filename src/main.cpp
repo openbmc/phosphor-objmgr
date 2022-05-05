@@ -19,8 +19,8 @@
 
 AssociationMaps associationMaps;
 
-static WhiteBlackList service_whitelist;
-static WhiteBlackList service_blacklist;
+static AllowDenyList serviceAllowList;
+static AllowDenyList serviceDenyList;
 
 void update_owners(sdbusplus::asio::connection* conn,
                    boost::container::flat_map<std::string, std::string>& owners,
@@ -242,7 +242,7 @@ void start_new_introspect(
 #endif
     sdbusplus::asio::object_server& objectServer)
 {
-    if (needToIntrospect(process_name, service_whitelist, service_blacklist))
+    if (needToIntrospect(process_name, serviceAllowList, serviceDenyList))
     {
         std::shared_ptr<InProgressIntrospect> transaction =
             std::make_shared<InProgressIntrospect>(system_bus, io, process_name,
@@ -305,8 +305,8 @@ void doListNames(
 #endif
             for (const std::string& process_name : process_names)
             {
-                if (needToIntrospect(process_name, service_whitelist,
-                                     service_blacklist))
+                if (needToIntrospect(process_name, serviceAllowList,
+                                     serviceDenyList))
                 {
                     start_new_introspect(system_bus, io, interface_map,
                                          process_name, assocMaps,
@@ -638,13 +638,13 @@ int main(int argc, char** argv)
     std::shared_ptr<sdbusplus::asio::connection> system_bus =
         std::make_shared<sdbusplus::asio::connection>(io);
 
-    splitArgs(options["service-namespaces"], service_whitelist);
-    splitArgs(options["service-blacklists"], service_blacklist);
+    splitArgs(options["service-namespaces"], serviceAllowList);
+    splitArgs(options["service-blacklists"], serviceDenyList);
 
     // TODO(Ed) Remove this once all service files are updated to not use this.
     // For now, simply squash the input, and ignore it.
-    boost::container::flat_set<std::string> iface_whitelist;
-    splitArgs(options["interface-namespaces"], iface_whitelist);
+    boost::container::flat_set<std::string> ifaceAllowlist;
+    splitArgs(options["interface-namespaces"], ifaceAllowlist);
 
     sdbusplus::asio::object_server server(system_bus);
 
@@ -679,8 +679,8 @@ int main(int argc, char** argv)
                     std::chrono::steady_clock::now());
 #endif
                 // New daemon added
-                if (needToIntrospect(name, service_whitelist,
-                                     service_blacklist))
+                if (needToIntrospect(name, serviceAllowList,
+                                     serviceDenyList))
                 {
                     name_owners[new_owner] = name;
                     start_new_introspect(system_bus.get(), io, interface_map,
@@ -708,8 +708,8 @@ int main(int argc, char** argv)
             {
                 return; // only introspect well-known
             }
-            if (needToIntrospect(well_known, service_whitelist,
-                                 service_blacklist))
+            if (needToIntrospect(well_known, serviceAllowList,
+                                 serviceDenyList))
             {
                 processInterfaceAdded(interface_map, obj_path, interfaces_added,
                                       well_known, associationMaps, server);

@@ -9,7 +9,7 @@
 #include <string>
 
 /** @brief Define white list and black list data structure */
-using WhiteBlackList = boost::container::flat_set<std::string>;
+using AllowDenyList = boost::container::flat_set<std::string>;
 
 /** @brief The associations definitions interface */
 constexpr const char* assocDefsInterface =
@@ -55,8 +55,8 @@ bool getWellKnown(
  * @return True if input process_name should be monitored, false otherwise
  */
 bool needToIntrospect(const std::string& processName,
-                      const WhiteBlackList& whiteList,
-                      const WhiteBlackList& blackList);
+                      const AllowDenyList& whiteList,
+                      const AllowDenyList& blackList);
 
 /** @brief Handle the removal of an existing name in objmgr data structures
  *

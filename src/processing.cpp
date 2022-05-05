@@ -24,8 +24,8 @@ bool getWellKnown(
 }
 
 bool needToIntrospect(const std::string& processName,
-                      const WhiteBlackList& whiteList,
-                      const WhiteBlackList& blackList)
+                      const AllowDenyList& whiteList,
+                      const AllowDenyList& blackList)
 {
     auto inWhitelist =
         std::find_if(whiteList.begin(), whiteList.end(),
