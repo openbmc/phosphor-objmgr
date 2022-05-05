@@ -4,7 +4,7 @@
 
 // Some debug functions for dumping out the main data structures in objmgr
 
-void dump_AssociationOwnersType(AssociationOwnersType& assocOwners)
+void dumpAssociationOwnersType(AssociationOwnersType& assocOwners)
 {
     using namespace std;
     cout << "##### AssociationOwnersType #####" << endl;
@@ -31,7 +31,7 @@ void dump_AssociationOwnersType(AssociationOwnersType& assocOwners)
     }
 }
 
-void dump_AssociationInterfaces(AssociationInterfaces& assocInterfaces)
+void dumpAssociationInterfaces(AssociationInterfaces& assocInterfaces)
 {
     using namespace std;
     cout << "##### AssociationInterfaces #####" << endl;
@@ -49,10 +49,10 @@ void dump_AssociationInterfaces(AssociationInterfaces& assocInterfaces)
     }
 }
 
-void dump_InterfaceMapType(interface_map_type& intfMap)
+void dumpInterfaceMapType(InterfaceMapType& intfMap)
 {
     using namespace std;
-    cout << "##### interface_map_type #####" << endl;
+    cout << "##### interfaceMapType #####" << endl;
     for (auto i : intfMap)
     {
         cout << "------------------------------------" << endl;

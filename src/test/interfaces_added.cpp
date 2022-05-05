@@ -37,20 +37,20 @@ TEST_F(TestInterfacesAdded, InterfacesAddedGoodPath)
     auto intfAdded =
         createInterfacesAdded(assocDefsInterface, assocDefsProperty);
 
-    processInterfaceAdded(interfaceMap, DEFAULT_SOURCE_PATH, intfAdded,
-                          DEFAULT_DBUS_SVC, assocMaps, *server);
+    processInterfaceAdded(interfaceMap, defaultSourcePath, intfAdded,
+                          defaultDbusSvc, assocMaps, *server);
 
     // Interface map will get the following:
     // /logging/entry/1 /logging/entry /logging/ / system/chassis
-    // dump_InterfaceMapType(interfaceMap);
+    // dumpInterfaceMapType(interfaceMap);
     EXPECT_EQ(interfaceMap.size(), 5);
 
     // New association ower created so ensure it now contains a single entry
-    // dump_AssociationOwnersType(assocOwners);
+    // dumpAssociationOwnersType(assocOwners);
     EXPECT_EQ(assocMaps.owners.size(), 1);
 
     // Ensure the 2 association interfaces were created
-    // dump_AssociationInterfaces(assocInterfaces);
+    // dumpAssociationInterfaces(assocInterfaces);
     EXPECT_EQ(assocMaps.ifaces.size(), 2);
 
     // No pending associations

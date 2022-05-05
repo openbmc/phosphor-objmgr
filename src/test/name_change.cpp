@@ -16,7 +16,7 @@ TEST_F(TestNameChange, UniqueNameNoInterfaces)
         {":1.99", "test-name"}};
     std::string wellKnown = {"test-name"};
     std::string oldOwner = {":1.99"};
-    interface_map_type interfaceMap;
+    InterfaceMapType interfaceMap;
     AssociationMaps assocMaps;
 
     processNameChangeDelete(nameOwners, wellKnown, oldOwner, interfaceMap,
@@ -28,7 +28,7 @@ TEST_F(TestNameChange, UniqueNameNoInterfaces)
 TEST_F(TestNameChange, UniqueNameAssociationsAndInterface)
 {
     boost::container::flat_map<std::string, std::string> nameOwners = {
-        {":1.99", DEFAULT_DBUS_SVC}};
+        {":1.99", defaultDbusSvc}};
     std::string oldOwner = {":1.99"};
     boost::container::flat_set<std::string> assocInterfacesSet = {
         assocDefsInterface};
@@ -38,11 +38,11 @@ TEST_F(TestNameChange, UniqueNameAssociationsAndInterface)
     AssociationMaps assocMaps;
     assocMaps.owners = createDefaultOwnerAssociation();
     assocMaps.ifaces = createDefaultInterfaceAssociation(server);
-    auto interfaceMap = createInterfaceMap(
-        DEFAULT_SOURCE_PATH, DEFAULT_DBUS_SVC, assocInterfacesSet);
+    auto interfaceMap = createInterfaceMap(defaultSourcePath, defaultDbusSvc,
+                                           assocInterfacesSet);
 
-    processNameChangeDelete(nameOwners, DEFAULT_DBUS_SVC, oldOwner,
-                            interfaceMap, assocMaps, *server);
+    processNameChangeDelete(nameOwners, defaultDbusSvc, oldOwner, interfaceMap,
+                            assocMaps, *server);
     EXPECT_EQ(nameOwners.size(), 0);
 
     // Verify owner association was deleted
@@ -50,9 +50,9 @@ TEST_F(TestNameChange, UniqueNameAssociationsAndInterface)
 
     // Verify endpoint was deleted from interface association
     auto intfEndpoints =
-        std::get<endpointsPos>(assocMaps.ifaces[DEFAULT_FWD_PATH]);
+        std::get<endpointsPos>(assocMaps.ifaces[defaultFwdPath]);
     EXPECT_EQ(intfEndpoints.size(), 0);
-    intfEndpoints = std::get<endpointsPos>(assocMaps.ifaces[DEFAULT_REV_PATH]);
+    intfEndpoints = std::get<endpointsPos>(assocMaps.ifaces[defaultRevPath]);
     EXPECT_EQ(intfEndpoints.size(), 0);
 
     // Verify interface map was deleted

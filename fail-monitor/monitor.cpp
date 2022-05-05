@@ -26,15 +26,15 @@ namespace failure
 
 using namespace phosphor::logging;
 
-constexpr auto FAILED_STATE = "failed";
-constexpr auto START_METHOD = "StartUnit";
-constexpr auto STOP_METHOD = "StopUnit";
+constexpr auto failedState = "failed";
+constexpr auto startMethod = "StartUnit";
+constexpr auto stopMethod = "StopUnit";
 
-constexpr auto SYSTEMD_SERVICE = "org.freedesktop.systemd1";
-constexpr auto SYSTEMD_OBJ_PATH = "/org/freedesktop/systemd1";
-constexpr auto SYSTEMD_INTERFACE = "org.freedesktop.systemd1.Manager";
-constexpr auto SYSTEMD_PROPERTY_INTERFACE = "org.freedesktop.DBus.Properties";
-constexpr auto SYSTEMD_UNIT_INTERFACE = "org.freedesktop.systemd1.Unit";
+constexpr auto systemdService = "org.freedesktop.systemd1";
+constexpr auto systemdObjPath = "/org/freedesktop/systemd1";
+constexpr auto systemdInterface = "org.freedesktop.systemd1.Manager";
+constexpr auto systemdPropertyInterface = "org.freedesktop.DBus.Properties";
+constexpr auto systemdUnitInterface = "org.freedesktop.systemd1.Unit";
 
 void Monitor::analyze()
 {
@@ -48,10 +48,10 @@ bool Monitor::inFailedState(const std::string&& path)
 {
     std::variant<std::string> property;
 
-    auto method = bus.new_method_call(SYSTEMD_SERVICE, path.c_str(),
-                                      SYSTEMD_PROPERTY_INTERFACE, "Get");
+    auto method = bus.new_method_call(systemdService, path.c_str(),
+                                      systemdPropertyInterface, "Get");
 
-    method.append(SYSTEMD_UNIT_INTERFACE, "ActiveState");
+    method.append(systemdUnitInterface, "ActiveState");
 
     auto reply = bus.call(method);
     if (reply.is_method_error())
@@ -65,15 +65,15 @@ bool Monitor::inFailedState(const std::string&& path)
     reply.read(property);
 
     auto value = std::get<std::string>(property);
-    return (value == FAILED_STATE);
+    return (value == failedState);
 }
 
 std::string Monitor::getSourceUnitPath()
 {
     sdbusplus::message::object_path path;
 
-    auto method = bus.new_method_call(SYSTEMD_SERVICE, SYSTEMD_OBJ_PATH,
-                                      SYSTEMD_INTERFACE, "GetUnit");
+    auto method = bus.new_method_call(systemdService, systemdObjPath,
+                                      systemdInterface, "GetUnit");
     method.append(source);
     auto reply = bus.call(method);
 
@@ -93,7 +93,7 @@ std::string Monitor::getSourceUnitPath()
 void Monitor::runTargetAction()
 {
     // Start or stop the target unit
-    auto methodCall = (action == Action::start) ? START_METHOD : STOP_METHOD;
+    auto methodCall = (action == Action::start) ? startMethod : stopMethod;
 
     log<level::INFO>("The source unit is in failed state, "
                      "running target action",
@@ -101,8 +101,8 @@ void Monitor::runTargetAction()
                      entry("TARGET=%s", target.c_str()),
                      entry("ACTION=%s", methodCall));
 
-    auto method = this->bus.new_method_call(SYSTEMD_SERVICE, SYSTEMD_OBJ_PATH,
-                                            SYSTEMD_INTERFACE, methodCall);
+    auto method = this->bus.new_method_call(systemdService, systemdObjPath,
+                                            systemdInterface, methodCall);
     method.append(target);
     method.append("replace");
 
