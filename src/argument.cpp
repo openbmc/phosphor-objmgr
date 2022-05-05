@@ -73,9 +73,9 @@ void ArgumentParser::usage(char** argv)
     std::cerr << "Options:" << std::endl;
     std::cerr << "    --help               Print this menu" << std::endl;
     std::cerr << "    --service-namespaces=<services> Space separated list of ";
-    std::cerr << "service namespaces to whitelist\n";
+    std::cerr << "service namespaces to allow\n";
     std::cerr << "    --service-blacklists=<services> Space separated list of ";
-    std::cerr << "service names to blacklist\n";
+    std::cerr << "service names to deny\n";
     std::cerr << "    --interface-namespaces=<ifaces> Space separated list of ";
-    std::cerr << "interface namespaces to whitelist\n";
+    std::cerr << "interface namespaces to allow\n";
 }
