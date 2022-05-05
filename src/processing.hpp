@@ -72,7 +72,7 @@ bool needToIntrospect(const std::string& processName,
 void processNameChangeDelete(
     boost::container::flat_map<std::string, std::string>& nameOwners,
     const std::string& wellKnown, const std::string& oldOwner,
-    interface_map_type& interfaceMap, AssociationMaps& assocMaps,
+    InterfaceMapType& interfaceMap, AssociationMaps& assocMaps,
     sdbusplus::asio::object_server& server);
 
 /** @brief Handle an interfaces added signal
@@ -85,7 +85,7 @@ void processNameChangeDelete(
  * @param[in,out] server          - sdbus system object
  *
  */
-void processInterfaceAdded(interface_map_type& interfaceMap,
+void processInterfaceAdded(InterfaceMapType& interfaceMap,
                            const sdbusplus::message::object_path& objPath,
                            const InterfacesAdded& intfAdded,
                            const std::string& wellKnown,

@@ -181,7 +181,7 @@ void addEndpointsToAssocIfaces(
 void associationChanged(sdbusplus::asio::object_server& objectServer,
                         const std::vector<Association>& associations,
                         const std::string& path, const std::string& owner,
-                        const interface_map_type& interfaceMap,
+                        const InterfaceMapType& interfaceMap,
                         AssociationMaps& assocMaps)
 {
     AssociationPaths objects;
@@ -357,7 +357,7 @@ void addSingleAssociation(sdbusplus::asio::object_server& server,
 }
 
 void checkIfPendingAssociation(const std::string& objectPath,
-                               const interface_map_type& interfaceMap,
+                               const InterfaceMapType& interfaceMap,
                                AssociationMaps& assocMaps,
                                sdbusplus::asio::object_server& server)
 {
