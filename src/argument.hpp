@@ -33,10 +33,10 @@ class ArgumentParser
     static void usage(char** argv);
 
     /** @brief Set to 'true' when an option is passed */
-    static const std::string true_string;
+    static const std::string trueString;
 
     /** @brief Set to '' when an option is not passed */
-    static const std::string empty_string;
+    static const std::string emptyString;
 
   private:
     /** @brief Option to argument mapping */

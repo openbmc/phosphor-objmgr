@@ -43,7 +43,7 @@ bool needToIntrospect(const std::string& processName,
 void processNameChangeDelete(
     boost::container::flat_map<std::string, std::string>& nameOwners,
     const std::string& wellKnown, const std::string& oldOwner,
-    interface_map_type& interfaceMap, AssociationMaps& assocMaps,
+    InterfaceMapType& interfaceMap, AssociationMaps& assocMaps,
     sdbusplus::asio::object_server& server)
 {
     if (boost::starts_with(oldOwner, ":"))
@@ -55,7 +55,7 @@ void processNameChangeDelete(
         }
     }
     // Connection removed
-    interface_map_type::iterator pathIt = interfaceMap.begin();
+    InterfaceMapType::iterator pathIt = interfaceMap.begin();
     while (pathIt != interfaceMap.end())
     {
         // If an associations interface is being removed,
@@ -96,7 +96,7 @@ void processNameChangeDelete(
     }
 }
 
-void processInterfaceAdded(interface_map_type& interfaceMap,
+void processInterfaceAdded(InterfaceMapType& interfaceMap,
                            const sdbusplus::message::object_path& objPath,
                            const InterfacesAdded& intfAdded,
                            const std::string& wellKnown,
@@ -145,7 +145,7 @@ void processInterfaceAdded(interface_map_type& interfaceMap,
     //
     // This is all needed so that mapper operations can be done
     // on the new parent paths.
-    using iface_map_iterator = interface_map_type::iterator;
+    using iface_map_iterator = InterfaceMapType::iterator;
     using iface_map_value_type =
         boost::container::flat_map<std::string,
                                    boost::container::flat_set<std::string>>;

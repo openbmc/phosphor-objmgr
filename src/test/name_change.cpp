@@ -16,7 +16,7 @@ TEST_F(TestNameChange, UniqueNameNoInterfaces)
         {":1.99", "test-name"}};
     std::string wellKnown = {"test-name"};
     std::string oldOwner = {":1.99"};
-    interface_map_type interfaceMap;
+    InterfaceMapType interfaceMap;
     AssociationMaps assocMaps;
 
     processNameChangeDelete(nameOwners, wellKnown, oldOwner, interfaceMap,

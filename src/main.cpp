@@ -23,64 +23,64 @@ AssociationMaps associationMaps;
 static AllowDenyList serviceAllowList;
 static AllowDenyList serviceDenyList;
 
-void update_owners(sdbusplus::asio::connection* conn,
-                   boost::container::flat_map<std::string, std::string>& owners,
-                   const std::string& new_object)
+void updateOwners(sdbusplus::asio::connection* conn,
+                  boost::container::flat_map<std::string, std::string>& owners,
+                  const std::string& newObject)
 {
-    if (boost::starts_with(new_object, ":"))
+    if (boost::starts_with(newObject, ":"))
     {
         return;
     }
     conn->async_method_call(
-        [&, new_object](const boost::system::error_code ec,
-                        const std::string& nameOwner) {
+        [&, newObject](const boost::system::error_code ec,
+                       const std::string& nameOwner) {
             if (ec)
             {
-                std::cerr << "Error getting owner of " << new_object << " : "
+                std::cerr << "Error getting owner of " << newObject << " : "
                           << ec << "\n";
                 return;
             }
-            owners[nameOwner] = new_object;
+            owners[nameOwner] = newObject;
         },
         "org.freedesktop.DBus", "/", "org.freedesktop.DBus", "GetNameOwner",
-        new_object);
+        newObject);
 }
 
-void send_introspection_complete_signal(sdbusplus::asio::connection* system_bus,
-                                        const std::string& process_name)
+void sendIntrospectionCompleteSignal(sdbusplus::asio::connection* systemBus,
+                                     const std::string& processName)
 {
     // TODO(ed) This signal doesn't get exposed properly in the
     // introspect right now.  Find out how to register signals in
     // sdbusplus
-    sdbusplus::message::message m = system_bus->new_signal(
+    sdbusplus::message::message m = systemBus->new_signal(
         "/xyz/openbmc_project/object_mapper",
         "xyz.openbmc_project.ObjectMapper.Private", "IntrospectionComplete");
-    m.append(process_name);
+    m.append(processName);
     m.signal_send();
 }
 
 struct InProgressIntrospect
 {
     InProgressIntrospect(
-        sdbusplus::asio::connection* system_bus, boost::asio::io_context& io,
-        const std::string& process_name, AssociationMaps& am
+        sdbusplus::asio::connection* systemBus, boost::asio::io_context& io,
+        const std::string& processName, AssociationMaps& am
 #ifdef DEBUG
         ,
         std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
-            global_start_time
+            globalStartTime
 #endif
         ) :
-        system_bus(system_bus),
-        io(io), process_name(process_name), assocMaps(am)
+        systemBus(systemBus),
+        io(io), processName(processName), assocMaps(am)
 #ifdef DEBUG
         ,
-        global_start_time(global_start_time),
+        globalStartTime(globalStartTime),
         process_start_time(std::chrono::steady_clock::now())
 #endif
     {}
     ~InProgressIntrospect()
     {
-        send_introspection_complete_signal(system_bus, process_name);
+        sendIntrospectionCompleteSignal(systemBus, processName);
 
 #ifdef DEBUG
         std::chrono::duration<float> diff =
@@ -90,34 +90,34 @@ struct InProgressIntrospect
 
         // If we're the last outstanding caller globally, calculate the
         // time it took
-        if (global_start_time != nullptr && global_start_time.use_count() == 1)
+        if (globalStartTime != nullptr && globalStartTime.use_count() == 1)
         {
-            diff = std::chrono::steady_clock::now() - *global_start_time;
+            diff = std::chrono::steady_clock::now() - *globalStartTime;
             std::cout << "Total scan took " << diff.count()
                       << " seconds to complete\n";
         }
 #endif
     }
-    sdbusplus::asio::connection* system_bus;
+    sdbusplus::asio::connection* systemBus;
     boost::asio::io_context& io;
-    std::string process_name;
+    std::string processName;
     AssociationMaps& assocMaps;
 #ifdef DEBUG
     std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
-        global_start_time;
+        globalStartTime;
     std::chrono::time_point<std::chrono::steady_clock> process_start_time;
 #endif
 };
 
-void do_associations(sdbusplus::asio::connection* system_bus,
-                     interface_map_type& interfaceMap,
-                     sdbusplus::asio::object_server& objectServer,
-                     const std::string& processName, const std::string& path,
-                     int timeoutRetries = 0)
+void doAssociations(sdbusplus::asio::connection* systemBus,
+                    InterfaceMapType& interfaceMap,
+                    sdbusplus::asio::object_server& objectServer,
+                    const std::string& processName, const std::string& path,
+                    int timeoutRetries = 0)
 {
     constexpr int maxTimeoutRetries = 3;
-    system_bus->async_method_call(
-        [&objectServer, path, processName, &interfaceMap, system_bus,
+    systemBus->async_method_call(
+        [&objectServer, path, processName, &interfaceMap, systemBus,
          timeoutRetries](
             const boost::system::error_code ec,
             const std::variant<std::vector<Association>>& variantAssociations) {
@@ -126,8 +126,8 @@ void do_associations(sdbusplus::asio::connection* system_bus,
                 if (ec.value() == boost::system::errc::timed_out &&
                     timeoutRetries < maxTimeoutRetries)
                 {
-                    do_associations(system_bus, interfaceMap, objectServer,
-                                    processName, path, timeoutRetries + 1);
+                    doAssociations(systemBus, interfaceMap, objectServer,
+                                   processName, path, timeoutRetries + 1);
                     return;
                 }
                 std::cerr << "Error getting associations from " << path << "\n";
@@ -141,36 +141,36 @@ void do_associations(sdbusplus::asio::connection* system_bus,
         assocDefsInterface, assocDefsProperty);
 }
 
-void do_introspect(sdbusplus::asio::connection* system_bus,
-                   std::shared_ptr<InProgressIntrospect> transaction,
-                   interface_map_type& interface_map,
-                   sdbusplus::asio::object_server& objectServer,
-                   std::string path, int timeoutRetries = 0)
+void doIntrospect(sdbusplus::asio::connection* systemBus,
+                  std::shared_ptr<InProgressIntrospect> transaction,
+                  InterfaceMapType& interfaceMap,
+                  sdbusplus::asio::object_server& objectServer,
+                  std::string path, int timeoutRetries = 0)
 {
     constexpr int maxTimeoutRetries = 3;
-    system_bus->async_method_call(
-        [&interface_map, &objectServer, transaction, path, system_bus,
+    systemBus->async_method_call(
+        [&interfaceMap, &objectServer, transaction, path, systemBus,
          timeoutRetries](const boost::system::error_code ec,
-                         const std::string& introspect_xml) {
+                         const std::string& introspectXml) {
             if (ec)
             {
                 if (ec.value() == boost::system::errc::timed_out &&
                     timeoutRetries < maxTimeoutRetries)
                 {
-                    do_introspect(system_bus, transaction, interface_map,
-                                  objectServer, path, timeoutRetries + 1);
+                    doIntrospect(systemBus, transaction, interfaceMap,
+                                 objectServer, path, timeoutRetries + 1);
                     return;
                 }
                 std::cerr << "Introspect call failed with error: " << ec << ", "
                           << ec.message()
-                          << " on process: " << transaction->process_name
+                          << " on process: " << transaction->processName
                           << " path: " << path << "\n";
                 return;
             }
 
             tinyxml2::XMLDocument doc;
 
-            tinyxml2::XMLError e = doc.Parse(introspect_xml.c_str());
+            tinyxml2::XMLError e = doc.Parse(introspectXml.c_str());
             if (e != tinyxml2::XMLError::XML_SUCCESS)
             {
                 std::cerr << "XML parsing failed\n";
@@ -183,23 +183,23 @@ void do_introspect(sdbusplus::asio::connection* system_bus,
                 std::cerr << "XML document did not contain any data\n";
                 return;
             }
-            auto& thisPathMap = interface_map[path];
+            auto& thisPathMap = interfaceMap[path];
             tinyxml2::XMLElement* pElement =
                 pRoot->FirstChildElement("interface");
             while (pElement != nullptr)
             {
-                const char* iface_name = pElement->Attribute("name");
-                if (iface_name == nullptr)
+                const char* ifaceName = pElement->Attribute("name");
+                if (ifaceName == nullptr)
                 {
                     continue;
                 }
 
-                thisPathMap[transaction->process_name].emplace(iface_name);
+                thisPathMap[transaction->processName].emplace(ifaceName);
 
-                if (std::strcmp(iface_name, assocDefsInterface) == 0)
+                if (std::strcmp(ifaceName, assocDefsInterface) == 0)
                 {
-                    do_associations(system_bus, interface_map, objectServer,
-                                    transaction->process_name, path);
+                    doAssociations(systemBus, interfaceMap, objectServer,
+                                   transaction->processName, path);
                 }
 
                 pElement = pElement->NextSiblingElement("interface");
@@ -207,54 +207,53 @@ void do_introspect(sdbusplus::asio::connection* system_bus,
 
             // Check if this new path has a pending association that can
             // now be completed.
-            checkIfPendingAssociation(path, interface_map,
+            checkIfPendingAssociation(path, interfaceMap,
                                       transaction->assocMaps, objectServer);
 
             pElement = pRoot->FirstChildElement("node");
             while (pElement != nullptr)
             {
-                const char* child_path = pElement->Attribute("name");
-                if (child_path != nullptr)
+                const char* childPath = pElement->Attribute("name");
+                if (childPath != nullptr)
                 {
-                    std::string parent_path(path);
-                    if (parent_path == "/")
+                    std::string parentPath(path);
+                    if (parentPath == "/")
                     {
-                        parent_path.clear();
+                        parentPath.clear();
                     }
 
-                    do_introspect(system_bus, transaction, interface_map,
-                                  objectServer, parent_path + "/" + child_path);
+                    doIntrospect(systemBus, transaction, interfaceMap,
+                                 objectServer, parentPath + "/" + childPath);
                 }
                 pElement = pElement->NextSiblingElement("node");
             }
         },
-        transaction->process_name, path, "org.freedesktop.DBus.Introspectable",
+        transaction->processName, path, "org.freedesktop.DBus.Introspectable",
         "Introspect");
 }
 
-void start_new_introspect(
-    sdbusplus::asio::connection* system_bus, boost::asio::io_context& io,
-    interface_map_type& interface_map, const std::string& process_name,
+void startNewIntrospect(
+    sdbusplus::asio::connection* systemBus, boost::asio::io_context& io,
+    InterfaceMapType& interfaceMap, const std::string& processName,
     AssociationMaps& assocMaps,
 #ifdef DEBUG
     std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
-        global_start_time,
+        globalStartTime,
 #endif
     sdbusplus::asio::object_server& objectServer)
 {
-    if (needToIntrospect(process_name, serviceAllowList, serviceDenyList))
+    if (needToIntrospect(processName, serviceAllowList, serviceDenyList))
     {
         std::shared_ptr<InProgressIntrospect> transaction =
-            std::make_shared<InProgressIntrospect>(system_bus, io, process_name,
+            std::make_shared<InProgressIntrospect>(systemBus, io, processName,
                                                    assocMaps
 #ifdef DEBUG
                                                    ,
-                                                   global_start_time
+                                                   globalStartTime
 #endif
             );
 
-        do_introspect(system_bus, transaction, interface_map, objectServer,
-                      "/");
+        doIntrospect(systemBus, transaction, interfaceMap, objectServer, "/");
     }
 }
 
@@ -280,15 +279,15 @@ bool intersect(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2)
 }
 
 void doListNames(
-    boost::asio::io_context& io, interface_map_type& interface_map,
-    sdbusplus::asio::connection* system_bus,
-    boost::container::flat_map<std::string, std::string>& name_owners,
+    boost::asio::io_context& io, InterfaceMapType& interfaceMap,
+    sdbusplus::asio::connection* systemBus,
+    boost::container::flat_map<std::string, std::string>& nameOwners,
     AssociationMaps& assocMaps, sdbusplus::asio::object_server& objectServer)
 {
-    system_bus->async_method_call(
-        [&io, &interface_map, &name_owners, &objectServer, system_bus,
+    systemBus->async_method_call(
+        [&io, &interfaceMap, &nameOwners, &objectServer, systemBus,
          &assocMaps](const boost::system::error_code ec,
-                     std::vector<std::string> process_names) {
+                     std::vector<std::string> processNames) {
             if (ec)
             {
                 std::cerr << "Error getting names: " << ec << "\n";
@@ -296,25 +295,25 @@ void doListNames(
                 return;
             }
             // Try to make startup consistent
-            std::sort(process_names.begin(), process_names.end());
+            std::sort(processNames.begin(), processNames.end());
 #ifdef DEBUG
             std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
-                global_start_time = std::make_shared<
+                globalStartTime = std::make_shared<
                     std::chrono::time_point<std::chrono::steady_clock>>(
                     std::chrono::steady_clock::now());
 #endif
-            for (const std::string& process_name : process_names)
+            for (const std::string& processName : processNames)
             {
-                if (needToIntrospect(process_name, serviceAllowList,
+                if (needToIntrospect(processName, serviceAllowList,
                                      serviceDenyList))
                 {
-                    start_new_introspect(system_bus, io, interface_map,
-                                         process_name, assocMaps,
+                    startNewIntrospect(systemBus, io, interfaceMap, processName,
+                                       assocMaps,
 #ifdef DEBUG
-                                         global_start_time,
+                                       globalStartTime,
 #endif
-                                         objectServer);
-                    update_owners(system_bus, name_owners, process_name);
+                                       objectServer);
+                    updateOwners(systemBus, nameOwners, processName);
                 }
             }
         },
@@ -341,7 +340,7 @@ void splitArgs(const std::string& stringArgs,
 }
 
 void addObjectMapResult(
-    std::vector<interface_map_type::value_type>& objectMap,
+    std::vector<InterfaceMapType::value_type>& objectMap,
     const std::string& objectPath,
     const std::pair<std::string, boost::container::flat_set<std::string>>&
         interfaceMap)
@@ -361,7 +360,7 @@ void addObjectMapResult(
     }
     else
     {
-        interface_map_type::value_type object;
+        InterfaceMapType::value_type object;
         object.first = objectPath;
         object.second.emplace(interfaceMap);
         objectMap.push_back(object);
@@ -375,7 +374,7 @@ void addObjectMapResult(
 // 2) Have no other child for this owner
 void removeUnneededParents(const std::string& objectPath,
                            const std::string& owner,
-                           interface_map_type& interface_map)
+                           InterfaceMapType& interfaceMap)
 {
     auto parent = objectPath;
 
@@ -388,39 +387,39 @@ void removeUnneededParents(const std::string& objectPath,
         }
         parent = parent.substr(0, pos);
 
-        auto parent_it = interface_map.find(parent);
-        if (parent_it == interface_map.end())
+        auto parentIt = interfaceMap.find(parent);
+        if (parentIt == interfaceMap.end())
         {
             break;
         }
 
-        auto ifaces_it = parent_it->second.find(owner);
-        if (ifaces_it == parent_it->second.end())
+        auto ifacesIt = parentIt->second.find(owner);
+        if (ifacesIt == parentIt->second.end())
         {
             break;
         }
 
-        if (ifaces_it->second.size() != 3)
+        if (ifacesIt->second.size() != 3)
         {
             break;
         }
 
-        auto child_path = parent + '/';
+        auto childPath = parent + '/';
 
         // Remove this parent if there isn't a remaining child on this owner
         auto child = std::find_if(
-            interface_map.begin(), interface_map.end(),
-            [&owner, &child_path](const auto& entry) {
-                return boost::starts_with(entry.first, child_path) &&
+            interfaceMap.begin(), interfaceMap.end(),
+            [&owner, &childPath](const auto& entry) {
+                return boost::starts_with(entry.first, childPath) &&
                        (entry.second.find(owner) != entry.second.end());
             });
 
-        if (child == interface_map.end())
+        if (child == interfaceMap.end())
         {
-            parent_it->second.erase(ifaces_it);
-            if (parent_it->second.empty())
+            parentIt->second.erase(ifacesIt);
+            if (parentIt->second.empty())
             {
-                interface_map.erase(parent_it);
+                interfaceMap.erase(parentIt);
             }
         }
         else
@@ -430,43 +429,43 @@ void removeUnneededParents(const std::string& objectPath,
     }
 }
 
-std::vector<interface_map_type::value_type>
-    getAncestors(const interface_map_type& interface_map, std::string req_path,
+std::vector<InterfaceMapType::value_type>
+    getAncestors(const InterfaceMapType& interfaceMap, std::string reqPath,
                  std::vector<std::string>& interfaces)
 {
     // Interfaces need to be sorted for intersect to function
     std::sort(interfaces.begin(), interfaces.end());
 
-    if (boost::ends_with(req_path, "/"))
+    if (boost::ends_with(reqPath, "/"))
     {
-        req_path.pop_back();
+        reqPath.pop_back();
     }
-    if (req_path.size() && interface_map.find(req_path) == interface_map.end())
+    if (reqPath.size() && interfaceMap.find(reqPath) == interfaceMap.end())
     {
         throw sdbusplus::xyz::openbmc_project::Common::Error::
             ResourceNotFound();
     }
 
-    std::vector<interface_map_type::value_type> ret;
-    for (auto& object_path : interface_map)
+    std::vector<InterfaceMapType::value_type> ret;
+    for (auto& objectPath : interfaceMap)
     {
-        auto& this_path = object_path.first;
-        if (boost::starts_with(req_path, this_path) && (req_path != this_path))
+        auto& thisPath = objectPath.first;
+        if (boost::starts_with(reqPath, thisPath) && (reqPath != thisPath))
         {
             if (interfaces.empty())
             {
-                ret.emplace_back(object_path);
+                ret.emplace_back(objectPath);
             }
             else
             {
-                for (auto& interface_map : object_path.second)
+                for (auto& interfaceMap : objectPath.second)
                 {
 
                     if (intersect(interfaces.begin(), interfaces.end(),
-                                  interface_map.second.begin(),
-                                  interface_map.second.end()))
+                                  interfaceMap.second.begin(),
+                                  interfaceMap.second.end()))
                     {
-                        addObjectMapResult(ret, this_path, interface_map);
+                        addObjectMapResult(ret, thisPath, interfaceMap);
                     }
                 }
             }
@@ -477,7 +476,7 @@ std::vector<interface_map_type::value_type>
 }
 
 boost::container::flat_map<std::string, boost::container::flat_set<std::string>>
-    getObject(const interface_map_type& interface_map, const std::string& path,
+    getObject(const InterfaceMapType& interfaceMap, const std::string& path,
               std::vector<std::string>& interfaces)
 {
     boost::container::flat_map<std::string,
@@ -486,22 +485,22 @@ boost::container::flat_map<std::string, boost::container::flat_set<std::string>>
 
     // Interfaces need to be sorted for intersect to function
     std::sort(interfaces.begin(), interfaces.end());
-    auto path_ref = interface_map.find(path);
-    if (path_ref == interface_map.end())
+    auto pathRef = interfaceMap.find(path);
+    if (pathRef == interfaceMap.end())
     {
         throw sdbusplus::xyz::openbmc_project::Common::Error::
             ResourceNotFound();
     }
     if (interfaces.empty())
     {
-        return path_ref->second;
+        return pathRef->second;
     }
-    for (auto& interface_map : path_ref->second)
+    for (auto& interfaceMap : pathRef->second)
     {
         if (intersect(interfaces.begin(), interfaces.end(),
-                      interface_map.second.begin(), interface_map.second.end()))
+                      interfaceMap.second.begin(), interfaceMap.second.end()))
         {
-            results.emplace(interface_map.first, interface_map.second);
+            results.emplace(interfaceMap.first, interfaceMap.second);
         }
     }
 
@@ -514,8 +513,8 @@ boost::container::flat_map<std::string, boost::container::flat_set<std::string>>
     return results;
 }
 
-std::vector<interface_map_type::value_type>
-    getSubTree(const interface_map_type& interface_map, std::string req_path,
+std::vector<InterfaceMapType::value_type>
+    getSubTree(const InterfaceMapType& interfaceMap, std::string reqPath,
                int32_t depth, std::vector<std::string>& interfaces)
 {
     if (depth <= 0)
@@ -524,42 +523,42 @@ std::vector<interface_map_type::value_type>
     }
     // Interfaces need to be sorted for intersect to function
     std::sort(interfaces.begin(), interfaces.end());
-    std::vector<interface_map_type::value_type> ret;
+    std::vector<InterfaceMapType::value_type> ret;
 
-    if (boost::ends_with(req_path, "/"))
+    if (boost::ends_with(reqPath, "/"))
     {
-        req_path.pop_back();
+        reqPath.pop_back();
     }
-    if (req_path.size() && interface_map.find(req_path) == interface_map.end())
+    if (reqPath.size() && interfaceMap.find(reqPath) == interfaceMap.end())
     {
         throw sdbusplus::xyz::openbmc_project::Common::Error::
             ResourceNotFound();
     }
 
-    for (auto& object_path : interface_map)
+    for (auto& objectPath : interfaceMap)
     {
-        auto& this_path = object_path.first;
+        auto& thisPath = objectPath.first;
 
-        if (this_path == req_path)
+        if (thisPath == reqPath)
         {
             continue;
         }
 
-        if (boost::starts_with(this_path, req_path))
+        if (boost::starts_with(thisPath, reqPath))
         {
             // count the number of slashes past the search term
-            int32_t this_depth = std::count(this_path.begin() + req_path.size(),
-                                            this_path.end(), '/');
-            if (this_depth <= depth)
+            int32_t thisDepth = std::count(thisPath.begin() + reqPath.size(),
+                                           thisPath.end(), '/');
+            if (thisDepth <= depth)
             {
-                for (auto& interface_map : object_path.second)
+                for (auto& interfaceMap : objectPath.second)
                 {
                     if (intersect(interfaces.begin(), interfaces.end(),
-                                  interface_map.second.begin(),
-                                  interface_map.second.end()) ||
+                                  interfaceMap.second.begin(),
+                                  interfaceMap.second.end()) ||
                         interfaces.empty())
                     {
-                        addObjectMapResult(ret, this_path, interface_map);
+                        addObjectMapResult(ret, thisPath, interfaceMap);
                     }
                 }
             }
@@ -569,10 +568,9 @@ std::vector<interface_map_type::value_type>
     return ret;
 }
 
-std::vector<std::string>
-    getSubTreePaths(const interface_map_type& interface_map,
-                    std::string req_path, int32_t depth,
-                    std::vector<std::string>& interfaces)
+std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
+                                         std::string reqPath, int32_t depth,
+                                         std::vector<std::string>& interfaces)
 {
     if (depth <= 0)
     {
@@ -582,38 +580,38 @@ std::vector<std::string>
     std::sort(interfaces.begin(), interfaces.end());
     std::vector<std::string> ret;
 
-    if (boost::ends_with(req_path, "/"))
+    if (boost::ends_with(reqPath, "/"))
     {
-        req_path.pop_back();
+        reqPath.pop_back();
     }
-    if (req_path.size() && interface_map.find(req_path) == interface_map.end())
+    if (reqPath.size() && interfaceMap.find(reqPath) == interfaceMap.end())
     {
         throw sdbusplus::xyz::openbmc_project::Common::Error::
             ResourceNotFound();
     }
 
-    for (auto& object_path : interface_map)
+    for (auto& objectPath : interfaceMap)
     {
-        auto& this_path = object_path.first;
+        auto& thisPath = objectPath.first;
 
-        if (this_path == req_path)
+        if (thisPath == reqPath)
         {
             continue;
         }
 
-        if (boost::starts_with(this_path, req_path))
+        if (boost::starts_with(thisPath, reqPath))
         {
             // count the number of slashes past the search term
-            int this_depth = std::count(this_path.begin() + req_path.size(),
-                                        this_path.end(), '/');
-            if (this_depth <= depth)
+            int thisDepth = std::count(thisPath.begin() + reqPath.size(),
+                                       thisPath.end(), '/');
+            if (thisDepth <= depth)
             {
                 bool add = interfaces.empty();
-                for (auto& interface_map : object_path.second)
+                for (auto& interfaceMap : objectPath.second)
                 {
                     if (intersect(interfaces.begin(), interfaces.end(),
-                                  interface_map.second.begin(),
-                                  interface_map.second.end()))
+                                  interfaceMap.second.begin(),
+                                  interfaceMap.second.end()))
                     {
                         add = true;
                         break;
@@ -622,7 +620,7 @@ std::vector<std::string>
                 if (add)
                 {
                     // TODO(ed) this is a copy
-                    ret.emplace_back(this_path);
+                    ret.emplace_back(thisPath);
                 }
             }
         }
@@ -635,7 +633,7 @@ int main(int argc, char** argv)
 {
     auto options = ArgumentParser(argc, argv);
     boost::asio::io_context io;
-    std::shared_ptr<sdbusplus::asio::connection> system_bus =
+    std::shared_ptr<sdbusplus::asio::connection> systemBus =
         std::make_shared<sdbusplus::asio::connection>(io);
 
     splitArgs(options["service-namespaces"], serviceAllowList);
@@ -646,32 +644,32 @@ int main(int argc, char** argv)
     boost::container::flat_set<std::string> ifaceAllowlist;
     splitArgs(options["interface-namespaces"], ifaceAllowlist);
 
-    sdbusplus::asio::object_server server(system_bus);
+    sdbusplus::asio::object_server server(systemBus);
 
     // Construct a signal set registered for process termination.
     boost::asio::signal_set signals(io, SIGINT, SIGTERM);
     signals.async_wait(
         [&io](const boost::system::error_code&, int) { io.stop(); });
 
-    interface_map_type interface_map;
-    boost::container::flat_map<std::string, std::string> name_owners;
+    InterfaceMapType interfaceMap;
+    boost::container::flat_map<std::string, std::string> nameOwners;
 
     std::function<void(sdbusplus::message::message & message)>
-        nameChangeHandler = [&interface_map, &io, &name_owners, &server,
-                             system_bus](sdbusplus::message::message& message) {
-            std::string name;      // well-known
-            std::string old_owner; // unique-name
-            std::string new_owner; // unique-name
+        nameChangeHandler = [&interfaceMap, &io, &nameOwners, &server,
+                             systemBus](sdbusplus::message::message& message) {
+            std::string name;     // well-known
+            std::string oldOwner; // unique-name
+            std::string newOwner; // unique-name
 
-            message.read(name, old_owner, new_owner);
+            message.read(name, oldOwner, newOwner);
 
-            if (!old_owner.empty())
+            if (!oldOwner.empty())
             {
-                processNameChangeDelete(name_owners, name, old_owner,
-                                        interface_map, associationMaps, server);
+                processNameChangeDelete(nameOwners, name, oldOwner,
+                                        interfaceMap, associationMaps, server);
             }
 
-            if (!new_owner.empty())
+            if (!newOwner.empty())
             {
 #ifdef DEBUG
                 auto transaction = std::make_shared<
@@ -681,116 +679,116 @@ int main(int argc, char** argv)
                 // New daemon added
                 if (needToIntrospect(name, serviceAllowList, serviceDenyList))
                 {
-                    name_owners[new_owner] = name;
-                    start_new_introspect(system_bus.get(), io, interface_map,
-                                         name, associationMaps,
+                    nameOwners[newOwner] = name;
+                    startNewIntrospect(systemBus.get(), io, interfaceMap, name,
+                                       associationMaps,
 #ifdef DEBUG
-                                         transaction,
+                                       transaction,
 #endif
-                                         server);
+                                       server);
                 }
             }
         };
 
     sdbusplus::bus::match::match nameOwnerChanged(
-        static_cast<sdbusplus::bus::bus&>(*system_bus),
+        static_cast<sdbusplus::bus::bus&>(*systemBus),
         sdbusplus::bus::match::rules::nameOwnerChanged(), nameChangeHandler);
 
     std::function<void(sdbusplus::message::message & message)>
-        interfacesAddedHandler = [&interface_map, &name_owners, &server](
+        interfacesAddedHandler = [&interfaceMap, &nameOwners, &server](
                                      sdbusplus::message::message& message) {
-            sdbusplus::message::object_path obj_path;
-            InterfacesAdded interfaces_added;
-            message.read(obj_path, interfaces_added);
-            std::string well_known;
-            if (!getWellKnown(name_owners, message.get_sender(), well_known))
+            sdbusplus::message::object_path objPath;
+            InterfacesAdded interfacesAdded;
+            message.read(objPath, interfacesAdded);
+            std::string wellKnown;
+            if (!getWellKnown(nameOwners, message.get_sender(), wellKnown))
             {
                 return; // only introspect well-known
             }
-            if (needToIntrospect(well_known, serviceAllowList, serviceDenyList))
+            if (needToIntrospect(wellKnown, serviceAllowList, serviceDenyList))
             {
-                processInterfaceAdded(interface_map, obj_path, interfaces_added,
-                                      well_known, associationMaps, server);
+                processInterfaceAdded(interfaceMap, objPath, interfacesAdded,
+                                      wellKnown, associationMaps, server);
             }
         };
 
     sdbusplus::bus::match::match interfacesAdded(
-        static_cast<sdbusplus::bus::bus&>(*system_bus),
+        static_cast<sdbusplus::bus::bus&>(*systemBus),
         sdbusplus::bus::match::rules::interfacesAdded(),
         interfacesAddedHandler);
 
     std::function<void(sdbusplus::message::message & message)>
-        interfacesRemovedHandler = [&interface_map, &name_owners, &server](
+        interfacesRemovedHandler = [&interfaceMap, &nameOwners, &server](
                                        sdbusplus::message::message& message) {
-            sdbusplus::message::object_path obj_path;
-            std::vector<std::string> interfaces_removed;
-            message.read(obj_path, interfaces_removed);
-            auto connection_map = interface_map.find(obj_path.str);
-            if (connection_map == interface_map.end())
+            sdbusplus::message::object_path objPath;
+            std::vector<std::string> interfacesRemoved;
+            message.read(objPath, interfacesRemoved);
+            auto connectionMap = interfaceMap.find(objPath.str);
+            if (connectionMap == interfaceMap.end())
             {
                 return;
             }
 
             std::string sender;
-            if (!getWellKnown(name_owners, message.get_sender(), sender))
+            if (!getWellKnown(nameOwners, message.get_sender(), sender))
             {
                 return;
             }
-            for (const std::string& interface : interfaces_removed)
+            for (const std::string& interface : interfacesRemoved)
             {
-                auto interface_set = connection_map->second.find(sender);
-                if (interface_set == connection_map->second.end())
+                auto interfaceSet = connectionMap->second.find(sender);
+                if (interfaceSet == connectionMap->second.end())
                 {
                     continue;
                 }
 
                 if (interface == assocDefsInterface)
                 {
-                    removeAssociation(obj_path.str, sender, server,
+                    removeAssociation(objPath.str, sender, server,
                                       associationMaps);
                 }
 
-                interface_set->second.erase(interface);
+                interfaceSet->second.erase(interface);
 
-                if (interface_set->second.empty())
+                if (interfaceSet->second.empty())
                 {
                     // If this was the last interface on this connection,
                     // erase the connection
-                    connection_map->second.erase(interface_set);
+                    connectionMap->second.erase(interfaceSet);
 
                     // Instead of checking if every single path is the endpoint
                     // of an association that needs to be moved to pending,
                     // only check when the only remaining owner of this path is
                     // ourself, which would be because we still own the
                     // association path.
-                    if ((connection_map->second.size() == 1) &&
-                        (connection_map->second.begin()->first ==
+                    if ((connectionMap->second.size() == 1) &&
+                        (connectionMap->second.begin()->first ==
                          "xyz.openbmc_project.ObjectMapper"))
                     {
                         // Remove the 2 association D-Bus paths and move the
                         // association to pending.
-                        moveAssociationToPending(obj_path.str, associationMaps,
+                        moveAssociationToPending(objPath.str, associationMaps,
                                                  server);
                     }
                 }
             }
             // If this was the last connection on this object path,
             // erase the object path
-            if (connection_map->second.empty())
+            if (connectionMap->second.empty())
             {
-                interface_map.erase(connection_map);
+                interfaceMap.erase(connectionMap);
             }
 
-            removeUnneededParents(obj_path.str, sender, interface_map);
+            removeUnneededParents(objPath.str, sender, interfaceMap);
         };
 
     sdbusplus::bus::match::match interfacesRemoved(
-        static_cast<sdbusplus::bus::bus&>(*system_bus),
+        static_cast<sdbusplus::bus::bus&>(*systemBus),
         sdbusplus::bus::match::rules::interfacesRemoved(),
         interfacesRemovedHandler);
 
     std::function<void(sdbusplus::message::message & message)>
-        associationChangedHandler = [&server, &name_owners, &interface_map](
+        associationChangedHandler = [&server, &nameOwners, &interfaceMap](
                                         sdbusplus::message::message& message) {
             std::string objectName;
             boost::container::flat_map<std::string,
@@ -803,18 +801,17 @@ int main(int argc, char** argv)
                 std::vector<Association> associations =
                     std::get<std::vector<Association>>(prop->second);
 
-                std::string well_known;
-                if (!getWellKnown(name_owners, message.get_sender(),
-                                  well_known))
+                std::string wellKnown;
+                if (!getWellKnown(nameOwners, message.get_sender(), wellKnown))
                 {
                     return;
                 }
                 associationChanged(server, associations, message.get_path(),
-                                   well_known, interface_map, associationMaps);
+                                   wellKnown, interfaceMap, associationMaps);
             }
         };
     sdbusplus::bus::match::match assocChangedMatch(
-        static_cast<sdbusplus::bus::bus&>(*system_bus),
+        static_cast<sdbusplus::bus::bus&>(*systemBus),
         sdbusplus::bus::match::rules::interface(
             "org.freedesktop.DBus.Properties") +
             sdbusplus::bus::match::rules::member("PropertiesChanged") +
@@ -826,38 +823,38 @@ int main(int argc, char** argv)
                              "xyz.openbmc_project.ObjectMapper");
 
     iface->register_method(
-        "GetAncestors", [&interface_map](std::string& req_path,
-                                         std::vector<std::string>& interfaces) {
-            return getAncestors(interface_map, req_path, interfaces);
+        "GetAncestors", [&interfaceMap](std::string& reqPath,
+                                        std::vector<std::string>& interfaces) {
+            return getAncestors(interfaceMap, reqPath, interfaces);
         });
 
     iface->register_method(
-        "GetObject", [&interface_map](const std::string& path,
+        "GetObject", [&interfaceMap](const std::string& path,
+                                     std::vector<std::string>& interfaces) {
+            return getObject(interfaceMap, path, interfaces);
+        });
+
+    iface->register_method(
+        "GetSubTree", [&interfaceMap](std::string& reqPath, int32_t depth,
                                       std::vector<std::string>& interfaces) {
-            return getObject(interface_map, path, interfaces);
-        });
-
-    iface->register_method(
-        "GetSubTree", [&interface_map](std::string& req_path, int32_t depth,
-                                       std::vector<std::string>& interfaces) {
-            return getSubTree(interface_map, req_path, depth, interfaces);
+            return getSubTree(interfaceMap, reqPath, depth, interfaces);
         });
 
     iface->register_method(
         "GetSubTreePaths",
-        [&interface_map](std::string& req_path, int32_t depth,
-                         std::vector<std::string>& interfaces) {
-            return getSubTreePaths(interface_map, req_path, depth, interfaces);
+        [&interfaceMap](std::string& reqPath, int32_t depth,
+                        std::vector<std::string>& interfaces) {
+            return getSubTreePaths(interfaceMap, reqPath, depth, interfaces);
         });
 
     iface->initialize();
 
     io.post([&]() {
-        doListNames(io, interface_map, system_bus.get(), name_owners,
+        doListNames(io, interfaceMap, systemBus.get(), nameOwners,
                     associationMaps, server);
     });
 
-    system_bus->request_name("xyz.openbmc_project.ObjectMapper");
+    systemBus->request_name("xyz.openbmc_project.ObjectMapper");
 
     io.run();
 }

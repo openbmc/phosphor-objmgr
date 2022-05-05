@@ -41,7 +41,7 @@ using InterfacesAdded = std::vector<std::pair<
  */
 bool getWellKnown(
     const boost::container::flat_map<std::string, std::string>& owners,
-    const std::string& request, std::string& well_known);
+    const std::string& request, std::string& wellKnown);
 
 /** @brief Determine if dbus service is something to monitor
  *
@@ -53,7 +53,7 @@ bool getWellKnown(
  * @param[in] allowList     - The allow list
  * @param[in] denyList      - The deny list
  *
- * @return True if input process_name should be monitored, false otherwise
+ * @return True if input processName should be monitored, false otherwise
  */
 bool needToIntrospect(const std::string& processName,
                       const AllowDenyList& allowList,
@@ -72,7 +72,7 @@ bool needToIntrospect(const std::string& processName,
 void processNameChangeDelete(
     boost::container::flat_map<std::string, std::string>& nameOwners,
     const std::string& wellKnown, const std::string& oldOwner,
-    interface_map_type& interfaceMap, AssociationMaps& assocMaps,
+    InterfaceMapType& interfaceMap, AssociationMaps& assocMaps,
     sdbusplus::asio::object_server& server);
 
 /** @brief Handle an interfaces added signal
@@ -85,7 +85,7 @@ void processNameChangeDelete(
  * @param[in,out] server          - sdbus system object
  *
  */
-void processInterfaceAdded(interface_map_type& interfaceMap,
+void processInterfaceAdded(InterfaceMapType& interfaceMap,
                            const sdbusplus::message::object_path& objPath,
                            const InterfacesAdded& intfAdded,
                            const std::string& wellKnown,
