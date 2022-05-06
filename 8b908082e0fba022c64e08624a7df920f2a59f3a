@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "03c8a8c4_10addfb4",
+        "filename": "subprojects/phosphor-dbus-interfaces.wrap",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2022-05-06T12:18:43Z",
+      "side": 1,
+      "message": "I\u0027m slightly confused why this wrap file even exists.  I don\u0027t see a direct dependency on phosphor-dbus-interfaces in the meson.build.\n\nI do see this so maybe we\u0027re missing something in the meson.build to add the appropriate dependency?\n\nsrc/main.cpp:#include \u003cxyz/openbmc_project/Common/error.hpp\u003e",
+      "revId": "8b908082e0fba022c64e08624a7df920f2a59f3a",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
