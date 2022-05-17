@@ -12,6 +12,7 @@ project(
 )
 
 phosphor_logging = dependency('phosphor-logging')
+phosphor_dbus_interfaces = dependency('phosphor-dbus-interfaces')
 sdbusplus = dependency('sdbusplus')
 
 if get_option('tests').enabled()
@@ -73,6 +74,7 @@ executable(
     dependencies: [
         dependency('boost'),
         dependency('libsystemd'),
+        phosphor_dbus_interfaces,
         phosphor_logging,
         sdbusplus,
         dependency('systemd'),
