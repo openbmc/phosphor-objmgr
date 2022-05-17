@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b4144d7a_ce80504a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2022-05-17T01:15:28Z",
+      "side": 1,
+      "message": "FWIW there is another way to fix this bug...and that is reverting Ic4fa9d2eac56dc79782e7453113574197ffce49b.  This one little exception class is the only PDI used in this otherwise asio project, and the commit message does little to convince me that it was needed for something other than de-duplicating a class.\n\nMatt if you think that approach makes more sense I\u0027m happy to push a revert.",
+      "revId": "f7790a0abb52c6c408e165c338c68935c4437ba6",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
