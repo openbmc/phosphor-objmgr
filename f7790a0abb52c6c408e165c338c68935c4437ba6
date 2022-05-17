@@ -20,6 +20,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "331d5f8d_52e506b2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2022-05-17T12:24:44Z",
+      "side": 1,
+      "message": "I think there were some additional requirements on exception classes now as well.  There is a function for the desired errno, at least.  When I did this I was going through and adding them everywhere and it seemed better to use the common one than having another place to maintain what needed to be in the sdbusplus::exception_t.\n\n(Net: You can revert this if you so choose, but there is more required than just a revert.)",
+      "parentUuid": "b4144d7a_ce80504a",
+      "revId": "f7790a0abb52c6c408e165c338c68935c4437ba6",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "95b74c41_8cbe2628",
         "filename": "meson.build",
         "patchSetId": 2
