@@ -87,6 +87,24 @@
       "parentUuid": "95b74c41_8cbe2628",
       "revId": "f7790a0abb52c6c408e165c338c68935c4437ba6",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c08ad291_af3ed535",
+        "filename": "meson.build",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2022-05-18T12:21:49Z",
+      "side": 1,
+      "message": "I\u0027m not sure why it built without it (if you really were trying to build as a stand-alone / wrap-based build).  Maybe another wrap dependency resolved the phosphor-dbus-interfaces dependency already?\n\nIt use to be that we\u0027d have all of our `dependency()` calls include a `fallback:`.  See https://mesonbuild.com/Reference-manual_functions.html#dependency .  The `[provide]` statement is now the equivalent of the `fallback`.\n\n\u003e phosphor-dbus-interfaces \u003d phosphor_dbus_interfaces_dep\n\nThis means: the dependency `phosphor-dbus-interfaces` can be obtained by finding the `phosphor_dbus_interfaces_dep` variable inside this subproject\u0027s meson.build.",
+      "parentUuid": "1f590a13_bd12b9f4",
+      "revId": "f7790a0abb52c6c408e165c338c68935c4437ba6",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
