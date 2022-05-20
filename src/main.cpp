@@ -15,12 +15,16 @@
 #include <iostream>
 #include <sdbusplus/asio/connection.hpp>
 #include <sdbusplus/asio/object_server.hpp>
+#include <set>
 #include <xyz/openbmc_project/Common/error.hpp>
 
 AssociationMaps associationMaps;
 
 static WhiteBlackList service_whitelist;
 static WhiteBlackList service_blacklist;
+
+// The process names during introspect
+static std::set<std::string> processesInIntrospect;
 
 void update_owners(sdbusplus::asio::connection* conn,
                    boost::container::flat_map<std::string, std::string>& owners,
@@ -77,10 +81,12 @@ struct InProgressIntrospect
         process_start_time(std::chrono::steady_clock::now())
 #endif
     {
+        processesInIntrospect.insert(process_name);
     }
     ~InProgressIntrospect()
     {
         send_introspection_complete_signal(system_bus, process_name);
+        processesInIntrospect.erase(process_name);
 
 #ifdef DEBUG
         std::chrono::duration<float> diff =
@@ -590,6 +596,19 @@ std::vector<std::string>
     {
         throw sdbusplus::xyz::openbmc_project::Common::Error::
             ResourceNotFound();
+    }
+
+    // If the process is in introspect, throw
+    if (!processesInIntrospect.empty())
+    {
+        for (const auto& [p, i] : interface_map.find(req_path)->second)
+        {
+            if (processesInIntrospect.find(p) != processesInIntrospect.end())
+            {
+                throw sdbusplus::xyz::openbmc_project::Common::Error::
+                    ResourceNotFound();
+            }
+        }
     }
 
     for (auto& object_path : interface_map)
