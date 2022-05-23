@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0a47187d_b35908f5",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2022-05-23T16:55:54Z",
+      "side": 1,
+      "message": "As written, this is going to have LOTS of user-facing impacts if the mapper is no longer considered \"reliable\".  Doing this would mean that we need to add retries in every daemon (like bmcweb), which seems like a lot of complexity that I don\u0027t really want in those daemons.\n\nAs an alternative, what if the interfaces to be added were just added to the InProgressIntrospect object, then when that operation is completed, they would all be added to the global at one time, which I think would avoid your race condition?",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 13
+      },
+      "revId": "c804bff683b9ad7fd9743a638a94bc69ce5701f1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "768defd0_eb055032",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2022-05-23T16:55:54Z",
+      "side": 1,
+      "message": "This is going to force EVERY daemon in openbmc to add retry code for any mapper call.  In terms of complexity, I suspect that\u0027s not what we want.",
+      "range": {
+        "startLine": 17,
+        "startChar": 11,
+        "endLine": 17,
+        "endChar": 47
+      },
+      "revId": "c804bff683b9ad7fd9743a638a94bc69ce5701f1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
