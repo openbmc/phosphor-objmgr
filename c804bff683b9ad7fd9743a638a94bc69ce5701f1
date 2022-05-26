@@ -98,6 +98,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "ca8e5ec4_bef13891",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2022-05-26T19:33:26Z",
+      "side": 1,
+      "message": "\u003e I think we\u0027re saying the same thing, but we shouldn\u0027t return an EMPTY result, we should just omit the one service being introspected.  Ideally we\u0027d do this by atomically adding all the paths in one shot, when the last handler calls back, instead of adding them as the results come in.  We do this pattern in other contexts like dbus-sensors (admittedly with a timer, but same idea).\n\nsounds good to me.",
+      "parentUuid": "98500743_0735b75e",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 13
+      },
+      "revId": "c804bff683b9ad7fd9743a638a94bc69ce5701f1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "768defd0_eb055032",
         "filename": "/COMMIT_MSG",
         "patchSetId": 1
