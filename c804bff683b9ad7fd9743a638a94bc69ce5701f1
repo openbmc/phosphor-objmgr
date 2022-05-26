@@ -74,6 +74,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "98500743_0735b75e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2022-05-26T18:24:39Z",
+      "side": 1,
+      "message": "\u003e That\u0027s why I only add this logic in `GetSubTreePaths` for now.\n\nbmcweb uses GetSubTreePaths as well, so this doesn\u0027t really solve the issue.  FWIW, we need a solution that works for all the mapper methods.\n\n\n\u003e When it\u0027s in InProgressIntrospect and not available to the `GetSubTreePaths`, it will throw because getSubTreePaths() throws when there is no resource.\n\nIMO, it\u0027s very different.  \"This element doesn\u0027t exist yet\" is an error that every implementation already has to handle, because the system might not have that device/path, and in general, doesn\u0027t need to be retried.  \"Can\u0027t give a correct result yet\" errors arguably need to be retried.\n\n\u003e I like the idea of just returning an empty result when in progress,\n\nI think we\u0027re saying the same thing, but we shouldn\u0027t return an EMPTY result, we should just omit the one service being introspected.  Ideally we\u0027d do this by atomically adding all the paths in one shot, when the last handler calls back, instead of adding them as the results come in.  We do this pattern in other contexts like dbus-sensors (admittedly with a timer, but same idea).",
+      "parentUuid": "1bf276b0_1530f34a",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 13
+      },
+      "revId": "c804bff683b9ad7fd9743a638a94bc69ce5701f1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "768defd0_eb055032",
         "filename": "/COMMIT_MSG",
         "patchSetId": 1
