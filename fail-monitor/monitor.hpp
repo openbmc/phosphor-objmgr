@@ -51,8 +51,7 @@ class Monitor
             Action action) :
         bus(std::move(sdbusplus::bus::new_default())),
         source(sourceUnit), target(targetUnit), action(action)
-    {
-    }
+    {}
 
     /**
      * Analyzes the source unit to check if it is in a failed state.

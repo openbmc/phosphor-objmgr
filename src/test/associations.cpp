@@ -10,8 +10,7 @@
 #include <gtest/gtest.h>
 
 class TestAssociations : public AsioServerClassTest
-{
-};
+{};
 sdbusplus::asio::object_server* TestAssociations::AsioServerClassTest::server =
     nullptr;
 
@@ -100,7 +99,6 @@ TEST_F(TestAssociations, PathIsInAssociatedInterfacesExtraEndpoints)
 // Verify no associations or endpoints removed when the change is identical
 TEST_F(TestAssociations, checkAssociationEndpointRemovesNoEpRemove)
 {
-
     AssociationPaths newAssocPaths = {
         {DEFAULT_FWD_PATH, {DEFAULT_ENDPOINT}},
         {DEFAULT_REV_PATH, {DEFAULT_SOURCE_PATH}}};

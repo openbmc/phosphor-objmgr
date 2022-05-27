@@ -1,8 +1,9 @@
 #include "associations.hpp"
 
 #include <boost/algorithm/string/predicate.hpp>
-#include <iostream>
 #include <sdbusplus/exception.hpp>
+
+#include <iostream>
 
 void removeAssociation(const std::string& sourcePath, const std::string& owner,
                        sdbusplus::asio::object_server& server,

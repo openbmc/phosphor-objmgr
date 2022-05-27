@@ -9,8 +9,7 @@
 #include <gtest/gtest.h>
 
 class TestInterfacesAdded : public AsioServerClassTest
-{
-};
+{};
 sdbusplus::asio::object_server*
     TestInterfacesAdded::AsioServerClassTest::server = nullptr;
 
