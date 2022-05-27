@@ -5,17 +5,18 @@
 
 #include <tinyxml2.h>
 
-#include <atomic>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/signal_set.hpp>
 #include <boost/container/flat_map.hpp>
-#include <chrono>
-#include <iomanip>
-#include <iostream>
 #include <sdbusplus/asio/connection.hpp>
 #include <sdbusplus/asio/object_server.hpp>
 #include <xyz/openbmc_project/Common/error.hpp>
+
+#include <atomic>
+#include <chrono>
+#include <iomanip>
+#include <iostream>
 
 AssociationMaps associationMaps;
 
@@ -76,8 +77,7 @@ struct InProgressIntrospect
         global_start_time(global_start_time),
         process_start_time(std::chrono::steady_clock::now())
 #endif
-    {
-    }
+    {}
     ~InProgressIntrospect()
     {
         send_introspection_complete_signal(system_bus, process_name);

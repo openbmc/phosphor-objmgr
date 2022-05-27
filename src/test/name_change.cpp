@@ -5,8 +5,7 @@
 #include <gtest/gtest.h>
 
 class TestNameChange : public AsioServerClassTest
-{
-};
+{};
 sdbusplus::asio::object_server* TestNameChange::AsioServerClassTest::server =
     nullptr;
 

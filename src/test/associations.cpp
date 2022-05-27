@@ -10,8 +10,7 @@
 #include <gtest/gtest.h>
 
 class TestAssociations : public AsioServerClassTest
-{
-};
+{};
 sdbusplus::asio::object_server* TestAssociations::AsioServerClassTest::server =
     nullptr;
 
