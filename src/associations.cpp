@@ -128,7 +128,7 @@ void checkAssociationEndpointRemoves(
             // changed.
             boost::container::flat_set<std::string> toRemove;
 
-            for (auto& originalEndpoint : originalEndpoints)
+            for (const auto& originalEndpoint : originalEndpoints)
             {
                 if (std::find(newEndpoints->second.begin(),
                               newEndpoints->second.end(),
@@ -156,7 +156,7 @@ void addEndpointsToAssocIfaces(
     auto& endpoints = std::get<endpointsPos>(iface);
 
     // Only add new endpoints
-    for (auto& e : endpointPaths)
+    for (const auto& e : endpointPaths)
     {
         if (std::find(endpoints.begin(), endpoints.end(), e) == endpoints.end())
         {
@@ -190,30 +190,30 @@ void associationChanged(sdbusplus::asio::object_server& objectServer,
     {
         std::string forward;
         std::string reverse;
-        std::string endpoint;
-        std::tie(forward, reverse, endpoint) = association;
+        std::string objectPath;
+        std::tie(forward, reverse, objectPath) = association;
 
-        if (endpoint.empty())
+        if (objectPath.empty())
         {
             std::cerr << "Found invalid association on path " << path << "\n";
             continue;
         }
 
         // Can't create this association if the endpoint isn't on D-Bus.
-        if (interfaceMap.find(endpoint) == interfaceMap.end())
+        if (interfaceMap.find(objectPath) == interfaceMap.end())
         {
-            addPendingAssociation(endpoint, reverse, path, forward, owner,
+            addPendingAssociation(objectPath, reverse, path, forward, owner,
                                   assocMaps);
             continue;
         }
 
-        if (forward.size())
+        if (!forward.empty())
         {
-            objects[path + "/" + forward].emplace(endpoint);
+            objects[path + "/" + forward].emplace(objectPath);
         }
-        if (reverse.size())
+        if (!reverse.empty())
         {
-            objects[endpoint + "/" + reverse].emplace(path);
+            objects[objectPath + "/" + reverse].emplace(path);
         }
     }
     for (const auto& object : objects)
@@ -415,10 +415,9 @@ void checkIfPendingAssociation(const std::string& objectPath,
             // exception is thrown. mapper has no control of the interface/path
             // of the associations, so it has to catch the error and drop the
             // association request.
-            fprintf(stderr,
-                    "Error adding association: assocPath %s, endpointPath %s, "
-                    "what: %s\n",
-                    assocPath.c_str(), endpointPath.c_str(), e.what());
+            std::cerr << "Error adding association: assocPath " << assocPath
+                      << ", endpointPath " << endpointPath
+                      << ", what: " << e.what() << "\n";
         }
 
         // Not pending anymore
@@ -540,7 +539,7 @@ void removeAssociationOwnersEntry(const std::string& assocPath,
                                   const std::string& endpointPath,
                                   const std::string& owner,
                                   AssociationMaps& assocMaps,
-                                  sdbusplus::asio::object_server&)
+                                  sdbusplus::asio::object_server& /*unused*/)
 {
     auto sources = assocMaps.owners.begin();
     while (sources != assocMaps.owners.end())

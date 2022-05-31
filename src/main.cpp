@@ -17,6 +17,7 @@
 #include <chrono>
 #include <iomanip>
 #include <iostream>
+#include <utility>
 
 AssociationMaps associationMaps;
 
@@ -61,6 +62,11 @@ void sendIntrospectionCompleteSignal(sdbusplus::asio::connection* systemBus,
 
 struct InProgressIntrospect
 {
+    InProgressIntrospect() = delete;
+    InProgressIntrospect(const InProgressIntrospect&) = delete;
+    InProgressIntrospect(InProgressIntrospect&&) = delete;
+    InProgressIntrospect& operator=(const InProgressIntrospect&) = delete;
+    InProgressIntrospect& operator=(InProgressIntrospect&&) = delete;
     InProgressIntrospect(
         sdbusplus::asio::connection* systemBus, boost::asio::io_context& io,
         const std::string& processName, AssociationMaps& am
@@ -74,7 +80,7 @@ struct InProgressIntrospect
         io(io), processName(processName), assocMaps(am)
 #ifdef DEBUG
         ,
-        globalStartTime(globalStartTime),
+        globalStartTime(std::move(globalStartTime)),
         processStartTime(std::chrono::steady_clock::now())
 #endif
     {}
@@ -142,10 +148,10 @@ void doAssociations(sdbusplus::asio::connection* systemBus,
 }
 
 void doIntrospect(sdbusplus::asio::connection* systemBus,
-                  std::shared_ptr<InProgressIntrospect> transaction,
+                  const std::shared_ptr<InProgressIntrospect>& transaction,
                   InterfaceMapType& interfaceMap,
                   sdbusplus::asio::object_server& objectServer,
-                  std::string path, int timeoutRetries = 0)
+                  const std::string& path, int timeoutRetries = 0)
 {
     constexpr int maxTimeoutRetries = 3;
     systemBus->async_method_call(
@@ -440,16 +446,16 @@ std::vector<InterfaceMapType::value_type>
     {
         reqPath.pop_back();
     }
-    if (reqPath.size() && interfaceMap.find(reqPath) == interfaceMap.end())
+    if (!reqPath.empty() && interfaceMap.find(reqPath) == interfaceMap.end())
     {
         throw sdbusplus::xyz::openbmc_project::Common::Error::
             ResourceNotFound();
     }
 
     std::vector<InterfaceMapType::value_type> ret;
-    for (auto& objectPath : interfaceMap)
+    for (const auto& objectPath : interfaceMap)
     {
-        auto& thisPath = objectPath.first;
+        const auto& thisPath = objectPath.first;
         if (boost::starts_with(reqPath, thisPath) && (reqPath != thisPath))
         {
             if (interfaces.empty())
@@ -458,7 +464,7 @@ std::vector<InterfaceMapType::value_type>
             }
             else
             {
-                for (auto& interfaceMap : objectPath.second)
+                for (const auto& interfaceMap : objectPath.second)
                 {
                     if (intersect(interfaces.begin(), interfaces.end(),
                                   interfaceMap.second.begin(),
@@ -494,7 +500,7 @@ boost::container::flat_map<std::string, boost::container::flat_set<std::string>>
     {
         return pathRef->second;
     }
-    for (auto& interfaceMap : pathRef->second)
+    for (const auto& interfaceMap : pathRef->second)
     {
         if (intersect(interfaces.begin(), interfaces.end(),
                       interfaceMap.second.begin(), interfaceMap.second.end()))
@@ -528,15 +534,15 @@ std::vector<InterfaceMapType::value_type>
     {
         reqPath.pop_back();
     }
-    if (reqPath.size() && interfaceMap.find(reqPath) == interfaceMap.end())
+    if (!reqPath.empty() && interfaceMap.find(reqPath) == interfaceMap.end())
     {
         throw sdbusplus::xyz::openbmc_project::Common::Error::
             ResourceNotFound();
     }
 
-    for (auto& objectPath : interfaceMap)
+    for (const auto& objectPath : interfaceMap)
     {
-        auto& thisPath = objectPath.first;
+        const auto& thisPath = objectPath.first;
 
         if (thisPath == reqPath)
         {
@@ -550,7 +556,7 @@ std::vector<InterfaceMapType::value_type>
                                            thisPath.end(), '/');
             if (thisDepth <= depth)
             {
-                for (auto& interfaceMap : objectPath.second)
+                for (const auto& interfaceMap : objectPath.second)
                 {
                     if (intersect(interfaces.begin(), interfaces.end(),
                                   interfaceMap.second.begin(),
@@ -583,15 +589,15 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
     {
         reqPath.pop_back();
     }
-    if (reqPath.size() && interfaceMap.find(reqPath) == interfaceMap.end())
+    if (!reqPath.empty() && interfaceMap.find(reqPath) == interfaceMap.end())
     {
         throw sdbusplus::xyz::openbmc_project::Common::Error::
             ResourceNotFound();
     }
 
-    for (auto& objectPath : interfaceMap)
+    for (const auto& objectPath : interfaceMap)
     {
-        auto& thisPath = objectPath.first;
+        const auto& thisPath = objectPath.first;
 
         if (thisPath == reqPath)
         {
@@ -606,7 +612,7 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
             if (thisDepth <= depth)
             {
                 bool add = interfaces.empty();
-                for (auto& interfaceMap : objectPath.second)
+                for (const auto& interfaceMap : objectPath.second)
                 {
                     if (intersect(interfaces.begin(), interfaces.end(),
                                   interfaceMap.second.begin(),

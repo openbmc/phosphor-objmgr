@@ -38,13 +38,13 @@ constexpr auto systemdUnitInterface = "org.freedesktop.systemd1.Unit";
 
 void Monitor::analyze()
 {
-    if (inFailedState(std::move(getSourceUnitPath())))
+    if (inFailedState(getSourceUnitPath()))
     {
         runTargetAction();
     }
 }
 
-bool Monitor::inFailedState(const std::string&& path)
+bool Monitor::inFailedState(const std::string& path)
 {
     std::variant<std::string> property;
 
@@ -93,7 +93,8 @@ std::string Monitor::getSourceUnitPath()
 void Monitor::runTargetAction()
 {
     // Start or stop the target unit
-    auto methodCall = (action == Action::start) ? startMethod : stopMethod;
+    const auto* methodCall =
+        (action == Action::start) ? startMethod : stopMethod;
 
     log<level::INFO>("The source unit is in failed state, "
                      "running target action",

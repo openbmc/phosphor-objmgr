@@ -8,20 +8,20 @@ void dumpAssociationOwnersType(AssociationOwnersType& assocOwners)
 {
     using namespace std;
     cout << "##### AssociationOwnersType #####" << endl;
-    for (auto i : assocOwners)
+    for (const auto& i : assocOwners)
     {
         cout << "------------------------------------" << endl;
         cout << setw(15) << left << "OBJ PATH:" << i.first << endl;
 
-        for (auto j : i.second)
+        for (const auto& j : i.second)
         {
             cout << setw(16) << left << "DBUS SERVICE:" << j.first << endl;
 
-            for (auto k : j.second)
+            for (const auto& k : j.second)
             {
                 cout << setw(17) << left << "ASSOC PATH:" << k.first << endl;
 
-                for (auto l : k.second)
+                for (const auto& l : k.second)
                 {
                     cout << setw(18) << left << "ENDPOINT:" << l << endl;
                 }
@@ -41,7 +41,7 @@ void dumpAssociationInterfaces(AssociationInterfaces& assocInterfaces)
         cout << setw(15) << left << "OBJ PATH:" << i.first << endl;
         auto intfEndpoints = std::get<endpointsPos>(i.second);
 
-        for (auto k : intfEndpoints)
+        for (const auto& k : intfEndpoints)
         {
             cout << setw(16) << left << "ENDPOINTS:" << k << endl;
         }
@@ -53,16 +53,16 @@ void dumpInterfaceMapType(InterfaceMapType& intfMap)
 {
     using namespace std;
     cout << "##### interfaceMapType #####" << endl;
-    for (auto i : intfMap)
+    for (const auto& i : intfMap)
     {
         cout << "------------------------------------" << endl;
         cout << setw(15) << left << "OBJ PATH:" << i.first << endl;
 
-        for (auto j : i.second)
+        for (const auto& j : i.second)
         {
             cout << setw(16) << left << "DBUS SERVICE:" << j.first << endl;
 
-            for (auto k : j.second)
+            for (const auto& k : j.second)
             {
                 cout << setw(18) << left << "INTERFACE:" << k << endl;
             }
