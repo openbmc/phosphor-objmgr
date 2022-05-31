@@ -2,6 +2,7 @@ project(
     'phosphor-objmgr',
     'c', 'cpp',
     default_options: [
+        'buildtype=debugoptimized',
         'cpp_std=c++20',
         'warning_level=3',
         'werror=true',
@@ -14,6 +15,11 @@ project(
 phosphor_logging = dependency('phosphor-logging')
 phosphor_dbus_interfaces = dependency('phosphor-dbus-interfaces')
 sdbusplus = dependency('sdbusplus')
+
+
+if get_option('buildtype').startswith('debug')
+    add_project_arguments('-DMAPPER_ENABLE_DEBUG', language : 'cpp')
+endif
 
 if get_option('tests').enabled()
     gtest = dependency('gtest', main: true, disabler: true, required: false)
