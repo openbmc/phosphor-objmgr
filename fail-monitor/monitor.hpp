@@ -37,7 +37,7 @@ class Monitor
     Monitor(const Monitor&) = delete;
     Monitor(Monitor&&) = default;
     Monitor& operator=(const Monitor&) = delete;
-    Monitor& operator=(Monitor&&) = default;
+    Monitor& operator=(Monitor&&) = delete;
     ~Monitor() = default;
 
     /**
@@ -49,7 +49,7 @@ class Monitor
      */
     Monitor(const std::string& sourceUnit, const std::string& targetUnit,
             Action action) :
-        bus(std::move(sdbusplus::bus::new_default())),
+        bus(sdbusplus::bus::new_default()),
         source(sourceUnit), target(targetUnit), action(action)
     {}
 
@@ -73,7 +73,7 @@ class Monitor
      *
      * @return - true if this unit is in the failed state
      */
-    bool inFailedState(const std::string&& path);
+    bool inFailedState(const std::string& path);
 
     /**
      * Runs the action on the target unit.
