@@ -177,6 +177,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6962c424_5a22eb9c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2022-05-31T17:34:43Z",
+      "side": 1,
+      "message": "I wouldn\u0027t be surprised if there are issues in the IPMI logging code, but how did you jump to this even being related to IPMI?  I haven\u0027t seen any previous mention of IPMI.\n\nThe busctl scenario in [1] (from the commit message) shows mapper giving answers of { 47, 375, 851, 1000 }.  The only valid answer was 1000 (and arguably 0).  I 100% agree that applications need to be able to deal with objects coming and going at any point in time, but we should generally at least give causal guarantees.",
+      "parentUuid": "d008c716_595382ea",
+      "revId": "c804bff683b9ad7fd9743a638a94bc69ce5701f1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4a39a415_ad90aab7",
