@@ -195,6 +195,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "feeb6b10_15cbd527",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2022-05-31T17:46:05Z",
+      "side": 1,
+      "message": "\u003e I haven\u0027t seen any previous mention of IPMI.\n\nI guess Lei YU did mention:\n\n\u003e ipmid, the \"cached SEL\" feature depends on the reliable result\n\u003e of GetSubTreePath, to get the number of current logging entries. If\n\u003e it\u0027s not correct, ipmid will not know the \"missed\" entries.\n\nI\u0027m not sure what that means.  Lei YU, can you expand on this?  How would ipmid handle if someone came in over Redfish and deleted an entry in between the mapper query and the phosphor-logging query?",
+      "parentUuid": "6962c424_5a22eb9c",
+      "revId": "c804bff683b9ad7fd9743a638a94bc69ce5701f1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4a39a415_ad90aab7",
