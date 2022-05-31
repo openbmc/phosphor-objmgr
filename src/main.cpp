@@ -72,7 +72,7 @@ struct InProgressIntrospect
     InProgressIntrospect(
         sdbusplus::asio::connection* systemBus, boost::asio::io_context& io,
         const std::string& processName, AssociationMaps& am
-#ifdef DEBUG
+#ifdef MAPPER_ENABLE_DEBUG
         ,
         std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
             globalStartTime
@@ -80,7 +80,7 @@ struct InProgressIntrospect
         ) :
         systemBus(systemBus),
         io(io), processName(processName), assocMaps(am)
-#ifdef DEBUG
+#ifdef MAPPER_ENABLE_DEBUG
         ,
         globalStartTime(std::move(globalStartTime)),
         processStartTime(std::chrono::steady_clock::now())
@@ -104,7 +104,7 @@ struct InProgressIntrospect
             std::abort();
         }
 
-#ifdef DEBUG
+#ifdef MAPPER_ENABLE_DEBUG
         std::chrono::duration<float> diff =
             std::chrono::steady_clock::now() - processStartTime;
         std::cout << std::setw(50) << processName << " scan took "
@@ -124,7 +124,7 @@ struct InProgressIntrospect
     boost::asio::io_context& io;
     std::string processName;
     AssociationMaps& assocMaps;
-#ifdef DEBUG
+#ifdef MAPPER_ENABLE_DEBUG
     std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
         globalStartTime;
     std::chrono::time_point<std::chrono::steady_clock> processStartTime;
@@ -258,7 +258,7 @@ void startNewIntrospect(
     sdbusplus::asio::connection* systemBus, boost::asio::io_context& io,
     InterfaceMapType& interfaceMap, const std::string& processName,
     AssociationMaps& assocMaps,
-#ifdef DEBUG
+#ifdef MAPPER_ENABLE_DEBUG
     std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
         globalStartTime,
 #endif
@@ -269,7 +269,7 @@ void startNewIntrospect(
         std::shared_ptr<InProgressIntrospect> transaction =
             std::make_shared<InProgressIntrospect>(systemBus, io, processName,
                                                    assocMaps
-#ifdef DEBUG
+#ifdef MAPPER_ENABLE_DEBUG
                                                    ,
                                                    globalStartTime
 #endif
@@ -318,7 +318,7 @@ void doListNames(
             }
             // Try to make startup consistent
             std::sort(processNames.begin(), processNames.end());
-#ifdef DEBUG
+#ifdef MAPPER_ENABLE_DEBUG
             std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
                 globalStartTime = std::make_shared<
                     std::chrono::time_point<std::chrono::steady_clock>>(
@@ -331,7 +331,7 @@ void doListNames(
                 {
                     startNewIntrospect(systemBus, io, interfaceMap, processName,
                                        assocMaps,
-#ifdef DEBUG
+#ifdef MAPPER_ENABLE_DEBUG
                                        globalStartTime,
 #endif
                                        objectServer);
@@ -692,7 +692,7 @@ int main(int argc, char** argv)
 
             if (!newOwner.empty())
             {
-#ifdef DEBUG
+#ifdef MAPPER_ENABLE_DEBUG
                 auto transaction = std::make_shared<
                     std::chrono::time_point<std::chrono::steady_clock>>(
                     std::chrono::steady_clock::now());
@@ -703,7 +703,7 @@ int main(int argc, char** argv)
                     nameOwners[newOwner] = name;
                     startNewIntrospect(systemBus.get(), io, interfaceMap, name,
                                        associationMaps,
-#ifdef DEBUG
+#ifdef MAPPER_ENABLE_DEBUG
                                        transaction,
 #endif
                                        server);
