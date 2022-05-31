@@ -160,6 +160,23 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d008c716_595382ea",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2022-05-31T17:00:39Z",
+      "side": 1,
+      "message": "I thought about this some more, and I really suspect that this is just exposing a design issue in the IPMI logs implementation.\n\nIn terms of using the mapper this way, logs can:\n1. Be created at any time.\n2. Be created by any number of daemons.\n3. Aren\u0027t required by dbus to be created or destroyed in any kind of useful \"order\" given #2\n\nThis means that any code using the mapper needs to handle cases where logs are disjoint, given that that same race condition can occur between daemons, or at the time a log is created.\n\nIf the IPMI implementation can\u0027t handle that, this implies that it has bugs it needs to resolve, or shouldn\u0027t be using the mapper, because it would require guarantees that the mapper can\u0027t give if logs are spread across applications.\n\n\nAnother thing I wonder is would this issue be at least made better by the logging service zero padding their numbered results (ie 0001, instead of 1) such that alphabetically in the dbus sort, entry 2 gets introspected before 11.  Maybe that would give more consistent behavior in terms of \"logs are always added in order for a given daemon\".  There will always be an opportunity for them to be incomplete, but at least they look like they\u0027re append only on startup.\n\n",
+      "revId": "c804bff683b9ad7fd9743a638a94bc69ce5701f1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4a39a415_ad90aab7",
