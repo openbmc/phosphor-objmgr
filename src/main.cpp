@@ -15,6 +15,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <exception>
 #include <iomanip>
 #include <iostream>
 #include <utility>
@@ -86,7 +87,21 @@ struct InProgressIntrospect
     {}
     ~InProgressIntrospect()
     {
-        sendIntrospectionCompleteSignal(systemBus, processName);
+        try
+        {
+            sendIntrospectionCompleteSignal(systemBus, processName);
+        }
+        catch (const std::exception& e)
+        {
+            std::cerr << "Terminating, unhandled exception while introspecting: "
+                      << e.what() << "\n";
+            std::terminate();
+        }
+        catch (...)
+        {
+            std::cerr << "Terminating, unhandled exception while introspecting\n";
+            std::terminate();
+        }
 
 #ifdef DEBUG
         std::chrono::duration<float> diff =
