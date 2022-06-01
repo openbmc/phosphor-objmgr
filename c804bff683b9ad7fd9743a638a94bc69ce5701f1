@@ -215,6 +215,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "aee820c9_2e53fd44",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2022-06-01T02:17:27Z",
+      "side": 1,
+      "message": "FWIW, some possibly relevant historical background.\n\nOriginally, the python mapper blocked callers while it was introspecting, and it could only introspect one service at a time.  This meant the mapper introspected all services at startup serially, and there were deadlocks between applications starting up and calling the mapper, and the mapper trying to introspect those starting services.\n\nThat had responsiveness issues, so this series added \"non blocking discovery\" which basically returned EBUSY to callers if the mapper was in the middle of introspecting a new service (more or less what Lei Yu has proposed again with this patch):\n\nhttps://gerrit.openbmc.org/c/openbmc/phosphor-objmgr/+/577\n\nThat still had problems though, so we _really_ got creative with this one:\n\nhttps://gerrit.openbmc.org/c/openbmc/phosphor-objmgr/+/2694\n\nThis is where the causal ordering guarantee was dropped from the python mapper generally, but there was still a hacky way to do it for the mapper command line application.\n\nA couple unrelated, half baked thoughts:\n\nWith the c++ mapper being much more responsive, I wonder if it would make sense to go back to blocking callers while it introspects?\n\nWhat about having applications be explicit in informing the mapper they are ready to be introspected?  Something like sd_notify but for the mapper?  Does that help any?",
+      "parentUuid": "feeb6b10_15cbd527",
+      "revId": "c804bff683b9ad7fd9743a638a94bc69ce5701f1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "4a39a415_ad90aab7",
         "filename": "src/main.cpp",
         "patchSetId": 1
