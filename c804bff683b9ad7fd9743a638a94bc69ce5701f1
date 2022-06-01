@@ -305,6 +305,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "8997c07a_be237423",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2022-06-01T21:58:42Z",
+      "side": 1,
+      "message": "\u003e I wouldn\u0027t be surprised if there are issues in the IPMI logging code, but how did you jump to this even being related to IPMI?  I haven\u0027t seen any previous mention of IPMI.\n\nOn the mailing list, it was reported that this interfered with the \"sel cache\" feature, which I don\u0027t have any idea what it is, but I\u0027m assuming is trying to cache log entries in the ipmi daemon.\n\n\u003e The only valid answer was 1000 (and arguably 0).  \n\nI\u0027m assuming the objects in the logger are added one at a time (I don\u0027t know of how to \"batch add\" objects in objectmanager), so the numbers between 0-1000 are valid, and could occur anyway if I just added logs while the thing was starting up, right?\n\n\n\u003e With the c++ mapper being much more responsive, I wonder if it would make sense to go back to blocking callers while it introspects?\n\nI don\u0027t think this flies, as it makes the mapper only as fast as the slowest-to-introspect client, and there are some SLOOOOOOOOW clients out there that do blocking io in the event loop, so I\u0027m not sure that works.\n\n\n\u003e The ipmid SEL cache handler handles the above cases well. The issue occurs on BMC boot when ipmid and phosphor-logging are starting, where mapper gives incomplete result.\n\nCan you elaborate on this some more?  The \"incomplete\" result would look the same as log entries being added to the system, right?\n\n\n\u003e Yes this is a bug in phosphor-logging where it uses the `filesystem order` to create the entries. This bug is not related to the \"mapper incomplete result\" though.\n\nThis seems like the core of the problem here.  If phosphor-logging on startup is creating entries in a randomized order (creates object id 1, then 11, then 2, ect) then there isn\u0027t much the mapper can do to give a \"complete\" result at any given point in time, right?  Can we start by getting that bug fixed, and see if that helps?\n\n\n\u003e The mapper query happens only on ipmid\u0027s startup. When it\u0027s done, it only gets interfacesAdded/Removed or propertiesChanged signal callbacks.\n\nThe way this is described, you\u0027re duplicating mapper functionality in ipmi?  This seems like the core of the problem.  The mapper listens on InterfacesAdded/Removed, and keeps the list up to date, avoiding as many race conditions as it\u0027s able.  The expectation is that ipmi would call the mapper anytime it needs the data on available paths.\n\n\n\n\n\nIf we want to make the initial add of objects atomic like I proposed, I guess I\u0027m ok with it, as it helps for other things and makes things appear more sane, but the way this feature is described, and how phosphor-logging seems to be implemented (adding logs in randomized order) seem like design issues that should be fixed in their respective daemons.",
+      "parentUuid": "c19837a2_5864f84f",
+      "revId": "c804bff683b9ad7fd9743a638a94bc69ce5701f1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "4a39a415_ad90aab7",
         "filename": "src/main.cpp",
         "patchSetId": 1
