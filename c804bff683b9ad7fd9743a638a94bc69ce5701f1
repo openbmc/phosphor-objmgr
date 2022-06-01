@@ -341,6 +341,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "bbdcf684_54785ccd",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2022-06-01T22:15:00Z",
+      "side": 1,
+      "message": "\u003e I don\u0027t think I follow, how is the naming/ordering of log entry objects important?\n\nRight, but if the subset is monotonically increasing one item at a time, its identical to logs getting added at runtime, which the implementation has to deal with anyway.  Yes, a user querying on startup might get an incomplete result, but considering they have to account for logs being added as well, it seems like stuff should \"just work\".",
+      "parentUuid": "9b9a5322_1b8daa0e",
+      "revId": "c804bff683b9ad7fd9743a638a94bc69ce5701f1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "4a39a415_ad90aab7",
         "filename": "src/main.cpp",
         "patchSetId": 1
@@ -382,6 +400,23 @@
         "endLine": 27,
         "endChar": 15
       },
+      "revId": "c804bff683b9ad7fd9743a638a94bc69ce5701f1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8531a93d_b79e42b6",
+        "filename": "src/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2022-06-01T22:15:00Z",
+      "side": 1,
+      "message": "Putting this in another comment to avoid derailing the other thread.\n\nA little more digging shows that in phosphor-logging, ObjectManager is added prior to requesting the name, which means that the mapper is probably not calling Introspect but is using InterfacesAdded signals as each log entry is added (assuming the mapper starts first, which seems likely).\n\nIf I understand that correctly, this means that this patchset only appears to avoid the race, because InterfacesAdded signals are being sent all the time, and just happen to overlap with the requests while being processed one at a time by the mapper.  It doesn\u0027t look like it would actually solve it, because the phosphor-logging startup looks like:\n\nConnect to dbus\ninstantiate ObjectManager path and interface\nfor object on disk:\n   Add object\n   Emit InterfacesAdded\n   \n   \nRequest name (not sure if this is actually before or after adding objects, but it doesn\u0027t really matter).\n\nThis means that from a dbus perspective, objects are being created one at a time, which is why this race occurs.  Given that behavior of phosphor-logging, I\u0027m not really sure how to fix it in the mapper, given that the phosphor-logging startup looks identical to an empty set of logs getting filled up (with the exception that the order appears randomized).",
       "revId": "c804bff683b9ad7fd9743a638a94bc69ce5701f1",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
