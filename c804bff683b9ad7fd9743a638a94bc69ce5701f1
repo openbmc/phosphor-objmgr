@@ -233,6 +233,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "d665d31b_4b3d24e9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000044
+      },
+      "writtenOn": "2022-06-01T02:21:56Z",
+      "side": 1,
+      "message": "\u003e If the IPMI implementation can\u0027t handle that, this implies that it has bugs it needs to resolve, or shouldn\u0027t be using the mapper, because it would require guarantees that the mapper can\u0027t give if logs are spread across applications.\n\nThe ipmid SEL cache handler handles the above cases well. The issue occurs on BMC boot when ipmid and phosphor-logging are starting, where mapper gives incomplete result.\n\n\u003e Another thing I wonder is would this issue be at least made better by the logging service zero padding their numbered results (ie 0001, instead of 1) such that alphabetically in the dbus sort, entry 2 gets introspected before 11.  Maybe that would give more consistent behavior in terms of \"logs are always added in order for a given daemon\".  There will always be an opportunity for them to be incomplete, but at least they look like they\u0027re append only on startup.\n\nYes this is a bug in phosphor-logging where it uses the `filesystem order` to create the entries. This bug is not related to the \"mapper incomplete result\" though.\n\n\u003e The busctl scenario in [1] (from the commit message) shows mapper giving answers of { 47, 375, 851, 1000 }.  The only valid answer was 1000 (and arguably 0).\n\nThis is exactly the issue here.\n\n\u003e I\u0027m not sure what that means.  Lei YU, can you expand on this?  How would ipmid handle if someone came in over Redfish and deleted an entry in between the mapper query and the phosphor-logging query?\n\nThe mapper query happens only on ipmid\u0027s startup. When it\u0027s done, it only gets interfacesAdded/Removed or propertiesChanged signal callbacks.",
+      "parentUuid": "feeb6b10_15cbd527",
+      "revId": "c804bff683b9ad7fd9743a638a94bc69ce5701f1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "4a39a415_ad90aab7",
         "filename": "src/main.cpp",
         "patchSetId": 1
