@@ -269,6 +269,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "32706205_184cb19c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2022-06-01T13:52:47Z",
+      "side": 1,
+      "message": "What\u0027s wrong with Ed\u0027s proposal of just having mapper not add the new interfaces/paths into \u0027the Map\u0027 until the InProgressIntrospect destructor?",
+      "parentUuid": "85198cd1_9e047274",
+      "revId": "c804bff683b9ad7fd9743a638a94bc69ce5701f1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "4a39a415_ad90aab7",
         "filename": "src/main.cpp",
         "patchSetId": 1
