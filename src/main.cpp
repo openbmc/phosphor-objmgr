@@ -15,6 +15,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <exception>
 #include <iomanip>
 #include <iostream>
 #include <utility>
@@ -86,23 +87,38 @@ struct InProgressIntrospect
     {}
     ~InProgressIntrospect()
     {
-        sendIntrospectionCompleteSignal(systemBus, processName);
-
-#ifdef DEBUG
-        std::chrono::duration<float> diff =
-            std::chrono::steady_clock::now() - processStartTime;
-        std::cout << std::setw(50) << processName << " scan took "
-                  << diff.count() << " seconds\n";
-
-        // If we're the last outstanding caller globally, calculate the
-        // time it took
-        if (globalStartTime != nullptr && globalStartTime.use_count() == 1)
+        try
         {
-            diff = std::chrono::steady_clock::now() - *globalStartTime;
-            std::cout << "Total scan took " << diff.count()
-                      << " seconds to complete\n";
-        }
+            sendIntrospectionCompleteSignal(systemBus, processName);
+#ifdef DEBUG
+            std::chrono::duration<float> diff =
+                std::chrono::steady_clock::now() - processStartTime;
+            std::cout << std::setw(50) << processName << " scan took "
+                      << diff.count() << " seconds\n";
+
+            // If we're the last outstanding caller globally, calculate the
+            // time it took
+            if (globalStartTime != nullptr && globalStartTime.use_count() == 1)
+            {
+                diff = std::chrono::steady_clock::now() - *globalStartTime;
+                std::cout << "Total scan took " << diff.count()
+                          << " seconds to complete\n";
+            }
 #endif
+        }
+        catch (const std::exception& e)
+        {
+            std::cerr
+                << "Terminating, unhandled exception while introspecting: "
+                << e.what() << "\n";
+            std::terminate();
+        }
+        catch (...)
+        {
+            std::cerr
+                << "Terminating, unhandled exception while introspecting\n";
+            std::terminate();
+        }
     }
     sdbusplus::asio::connection* systemBus;
     boost::asio::io_context& io;
