@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "477b2dfe_d5205db3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2022-06-02T18:08:37Z",
+      "side": 1,
+      "message": "Largely looks fine.  minor nit on how we deal with unused params, but if you don\u0027t want to fix it, this patchset is still an improvement.",
+      "revId": "81096717c57a03954344c16b10fde6b557019e5c",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e3441f82_37680529",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 542,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2022-06-02T18:08:37Z",
+      "side": 1,
+      "message": "Nit, generally we put a reasonable name for a variable here.  It\u0027s clear that it\u0027s unused because it\u0027s in a comment, naming it something like /* objectServer */ helps when searching.\n\n\nWith that said, if this is unused, should we just remove it from the (looks like only one) call site and change the prototype to remove it entirely?",
+      "range": {
+        "startLine": 542,
+        "startChar": 68,
+        "endLine": 542,
+        "endChar": 74
+      },
+      "revId": "81096717c57a03954344c16b10fde6b557019e5c",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
