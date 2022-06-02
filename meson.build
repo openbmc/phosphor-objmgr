@@ -85,7 +85,6 @@ executable(
     'mapperx',
     [
         'src/main.cpp',
-        'src/argument.cpp',
         'src/processing.cpp',
         'src/associations.cpp',
     ],

@@ -1,7 +1,10 @@
 #include "processing.hpp"
 
+#include <algorithm>
+#include <array>
 #include <iostream>
 #include <string>
+#include <string_view>
 
 bool getWellKnown(
     const boost::container::flat_map<std::string, std::string>& owners,
@@ -23,15 +26,17 @@ bool getWellKnown(
     return true;
 }
 
-bool needToIntrospect(const std::string& processName,
-                      const AllowDenyList& allowList)
+bool needToIntrospect(const std::string& processName)
 {
-    auto inAllowList = std::find_if(allowList.begin(), allowList.end(),
-                                    [&processName](const auto& prefix) {
-                                        return processName.starts_with(prefix);
-                                    }) != allowList.end();
+    using namespace std::string_view_literals;
+    static constexpr std::array<std::string_view, 2> skipNamespaces{
+        ":"sv, "org.freedesktop"sv};
 
-    return inAllowList;
+    auto inSkipList = std::find_if(skipNamespaces.begin(), skipNamespaces.end(),
+                                   [&processName](auto prefix) {
+                                       return processName.starts_with(prefix);
+                                   }) != skipNamespaces.end();
+    return !(inSkipList || processName.empty());
 }
 
 void processNameChangeDelete(
