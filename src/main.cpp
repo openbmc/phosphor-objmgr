@@ -1,6 +1,5 @@
 #include "associations.hpp"
 #include "processing.hpp"
-#include "src/argument.hpp"
 #include "types.hpp"
 
 #include <tinyxml2.h>
@@ -21,8 +20,6 @@
 #include <utility>
 
 AssociationMaps associationMaps;
-
-static AllowDenyList serviceAllowList;
 
 void updateOwners(sdbusplus::asio::connection* conn,
                   boost::container::flat_map<std::string, std::string>& owners,
@@ -263,7 +260,7 @@ void startNewIntrospect(
 #endif
     sdbusplus::asio::object_server& objectServer)
 {
-    if (needToIntrospect(processName, serviceAllowList))
+    if (needToIntrospect(processName))
     {
         std::shared_ptr<InProgressIntrospect> transaction =
             std::make_shared<InProgressIntrospect>(systemBus, io, processName,
@@ -325,7 +322,7 @@ void doListNames(
 #endif
             for (const std::string& processName : processNames)
             {
-                if (needToIntrospect(processName, serviceAllowList))
+                if (needToIntrospect(processName))
                 {
                     startNewIntrospect(systemBus, io, interfaceMap, processName,
                                        assocMaps,
@@ -339,24 +336,6 @@ void doListNames(
         },
         "org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus",
         "ListNames");
-}
-
-void splitArgs(const std::string& stringArgs,
-               boost::container::flat_set<std::string>& listArgs)
-{
-    std::istringstream args;
-    std::string arg;
-
-    args.str(stringArgs);
-
-    while (!args.eof())
-    {
-        args >> arg;
-        if (!arg.empty())
-        {
-            listArgs.insert(arg);
-        }
-    }
 }
 
 void addObjectMapResult(
@@ -648,14 +627,11 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
     return ret;
 }
 
-int main(int argc, char** argv)
+int main()
 {
-    auto options = ArgumentParser(argc, argv);
     boost::asio::io_context io;
     std::shared_ptr<sdbusplus::asio::connection> systemBus =
         std::make_shared<sdbusplus::asio::connection>(io);
-
-    splitArgs(options["service-namespaces"], serviceAllowList);
 
     sdbusplus::asio::object_server server(systemBus);
 
@@ -690,7 +666,7 @@ int main(int argc, char** argv)
                     std::chrono::steady_clock::now());
 #endif
                 // New daemon added
-                if (needToIntrospect(name, serviceAllowList))
+                if (needToIntrospect(name))
                 {
                     nameOwners[newOwner] = name;
                     startNewIntrospect(systemBus.get(), io, interfaceMap, name,
@@ -718,7 +694,7 @@ int main(int argc, char** argv)
             {
                 return; // only introspect well-known
             }
-            if (needToIntrospect(wellKnown, serviceAllowList))
+            if (needToIntrospect(wellKnown))
             {
                 processInterfaceAdded(interfaceMap, objPath, interfacesAdded,
                                       wellKnown, associationMaps, server);

@@ -5,17 +5,39 @@
 // Verify if name is empty, false is returned
 TEST(NeedToIntrospect, PassEmptyName)
 {
-    AllowDenyList allowList;
     std::string processName;
 
-    EXPECT_FALSE(needToIntrospect(processName, allowList));
+    EXPECT_FALSE(needToIntrospect(processName));
 }
 
-// Verify if name is on allowlist, true is returned
-TEST(NeedToIntrospect, ValidAllowListName)
+// Verify if name is org, true is returned
+TEST(NeedToIntrospect, NameOrg)
 {
-    AllowDenyList allowList = {"xyz.openbmc_project"};
-    std::string processName = "xyz.openbmc_project.State.Host";
+    std::string processName = "org";
 
-    EXPECT_TRUE(needToIntrospect(processName, allowList));
+    EXPECT_TRUE(needToIntrospect(processName));
+}
+
+// Verify if name is org.freedesktop, false is returned
+TEST(NeedToIntrospect, NameOrgFreedesktop)
+{
+    std::string processName = "org.freedesktop";
+
+    EXPECT_FALSE(needToIntrospect(processName));
+}
+
+// Verify if name is org.freedesktop.foo, false is returned
+TEST(NeedToIntrospect, nameOrgFreeDesktopFoo)
+{
+    std::string processName = "org.freedesktop.foo";
+
+    EXPECT_FALSE(needToIntrospect(processName));
+}
+
+// Verify if name is org.openbmc, true is returned
+TEST(NeedToIntrospect, nameOrgOpenBMC)
+{
+    std::string processName = "org.openbmc";
+
+    EXPECT_TRUE(needToIntrospect(processName));
 }
