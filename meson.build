@@ -12,6 +12,13 @@ project(
     version: '1.0',
 )
 
+feature_map = {
+    'data_com_google'          : '-DMAPPER_ENABLE_OEM_COM_GOOGLE',
+    'data_com_ibm'             : '-DMAPPER_ENABLE_OEM_COM_IBM',
+    'data_com_intel'           : '-DMAPPER_ENABLE_OEM_COM_INTEL',
+    'data_org_open_power'      : '-DMAPPER_ENABLE_OEM_ORG_OPENPOWER',
+}
+
 phosphor_logging = dependency('phosphor-logging')
 phosphor_dbus_interfaces = dependency('phosphor-dbus-interfaces')
 sdbusplus = dependency('sdbusplus')
@@ -73,7 +80,6 @@ executable(
     'mapperx',
     [
         'src/main.cpp',
-        'src/argument.cpp',
         'src/processing.cpp',
         'src/associations.cpp',
     ],

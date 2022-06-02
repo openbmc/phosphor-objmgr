@@ -1,4 +1,32 @@
 option(
+    'data_com_google',
+    type: 'feature',
+    value: 'enabled',
+    description: '''Enable discovery of com.google OEM services.'''
+)
+
+option(
+    'data_com_ibm',
+    type: 'feature',
+    value: 'enabled',
+    description: '''Enable discovery of com.ibm OEM services.'''
+)
+
+option(
+    'data_com_intel',
+    type: 'feature',
+    value: 'enabled',
+    description: '''Enable discovery of com.intel OEM services.'''
+)
+
+option(
+    'data_org_open_power',
+    type: 'feature',
+    value: 'enabled',
+    description: '''Enable discovery of org.open_power OEM services.'''
+)
+
+option(
     'tests',
     type: 'feature',
     value: 'enabled',
