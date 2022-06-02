@@ -4,13 +4,9 @@
 #include "types.hpp"
 
 #include <boost/container/flat_map.hpp>
-#include <boost/container/flat_set.hpp>
 
 #include <cassert>
 #include <string>
-
-/** @brief Define allow list and deny list data structure */
-using AllowDenyList = boost::container::flat_set<std::string>;
 
 /** @brief The associations definitions interface */
 constexpr const char* assocDefsInterface =
@@ -45,16 +41,14 @@ bool getWellKnown(
 
 /** @brief Determine if dbus service is something to monitor
  *
- * mapper supports an allowlist concept. If an allowlist is provided as input
- * then only dbus objects matching that list is monitored.
+ * mapper does not monitor all DBus services.  needToIntrospect determines
+ * whether or not a service is to be monitored.
  *
  * @param[in] processName   - Dbus service name
- * @param[in] allowList     - The allow list
  *
  * @return True if input processName should be monitored, false otherwise
  */
-bool needToIntrospect(const std::string& processName,
-                      const AllowDenyList& allowList);
+bool needToIntrospect(const std::string& processName);
 
 /** @brief Handle the removal of an existing name in objmgr data structures
  *
