@@ -534,13 +534,11 @@ void removeAssociationIfacesEntry(const std::string& assocPath,
  * @param[in] endpointPath  - the endpoint object path
  * @param[in] owner         - the owner of the association
  * @param[in,out] assocMaps - the association maps
- * @param[in,out] server    - sdbus system object
  */
 void removeAssociationOwnersEntry(const std::string& assocPath,
                                   const std::string& endpointPath,
                                   const std::string& owner,
-                                  AssociationMaps& assocMaps,
-                                  sdbusplus::asio::object_server&)
+                                  AssociationMaps& assocMaps)
 {
     auto sources = assocMaps.owners.begin();
     while (sources != assocMaps.owners.end())
@@ -607,8 +605,8 @@ void moveAssociationToPending(const std::string& endpointPath,
 
         // Remove both sides of the association from assocMaps.owners
         removeAssociationOwnersEntry(forwardPath + '/' + forwardType,
-                                     reversePath, owner, assocMaps, server);
+                                     reversePath, owner, assocMaps);
         removeAssociationOwnersEntry(reversePath + '/' + reverseType,
-                                     forwardPath, owner, assocMaps, server);
+                                     forwardPath, owner, assocMaps);
     }
 }
