@@ -39,6 +39,30 @@
       },
       "revId": "81096717c57a03954344c16b10fde6b557019e5c",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e856ea95_8d3a3843",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 542,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2022-06-02T18:17:32Z",
+      "side": 1,
+      "message": "This is what clangd did when I let it fix the problem.  Yeah I like the idea of removing it entirely.",
+      "parentUuid": "e3441f82_37680529",
+      "range": {
+        "startLine": 542,
+        "startChar": 68,
+        "endLine": 542,
+        "endChar": 74
+      },
+      "revId": "81096717c57a03954344c16b10fde6b557019e5c",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
