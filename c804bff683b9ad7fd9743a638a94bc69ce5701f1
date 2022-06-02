@@ -491,6 +491,24 @@
       "parentUuid": "8531a93d_b79e42b6",
       "revId": "c804bff683b9ad7fd9743a638a94bc69ce5701f1",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8eedca8f_6fd57ca3",
+        "filename": "src/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2022-06-02T14:29:01Z",
+      "side": 1,
+      "message": "\u003e but it doesn\u0027t really matter\n\nIt does matter though.  Well behaving dbus servers don\u0027t emit signals prior to claiming a well-known busname.\n\n\u003e From a dbus perspective this is 100% the right behavior.\n\n+1",
+      "parentUuid": "aeb09abf_b90a3552",
+      "revId": "c804bff683b9ad7fd9743a638a94bc69ce5701f1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
