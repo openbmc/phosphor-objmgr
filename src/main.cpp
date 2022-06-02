@@ -1,6 +1,5 @@
 #include "associations.hpp"
 #include "processing.hpp"
-#include "src/argument.hpp"
 #include "types.hpp"
 
 #include <tinyxml2.h>
@@ -19,6 +18,8 @@
 #include <iomanip>
 #include <iostream>
 #include <utility>
+
+using namespace std::string_literals;
 
 AssociationMaps associationMaps;
 
@@ -341,24 +342,6 @@ void doListNames(
         "ListNames");
 }
 
-void splitArgs(const std::string& stringArgs,
-               boost::container::flat_set<std::string>& listArgs)
-{
-    std::istringstream args;
-    std::string arg;
-
-    args.str(stringArgs);
-
-    while (!args.eof())
-    {
-        args >> arg;
-        if (!arg.empty())
-        {
-            listArgs.insert(arg);
-        }
-    }
-}
-
 void addObjectMapResult(
     std::vector<InterfaceMapType::value_type>& objectMap,
     const std::string& objectPath,
@@ -648,14 +631,26 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
     return ret;
 }
 
-int main(int argc, char** argv)
+int main()
 {
-    auto options = ArgumentParser(argc, argv);
     boost::asio::io_context io;
     std::shared_ptr<sdbusplus::asio::connection> systemBus =
         std::make_shared<sdbusplus::asio::connection>(io);
 
-    splitArgs(options["service-namespaces"], serviceAllowList);
+#ifdef MAPPER_ENABLE_OEM_COM_GOOGLE
+    serviceAllowList.insert("com.google"s);
+#endif
+#ifdef MAPPER_ENABLE_OEM_COM_IBM
+    serviceAllowList.insert("com.ibm"s);
+#endif
+#ifdef MAPPER_ENABLE_OEM_COM_INTEL
+    serviceAllowList.insert("com.intel"s);
+#endif
+    serviceAllowList.insert("org.openbmc"s);
+#ifdef MAPPER_ENABLE_OEM_ORG_OPENPOWER
+    serviceAllowList.insert("org.open_power"s);
+#endif
+    serviceAllowList.insert("xyz.openbmc_project"s);
 
     sdbusplus::asio::object_server server(systemBus);
 
