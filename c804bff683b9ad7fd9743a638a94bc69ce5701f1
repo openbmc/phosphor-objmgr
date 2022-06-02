@@ -527,6 +527,24 @@
       "parentUuid": "8eedca8f_6fd57ca3",
       "revId": "c804bff683b9ad7fd9743a638a94bc69ce5701f1",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "06b34a6c_1e5b54c1",
+        "filename": "src/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2022-06-02T17:11:58Z",
+      "side": 1,
+      "message": "\u003e So is the fix here that we need to avoid returning results for daemons that haven\u0027t requested a name yet?\n\nDoesn\u0027t mapper already do this?  I thought we even had filtering of specific service domain names so we were not interrogating all the org.freedesktop stuff?",
+      "parentUuid": "119271c4_c09e7567",
+      "revId": "c804bff683b9ad7fd9743a638a94bc69ce5701f1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
