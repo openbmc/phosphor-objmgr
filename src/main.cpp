@@ -23,7 +23,6 @@
 AssociationMaps associationMaps;
 
 static AllowDenyList serviceAllowList;
-static AllowDenyList serviceDenyList;
 
 void updateOwners(sdbusplus::asio::connection* conn,
                   boost::container::flat_map<std::string, std::string>& owners,
@@ -264,7 +263,7 @@ void startNewIntrospect(
 #endif
     sdbusplus::asio::object_server& objectServer)
 {
-    if (needToIntrospect(processName, serviceAllowList, serviceDenyList))
+    if (needToIntrospect(processName, serviceAllowList))
     {
         std::shared_ptr<InProgressIntrospect> transaction =
             std::make_shared<InProgressIntrospect>(systemBus, io, processName,
@@ -326,8 +325,7 @@ void doListNames(
 #endif
             for (const std::string& processName : processNames)
             {
-                if (needToIntrospect(processName, serviceAllowList,
-                                     serviceDenyList))
+                if (needToIntrospect(processName, serviceAllowList))
                 {
                     startNewIntrospect(systemBus, io, interfaceMap, processName,
                                        assocMaps,
@@ -658,7 +656,6 @@ int main(int argc, char** argv)
         std::make_shared<sdbusplus::asio::connection>(io);
 
     splitArgs(options["service-namespaces"], serviceAllowList);
-    splitArgs(options["service-blacklists"], serviceDenyList);
 
     sdbusplus::asio::object_server server(systemBus);
 
@@ -693,7 +690,7 @@ int main(int argc, char** argv)
                     std::chrono::steady_clock::now());
 #endif
                 // New daemon added
-                if (needToIntrospect(name, serviceAllowList, serviceDenyList))
+                if (needToIntrospect(name, serviceAllowList))
                 {
                     nameOwners[newOwner] = name;
                     startNewIntrospect(systemBus.get(), io, interfaceMap, name,
@@ -721,7 +718,7 @@ int main(int argc, char** argv)
             {
                 return; // only introspect well-known
             }
-            if (needToIntrospect(wellKnown, serviceAllowList, serviceDenyList))
+            if (needToIntrospect(wellKnown, serviceAllowList))
             {
                 processInterfaceAdded(interfaceMap, objPath, interfacesAdded,
                                       wellKnown, associationMaps, server);

@@ -45,19 +45,16 @@ bool getWellKnown(
 
 /** @brief Determine if dbus service is something to monitor
  *
- * mapper supports an allowlist and denylist concept. If an allowlist is
- * provided as input then only dbus objects matching that list is monitored. If
- * a denylist is provided then objects matching it will not be monitored.
+ * mapper supports an allowlist concept. If an allowlist is provided as input
+ * then only dbus objects matching that list is monitored.
  *
  * @param[in] processName   - Dbus service name
  * @param[in] allowList     - The allow list
- * @param[in] denyList      - The deny list
  *
  * @return True if input processName should be monitored, false otherwise
  */
 bool needToIntrospect(const std::string& processName,
-                      const AllowDenyList& allowList,
-                      const AllowDenyList& denyList);
+                      const AllowDenyList& allowList);
 
 /** @brief Handle the removal of an existing name in objmgr data structures
  *

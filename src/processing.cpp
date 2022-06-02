@@ -25,8 +25,7 @@ bool getWellKnown(
 }
 
 bool needToIntrospect(const std::string& processName,
-                      const AllowDenyList& allowList,
-                      const AllowDenyList& denyList)
+                      const AllowDenyList& allowList)
 {
     auto inAllowList =
         std::find_if(allowList.begin(), allowList.end(),
@@ -34,10 +33,7 @@ bool needToIntrospect(const std::string& processName,
                          return boost::starts_with(processName, prefix);
                      }) != allowList.end();
 
-    // This holds full service names, not prefixes
-    auto inDenyList = denyList.find(processName) != denyList.end();
-
-    return inAllowList && !inDenyList;
+    return inAllowList;
 }
 
 void processNameChangeDelete(
