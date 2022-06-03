@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e83f6577_9c13e08c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2022-06-03T12:36:39Z",
+      "side": 1,
+      "message": "+1 in general.",
+      "revId": "341e1edd8344b9857ff6c47d32687908d5db070b",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8cd8a21e_74a1fa29",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2022-06-03T12:36:39Z",
+      "side": 1,
+      "message": "I think calling std::terminate() is the more typical pattern and not calling std::abort() directly.  I say this because all the tutorials on co-routines use std::terminate() and they\u0027ve all been written by people on the standards body.",
+      "revId": "341e1edd8344b9857ff6c47d32687908d5db070b",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
