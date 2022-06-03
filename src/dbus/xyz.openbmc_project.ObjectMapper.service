@@ -1,0 +1,5 @@
+[D-BUS Service]
+Name=xyz.openbmc_project.ObjectMapper
+Exec=/bin/false
+User=root
+SystemdService=dbus-xyz.openbmc_project.ObjectMapper.service
