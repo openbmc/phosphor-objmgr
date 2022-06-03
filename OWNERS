@@ -33,6 +33,7 @@
 
 owners:
 - spinler@us.ibm.com
+- bradleyb@fuzziesquirrel.com
 
 reviewers:
 
@@ -42,3 +43,6 @@ openbmc:
 - name: Matt Spinler
   email: spinler@us.ibm.com
   discord: mspinler
+- name: Brad Bishop
+  email: bradleyb@fuzziesquirrel.com
+  discord: radsquirrel
