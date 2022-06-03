@@ -660,11 +660,6 @@ int main(int argc, char** argv)
     splitArgs(options["service-namespaces"], serviceAllowList);
     splitArgs(options["service-blacklists"], serviceDenyList);
 
-    // TODO(Ed) Remove this once all service files are updated to not use this.
-    // For now, simply squash the input, and ignore it.
-    boost::container::flat_set<std::string> ifaceAllowlist;
-    splitArgs(options["interface-namespaces"], ifaceAllowlist);
-
     sdbusplus::asio::object_server server(systemBus);
 
     // Construct a signal set registered for process termination.
