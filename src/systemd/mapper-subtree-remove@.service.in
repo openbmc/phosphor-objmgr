@@ -1,0 +1,9 @@
+[Unit]
+Description=mapper subtree-remove %I
+
+[Service]
+Type=oneshot
+RemainAfterExit=no
+Restart=on-failure
+TimeoutStartSec=infinity
+ExecStart=@BINDIR@/mapper subtree-remove %I

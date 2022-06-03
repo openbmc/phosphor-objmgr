@@ -105,8 +105,48 @@ executable(
         dependency('threads'),
         dependency('tinyxml2'),
     ],
-    install: true
+    install: true,
+    install_dir: join_paths(
+        get_option('prefix'), get_option('libexecdir'), meson.project_name())
 )
+
+systemd_system_unit_dir = dependency('systemd').get_variable(
+    pkgconfig : 'systemdsystemunitdir'
+)
+
+conf = configuration_data()
+conf.set('BINDIR', join_paths(get_option('prefix'), get_option('bindir')))
+conf.set('LIBEXECDIR', join_paths(
+    get_option('prefix'), get_option('libexecdir')))
+
+unit_files = [
+    'xyz.openbmc_project.ObjectMapper.service',
+    'mapper-subtree-remove@.service',
+    'mapper-wait@.service'
+]
+
+foreach u : unit_files
+    configure_file(
+        configuration: conf,
+        input : join_paths('src/systemd', u) + '.in',
+        install : true,
+        install_dir: systemd_system_unit_dir,
+        output : u
+    )
+endforeach
+
+dbus_system_bus_services_dir = dependency('dbus-1').get_variable(
+    pkgconfig: 'system_bus_services_dir',
+    pkgconfig_define: ['prefix', get_option('prefix')]
+)
+
+install_data(
+    'src/dbus/xyz.openbmc_project.ObjectMapper.service',
+    install_dir: dbus_system_bus_services_dir)
+
+install_data(
+    'src/dbus/xyz.openbmc_project.ObjectMapper.conf',
+    install_dir: get_option('datadir') / 'dbus-1' / 'system.d')
 
 executable(
     'phosphor-unit-failure-monitor',
