@@ -101,6 +101,26 @@ executable(
     install: true
 )
 
+systemd_system_unit_dir = dependency('systemd').get_variable(
+    pkgconfig : 'systemdsystemunitdir'
+)
+
+install_data(
+    'src/systemd/xyz.openbmc_project.ObjectMapper.service',
+    install_dir: systemd_system_unit_dir)
+
+dbus_system_bus_services_dir = dependency('dbus-1').get_variable(
+    pkgconfig: 'system_bus_services_dir'
+)
+
+install_data(
+    'src/dbus/xyz.openbmc_project.ObjectMapper.service',
+    install_dir: dbus_system_bus_services_dir)
+
+install_data(
+    'src/dbus/xyz.openbmc_project.ObjectMapper.conf',
+    install_dir: get_option('datadir') / 'dbus-1' / 'system.d')
+
 executable(
     'phosphor-unit-failure-monitor',
     [
