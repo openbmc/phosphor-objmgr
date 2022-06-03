@@ -1,0 +1,9 @@
+[Unit]
+Description=Wait for %I
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+Restart=on-failure
+TimeoutStartSec=infinity
+ExecStart=@BINDIR@/mapper wait %I
