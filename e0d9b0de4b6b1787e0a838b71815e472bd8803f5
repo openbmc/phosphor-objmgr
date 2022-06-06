@@ -16,6 +16,24 @@
       "message": "I don\u0027t see any users of this in openbmc/openbmc....\n\nDid someone use this back with the old python mapper?",
       "revId": "e0d9b0de4b6b1787e0a838b71815e472bd8803f5",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fcfcbc26_62367263",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2022-06-06T17:06:21Z",
+      "side": 1,
+      "message": "Actually I implemented this for the old mapper, and then it was ported forward to the new mapper.  What I really needed was an allowlist.  It seemed easy and trivial to also add a blocklist at the same time, but like most features with no users or use case, it has just gotten in the way and caused extra work 😞",
+      "parentUuid": "a70221d8_bf77be0e",
+      "revId": "e0d9b0de4b6b1787e0a838b71815e472bd8803f5",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
