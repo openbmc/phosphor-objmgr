@@ -39,6 +39,30 @@
       },
       "revId": "27d5a076e6a00c5f1fcd2e5784f429937cab1a57",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b9ddd321_89edd08f",
+        "filename": "src/main.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2022-06-06T19:14:04Z",
+      "side": 1,
+      "message": "Makes sense to me - I went ahead and made this change.  Hopefully no-one sees the try/catch around the debug code (which...clang doesn\u0027t seem to think throws) and decides it\u0027s OK to call new code that generates exceptions without handling them explicitly.",
+      "parentUuid": "66bab65d_49207a0f",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 122,
+        "endChar": 6
+      },
+      "revId": "27d5a076e6a00c5f1fcd2e5784f429937cab1a57",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
