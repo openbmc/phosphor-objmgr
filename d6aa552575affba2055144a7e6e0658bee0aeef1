@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "13e68ebf_a5beed1e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2022-06-08T16:28:56Z",
+      "side": 1,
+      "message": "\u003e Uploaded patch set 3.\n\nJust a rebase with conflict resolution.",
+      "revId": "d6aa552575affba2055144a7e6e0658bee0aeef1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
