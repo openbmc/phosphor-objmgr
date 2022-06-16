@@ -56,6 +56,12 @@ libmapper = library(
     version: meson.project_version(),
     install: true)
 
+mapper_dep = declare_dependency(
+    link_with: libmapper,
+    include_directories: include_directories('libmapper'),
+    dependencies: [ dependency('libsystemd') ],
+)
+
 import('pkgconfig').generate(
     name: 'libmapper',
     description: 'OpenBMC service discovery utility library',
