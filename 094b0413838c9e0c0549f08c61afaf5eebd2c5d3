@@ -16,6 +16,24 @@
       "message": "Overall, I\u0027m all in for the goal, and this patchset as written is an improvement... but.\n\nI thought the last time we talked about this we were going to get rid of the allowlists altogether, and just have the mapper map all of dbus (minus the interfaces we explicitly don\u0027t want) to avoid this problem entirely, and avoid the need for people to have to know that this list exists at all.  Is that no longer the case, or is that a future problem to solve?",
       "revId": "094b0413838c9e0c0549f08c61afaf5eebd2c5d3",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6af6be25_460bf08a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2022-06-27T18:42:24Z",
+      "side": 1,
+      "message": "I don\u0027t recall that discussion but I like it.\n\n\u003e minus the interfaces\n\nSo this patch is an allow list for service names.  Do you really mean interfaces or do you mean service?",
+      "parentUuid": "aa13f648_0c4df015",
+      "revId": "094b0413838c9e0c0549f08c61afaf5eebd2c5d3",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
