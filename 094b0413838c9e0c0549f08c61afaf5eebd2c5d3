@@ -69,6 +69,23 @@
       "message": "Approving anyway, because it is an improvement.",
       "revId": "094b0413838c9e0c0549f08c61afaf5eebd2c5d3",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8e38eea4_122fa224",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 653,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2022-06-30T18:29:06Z",
+      "side": 1,
+      "message": "What if you just removed the #ifdefs altogether and always did these inserts?\n\nMost likely platforms that don\u0027t want something in the mapper just don\u0027t run that application.",
+      "revId": "094b0413838c9e0c0549f08c61afaf5eebd2c5d3",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
