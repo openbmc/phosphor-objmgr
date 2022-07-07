@@ -18,6 +18,8 @@
 #include <exception>
 #include <iomanip>
 #include <iostream>
+#include <string>
+#include <string_view>
 #include <utility>
 
 AssociationMaps associationMaps;
@@ -549,11 +551,17 @@ std::vector<InterfaceMapType::value_type>
     // Interfaces need to be sorted for intersect to function
     std::sort(interfaces.begin(), interfaces.end());
 
-    if (boost::ends_with(reqPath, "/"))
+    // reqPath is now guaranteed to have a trailing "/" while reqPathStripped
+    // will be guaranteed not to have a trailing "/"
+    if (!boost::ends_with(reqPath, "/"))
     {
-        reqPath.pop_back();
+        reqPath += "/";
     }
-    if (!reqPath.empty() && interfaceMap.find(reqPath) == interfaceMap.end())
+    std::string_view reqPathStripped =
+        std::string_view(reqPath).substr(0, reqPath.size() - 1);
+
+    if (!reqPathStripped.empty() &&
+        interfaceMap.find(reqPathStripped.data()) == interfaceMap.end())
     {
         throw sdbusplus::xyz::openbmc_project::Common::Error::
             ResourceNotFound();
@@ -564,16 +572,17 @@ std::vector<InterfaceMapType::value_type>
     {
         const auto& thisPath = objectPath.first;
 
-        if (thisPath == reqPath)
+        // Skip exact match on stripped search term
+        if (thisPath == reqPathStripped)
         {
             continue;
         }
 
         if (boost::starts_with(thisPath, reqPath))
         {
-            // count the number of slashes past the search term
-            int32_t thisDepth = std::count(thisPath.begin() + reqPath.size(),
-                                           thisPath.end(), '/');
+            // count the number of slashes past the stripped search term
+            int32_t thisDepth = std::count(
+                thisPath.begin() + reqPathStripped.size(), thisPath.end(), '/');
             if (thisDepth <= depth)
             {
                 for (const auto& interfaceMap : objectPath.second)
@@ -604,11 +613,17 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
     // Interfaces need to be sorted for intersect to function
     std::sort(interfaces.begin(), interfaces.end());
 
-    if (boost::ends_with(reqPath, "/"))
+    // reqPath is now guaranteed to have a trailing "/" while reqPathStripped
+    // will be guaranteed not to have a trailing "/"
+    if (!boost::ends_with(reqPath, "/"))
     {
-        reqPath.pop_back();
+        reqPath += "/";
     }
-    if (!reqPath.empty() && interfaceMap.find(reqPath) == interfaceMap.end())
+    std::string_view reqPathStripped =
+        std::string_view(reqPath).substr(0, reqPath.size() - 1);
+
+    if (!reqPathStripped.empty() &&
+        interfaceMap.find(reqPathStripped.data()) == interfaceMap.end())
     {
         throw sdbusplus::xyz::openbmc_project::Common::Error::
             ResourceNotFound();
@@ -619,16 +634,17 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
     {
         const auto& thisPath = objectPath.first;
 
-        if (thisPath == reqPath)
+        // Skip exact match on stripped search term
+        if (thisPath == reqPathStripped)
         {
             continue;
         }
 
         if (boost::starts_with(thisPath, reqPath))
         {
-            // count the number of slashes past the search term
-            int thisDepth = std::count(thisPath.begin() + reqPath.size(),
-                                       thisPath.end(), '/');
+            // count the number of slashes past the stripped search term
+            int thisDepth = std::count(
+                thisPath.begin() + reqPathStripped.size(), thisPath.end(), '/');
             if (thisDepth <= depth)
             {
                 bool add = interfaces.empty();
