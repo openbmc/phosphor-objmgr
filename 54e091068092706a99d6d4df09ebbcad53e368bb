@@ -38,6 +38,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "87101842_93cbd81e",
+        "filename": "src/main.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 559,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2022-07-08T16:22:26Z",
+      "side": 1,
+      "message": "+1.\n\nI think we can do something like\n\n\nif (!boost::ends_with(reqPath, \"/\"){\n   reqPath +\u003d \u0027/\u0027;\n}\nstd::string_view reqPathStripped \u003d reqPath.remove_suffix(1);",
+      "parentUuid": "7925fe93_0c539ccb",
+      "revId": "54e091068092706a99d6d4df09ebbcad53e368bb",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "e4096d84_698389e7",
         "filename": "src/main.cpp",
         "patchSetId": 3
@@ -67,6 +85,47 @@
       "side": 1,
       "message": "This was copied from getAncestors - I think it\u0027s better practice to declare variables closer to where it\u0027s going to be used since we wouldn\u0027t have needed ret if we error out early.",
       "parentUuid": "e4096d84_698389e7",
+      "revId": "54e091068092706a99d6d4df09ebbcad53e368bb",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8835e0c5_6a04e740",
+        "filename": "src/main.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 561,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2022-07-08T16:22:26Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "e4096d84_698389e7",
+      "revId": "54e091068092706a99d6d4df09ebbcad53e368bb",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "495812ea_ec5393f4",
+        "filename": "src/main.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 567,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2022-07-08T16:22:26Z",
+      "side": 1,
+      "message": "Isn\u0027t this incorrect?  I thought that a getSubTree call was supposed to return the parent object as well?",
+      "range": {
+        "startLine": 567,
+        "startChar": 12,
+        "endLine": 567,
+        "endChar": 40
+      },
       "revId": "54e091068092706a99d6d4df09ebbcad53e368bb",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
