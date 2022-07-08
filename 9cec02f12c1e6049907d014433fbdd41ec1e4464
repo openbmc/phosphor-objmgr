@@ -50,6 +50,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "a050ab24_45810b88",
+        "filename": "src/main.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 564,
+      "author": {
+        "id": 1000388
+      },
+      "writtenOn": "2022-07-08T20:38:13Z",
+      "side": 1,
+      "message": "Verified this fix.",
+      "parentUuid": "1b768302_5caad7ec",
+      "range": {
+        "startLine": 564,
+        "startChar": 26,
+        "endLine": 564,
+        "endChar": 48
+      },
+      "revId": "9cec02f12c1e6049907d014433fbdd41ec1e4464",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "fed3c8fd_61a6f79a",
         "filename": "src/main.cpp",
         "patchSetId": 8
