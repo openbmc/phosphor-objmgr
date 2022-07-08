@@ -142,14 +142,13 @@ void processInterfaceAdded(InterfaceMapType& interfaceMap,
     // This is all needed so that mapper operations can be done
     // on the new parent paths.
     using iface_map_iterator = InterfaceMapType::iterator;
-    using iface_map_value_type =
-        boost::container::flat_map<std::string,
-                                   boost::container::flat_set<std::string>>;
-    using name_map_iterator = iface_map_value_type::iterator;
+    using name_map_iterator = InterfaceMapType::mapped_type::iterator;
 
-    static const boost::container::flat_set<std::string> defaultIfaces{
-        "org.freedesktop.DBus.Introspectable", "org.freedesktop.DBus.Peer",
-        "org.freedesktop.DBus.Properties"};
+    static const boost::container::flat_set<std::string, std::less<>,
+                                            std::vector<std::string>>
+        defaultIfaces{"org.freedesktop.DBus.Introspectable",
+                      "org.freedesktop.DBus.Peer",
+                      "org.freedesktop.DBus.Properties"};
 
     std::string parent = objPath.str;
     auto pos = parent.find_last_of('/');
@@ -159,11 +158,10 @@ void processInterfaceAdded(InterfaceMapType& interfaceMap,
         parent = parent.substr(0, pos);
 
         std::pair<iface_map_iterator, bool> parentEntry =
-            interfaceMap.insert(std::make_pair(parent, iface_map_value_type{}));
+            interfaceMap.try_emplace(parent);
 
         std::pair<name_map_iterator, bool> ifaceEntry =
-            parentEntry.first->second.insert(
-                std::make_pair(wellKnown, defaultIfaces));
+            parentEntry.first->second.try_emplace(wellKnown, defaultIfaces);
 
         if (!ifaceEntry.second)
         {

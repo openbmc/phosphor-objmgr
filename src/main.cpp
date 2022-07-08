@@ -359,11 +359,9 @@ void splitArgs(const std::string& stringArgs,
     }
 }
 
-void addObjectMapResult(
-    std::vector<InterfaceMapType::value_type>& objectMap,
-    const std::string& objectPath,
-    const std::pair<std::string, boost::container::flat_set<std::string>>&
-        interfaceMap)
+void addObjectMapResult(std::vector<InterfaceMapType::value_type>& objectMap,
+                        const std::string& objectPath,
+                        const ConnectionNames::value_type& interfaceMap)
 {
     // Adds an object path/service name/interface list entry to
     // the results of GetSubTree and GetAncestors.
@@ -494,13 +492,11 @@ std::vector<InterfaceMapType::value_type>
     return ret;
 }
 
-boost::container::flat_map<std::string, boost::container::flat_set<std::string>>
-    getObject(const InterfaceMapType& interfaceMap, const std::string& path,
-              std::vector<std::string>& interfaces)
+ConnectionNames getObject(const InterfaceMapType& interfaceMap,
+                          const std::string& path,
+                          std::vector<std::string>& interfaces)
 {
-    boost::container::flat_map<std::string,
-                               boost::container::flat_set<std::string>>
-        results;
+    ConnectionNames results;
 
     // Interfaces need to be sorted for intersect to function
     std::sort(interfaces.begin(), interfaces.end());
