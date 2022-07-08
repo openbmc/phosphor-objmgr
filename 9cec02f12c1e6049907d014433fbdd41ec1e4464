@@ -24,6 +24,30 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "1b768302_5caad7ec",
+        "filename": "src/main.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 564,
+      "author": {
+        "id": 1000388
+      },
+      "writtenOn": "2022-07-08T20:00:45Z",
+      "side": 1,
+      "message": "Got it, thanks! for reference, Ed is fixing this here: https://gerrit.openbmc.org/c/openbmc/phosphor-objmgr/+/55210",
+      "parentUuid": "1ed8a675_505e813d",
+      "range": {
+        "startLine": 564,
+        "startChar": 26,
+        "endLine": 564,
+        "endChar": 48
+      },
+      "revId": "9cec02f12c1e6049907d014433fbdd41ec1e4464",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "fed3c8fd_61a6f79a",
