@@ -468,7 +468,13 @@ std::vector<InterfaceMapType::value_type>
     for (const auto& objectPath : interfaceMap)
     {
         const auto& thisPath = objectPath.first;
-        if (boost::starts_with(reqPath, thisPath) && (reqPath != thisPath))
+
+        if (reqPath == thisPath)
+        {
+            continue;
+        }
+
+        if (boost::starts_with(reqPath, thisPath))
         {
             if (interfaces.empty())
             {
@@ -538,7 +544,6 @@ std::vector<InterfaceMapType::value_type>
     }
     // Interfaces need to be sorted for intersect to function
     std::sort(interfaces.begin(), interfaces.end());
-    std::vector<InterfaceMapType::value_type> ret;
 
     if (boost::ends_with(reqPath, "/"))
     {
@@ -550,6 +555,7 @@ std::vector<InterfaceMapType::value_type>
             ResourceNotFound();
     }
 
+    std::vector<InterfaceMapType::value_type> ret;
     for (const auto& objectPath : interfaceMap)
     {
         const auto& thisPath = objectPath.first;
@@ -593,7 +599,6 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
     }
     // Interfaces need to be sorted for intersect to function
     std::sort(interfaces.begin(), interfaces.end());
-    std::vector<std::string> ret;
 
     if (boost::ends_with(reqPath, "/"))
     {
@@ -605,6 +610,7 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
             ResourceNotFound();
     }
 
+    std::vector<std::string> ret;
     for (const auto& objectPath : interfaceMap)
     {
         const auto& thisPath = objectPath.first;
