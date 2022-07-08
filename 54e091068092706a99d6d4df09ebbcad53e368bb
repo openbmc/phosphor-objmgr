@@ -254,6 +254,30 @@
       },
       "revId": "54e091068092706a99d6d4df09ebbcad53e368bb",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "669b807f_e2a0876c",
+        "filename": "src/main.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 567,
+      "author": {
+        "id": 1000388
+      },
+      "writtenOn": "2022-07-08T18:52:04Z",
+      "side": 1,
+      "message": "Oh yeah, I tried to explain that in the commit message, but under the assumption that the `if (thisPath \u003d\u003d reqPathStripped) continue` logic is correct, we can safely assume that we don\u0027t want to match the base path (we would not even reach here), so that\u0027s why I assumed that we can just start matching with the trailing \"/\" included path.\n\nAgreed that the logic IS different, but we actually won\u0027t get `boost::starts_with(/xyz/openbmc_project/core0, /xyz/openbmc_project/core0)` as it would have skipped by the exact match + continue before this.",
+      "parentUuid": "2de61e80_5e0ff9fc",
+      "range": {
+        "startLine": 567,
+        "startChar": 12,
+        "endLine": 567,
+        "endChar": 40
+      },
+      "revId": "54e091068092706a99d6d4df09ebbcad53e368bb",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
