@@ -206,6 +206,30 @@
       },
       "revId": "54e091068092706a99d6d4df09ebbcad53e368bb",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "25d7c0c6_bec19296",
+        "filename": "src/main.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 567,
+      "author": {
+        "id": 1000388
+      },
+      "writtenOn": "2022-07-08T16:37:30Z",
+      "side": 1,
+      "message": "Sorry, not a regression - is this an old bug in the code that\u0027s been here the whole time*?",
+      "parentUuid": "95b65be8_3b2ef36d",
+      "range": {
+        "startLine": 567,
+        "startChar": 12,
+        "endLine": 567,
+        "endChar": 40
+      },
+      "revId": "54e091068092706a99d6d4df09ebbcad53e368bb",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
