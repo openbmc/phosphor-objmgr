@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a76c79e2_4df80f3c",
+        "filename": "src/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 567,
+      "author": {
+        "id": 1000388
+      },
+      "writtenOn": "2022-07-08T06:05:58Z",
+      "side": 1,
+      "message": "This was copied from getAncestors - it should be equivalent to the continue check that was separate before.",
+      "range": {
+        "startLine": 567,
+        "startChar": 14,
+        "endLine": 567,
+        "endChar": 42
+      },
+      "revId": "b1d2d9bc12a2c638716da0234b10d93af326b5fa",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0f668774_20847db4",
+        "filename": "src/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 621,
+      "author": {
+        "id": 1000388
+      },
+      "writtenOn": "2022-07-08T06:05:58Z",
+      "side": 1,
+      "message": "This was copied from getAncestors - it should be equivalent to the continue check that was separate before.",
+      "range": {
+        "startLine": 621,
+        "startChar": 0,
+        "endLine": 621,
+        "endChar": 42
+      },
+      "revId": "b1d2d9bc12a2c638716da0234b10d93af326b5fa",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
