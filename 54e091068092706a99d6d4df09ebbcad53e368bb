@@ -278,6 +278,30 @@
       },
       "revId": "54e091068092706a99d6d4df09ebbcad53e368bb",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "702e3ae6_7eff7ba4",
+        "filename": "src/main.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 567,
+      "author": {
+        "id": 1000388
+      },
+      "writtenOn": "2022-07-08T22:01:13Z",
+      "side": 1,
+      "message": "Going to mark this as closed - please feel free to open this if you feel this logic is incorrect.",
+      "parentUuid": "669b807f_e2a0876c",
+      "range": {
+        "startLine": 567,
+        "startChar": 12,
+        "endLine": 567,
+        "endChar": 40
+      },
+      "revId": "54e091068092706a99d6d4df09ebbcad53e368bb",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
