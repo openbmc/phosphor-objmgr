@@ -48,14 +48,13 @@ void addEndpointToInterfaceAssociation(AssociationInterfaces& interfaceAssoc)
 }
 
 // Create a default interfaceMapType with input values
-InterfaceMapType createInterfaceMap(
-    const std::string& path, const std::string& connectionName,
-    const boost::container::flat_set<std::string>& interfaceNames)
+InterfaceMapType createInterfaceMap(const std::string& path,
+                                    const std::string& connectionName,
+                                    const InterfaceNames& interfaceNames)
 {
-    boost::container::flat_map<std::string,
-                               boost::container::flat_set<std::string>>
-        connectionMap = {{connectionName, interfaceNames}};
-    InterfaceMapType interfaceMap = {{path, connectionMap}};
+    ConnectionNames connectionMap{{connectionName, interfaceNames}};
+    InterfaceMapType interfaceMap{{path, connectionMap}};
+
     return interfaceMap;
 }
 

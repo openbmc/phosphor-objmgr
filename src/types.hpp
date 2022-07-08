@@ -16,9 +16,16 @@
  *   connection names
  *      interface names
  */
+using InterfaceNames = boost::container::flat_set<std::string, std::less<>,
+                                                  std::vector<std::string>>;
+
+using ConnectionNames = boost::container::flat_map<
+    std::string, InterfaceNames, std::less<>,
+    std::vector<std::pair<std::string, InterfaceNames>>>;
+
 using InterfaceMapType = boost::container::flat_map<
-    std::string, boost::container::flat_map<
-                     std::string, boost::container::flat_set<std::string>>>;
+    std::string, ConnectionNames, std::less<>,
+    std::vector<std::pair<std::string, ConnectionNames>>>;
 
 /**
  *  Associations and some metadata are stored in associationInterfaces.
