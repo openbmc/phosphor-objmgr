@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b2e94579_38526852",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000388
+      },
+      "writtenOn": "2022-07-08T20:36:59Z",
+      "side": 1,
+      "message": "Rebased on top of Ed\u0027s mapper core types fix.",
+      "revId": "145f00b4c1338f1209397502dd91c9062fd4597a",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
