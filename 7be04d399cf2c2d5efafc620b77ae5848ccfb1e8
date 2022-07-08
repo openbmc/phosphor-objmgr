@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "888bc736_b4ce8b6d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000388
+      },
+      "writtenOn": "2022-07-08T17:08:16Z",
+      "side": 1,
+      "message": "Taking Brad\u0027s suggestion to separate out the clean up commit - I\u0027ve also taken Ed\u0027s advice to separate out the overloaded conditional I originally copied from getAncestors, by fixing getAncestors to use the explicit continue for the exact match.",
+      "revId": "7be04d399cf2c2d5efafc620b77ae5848ccfb1e8",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
