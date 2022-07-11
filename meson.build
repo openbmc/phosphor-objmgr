@@ -12,6 +12,7 @@ project(
     version: '1.0',
 )
 
+CLI11_dep = dependency('CLI11')
 phosphor_logging = dependency('phosphor-logging')
 phosphor_dbus_interfaces = dependency('phosphor-dbus-interfaces')
 sdbusplus = dependency('sdbusplus')
@@ -104,11 +105,11 @@ executable(
 executable(
     'phosphor-unit-failure-monitor',
     [
-        'fail-monitor/argument.cpp',
         'fail-monitor/main.cpp',
         'fail-monitor/monitor.cpp',
     ],
     dependencies: [
+        CLI11_dep,
         phosphor_logging,
     ],
     install: true
