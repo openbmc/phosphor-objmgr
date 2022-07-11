@@ -5,7 +5,6 @@
 
 #include <tinyxml2.h>
 
-#include <boost/algorithm/string/predicate.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/signal_set.hpp>
 #include <boost/container/flat_map.hpp>
@@ -18,6 +17,7 @@
 #include <exception>
 #include <iomanip>
 #include <iostream>
+#include <string>
 #include <utility>
 
 AssociationMaps associationMaps;
@@ -28,7 +28,7 @@ void updateOwners(sdbusplus::asio::connection* conn,
                   boost::container::flat_map<std::string, std::string>& owners,
                   const std::string& newObject)
 {
-    if (boost::starts_with(newObject, ":"))
+    if (newObject.starts_with(":"))
     {
         return;
     }
@@ -430,7 +430,7 @@ void removeUnneededParents(const std::string& objectPath,
         auto child = std::find_if(
             interfaceMap.begin(), interfaceMap.end(),
             [&owner, &childPath](const auto& entry) {
-                return boost::starts_with(entry.first, childPath) &&
+                return entry.first.starts_with(childPath) &&
                        (entry.second.find(owner) != entry.second.end());
             });
 
@@ -456,7 +456,7 @@ std::vector<InterfaceMapType::value_type>
     // Interfaces need to be sorted for intersect to function
     std::sort(interfaces.begin(), interfaces.end());
 
-    if (boost::ends_with(reqPath, "/"))
+    if (reqPath.ends_with("/"))
     {
         reqPath.pop_back();
     }
@@ -470,7 +470,7 @@ std::vector<InterfaceMapType::value_type>
     for (const auto& objectPath : interfaceMap)
     {
         const auto& thisPath = objectPath.first;
-        if (boost::starts_with(reqPath, thisPath) && (reqPath != thisPath))
+        if (reqPath.starts_with(thisPath) && (reqPath != thisPath))
         {
             if (interfaces.empty())
             {
@@ -544,7 +544,7 @@ std::vector<InterfaceMapType::value_type>
     std::sort(interfaces.begin(), interfaces.end());
     std::vector<InterfaceMapType::value_type> ret;
 
-    if (boost::ends_with(reqPath, "/"))
+    if (reqPath.ends_with("/"))
     {
         reqPath.pop_back();
     }
@@ -563,7 +563,7 @@ std::vector<InterfaceMapType::value_type>
             continue;
         }
 
-        if (boost::starts_with(thisPath, reqPath))
+        if (thisPath.starts_with(reqPath))
         {
             // count the number of slashes past the search term
             int32_t thisDepth = std::count(thisPath.begin() + reqPath.size(),
@@ -599,7 +599,7 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
     std::sort(interfaces.begin(), interfaces.end());
     std::vector<std::string> ret;
 
-    if (boost::ends_with(reqPath, "/"))
+    if (reqPath.ends_with("/"))
     {
         reqPath.pop_back();
     }
@@ -618,7 +618,7 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
             continue;
         }
 
-        if (boost::starts_with(thisPath, reqPath))
+        if (thisPath.starts_with(reqPath))
         {
             // count the number of slashes past the search term
             int thisDepth = std::count(thisPath.begin() + reqPath.size(),

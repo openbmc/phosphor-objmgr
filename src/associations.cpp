@@ -1,9 +1,9 @@
 #include "associations.hpp"
 
-#include <boost/algorithm/string/predicate.hpp>
 #include <sdbusplus/exception.hpp>
 
 #include <iostream>
+#include <string>
 
 void removeAssociation(const std::string& sourcePath, const std::string& owner,
                        sdbusplus::asio::object_server& server,
@@ -462,8 +462,7 @@ void findAssociations(const std::string& endpointPath,
                                 endpoints.begin(), endpoints.end(), otherPath);
                             if (endpoint != endpoints.end())
                             {
-                                return boost::starts_with(ap.first,
-                                                          endpointPath + '/');
+                                return ap.first.starts_with(endpointPath + '/');
                             }
                             return false;
                         });
