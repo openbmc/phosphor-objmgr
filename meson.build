@@ -15,7 +15,7 @@ project(
 phosphor_logging = dependency('phosphor-logging')
 phosphor_dbus_interfaces = dependency('phosphor-dbus-interfaces')
 sdbusplus = dependency('sdbusplus')
-
+CLI11_dep = dependency('CLI11')
 
 if get_option('buildtype').startswith('debug')
     add_project_arguments('-DMAPPER_ENABLE_DEBUG', language : 'cpp')
@@ -98,11 +98,11 @@ executable(
 executable(
     'phosphor-unit-failure-monitor',
     [
-        'fail-monitor/argument.cpp',
         'fail-monitor/main.cpp',
         'fail-monitor/monitor.cpp',
     ],
     dependencies: [
+        CLI11_dep,
         phosphor_logging,
     ],
     install: true
