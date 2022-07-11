@@ -1,15 +1,14 @@
 #include "processing.hpp"
 
-#include <boost/algorithm/string/predicate.hpp>
-
 #include <iostream>
+#include <string>
 
 bool getWellKnown(
     const boost::container::flat_map<std::string, std::string>& owners,
     const std::string& request, std::string& wellKnown)
 {
     // If it's already a well known name, just return
-    if (!boost::starts_with(request, ":"))
+    if (!request.starts_with(":"))
     {
         wellKnown = request;
         return true;
@@ -27,11 +26,10 @@ bool getWellKnown(
 bool needToIntrospect(const std::string& processName,
                       const AllowDenyList& allowList)
 {
-    auto inAllowList =
-        std::find_if(allowList.begin(), allowList.end(),
-                     [&processName](const auto& prefix) {
-                         return boost::starts_with(processName, prefix);
-                     }) != allowList.end();
+    auto inAllowList = std::find_if(allowList.begin(), allowList.end(),
+                                    [&processName](const auto& prefix) {
+                                        return processName.starts_with(prefix);
+                                    }) != allowList.end();
 
     return inAllowList;
 }
@@ -42,7 +40,7 @@ void processNameChangeDelete(
     InterfaceMapType& interfaceMap, AssociationMaps& assocMaps,
     sdbusplus::asio::object_server& server)
 {
-    if (boost::starts_with(oldOwner, ":"))
+    if (oldOwner.starts_with(":"))
     {
         auto it = nameOwners.find(oldOwner);
         if (it != nameOwners.end())

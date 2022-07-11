@@ -5,7 +5,6 @@
 
 #include <tinyxml2.h>
 
-#include <boost/algorithm/string/predicate.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/signal_set.hpp>
 #include <boost/container/flat_map.hpp>
@@ -30,7 +29,7 @@ void updateOwners(sdbusplus::asio::connection* conn,
                   boost::container::flat_map<std::string, std::string>& owners,
                   const std::string& newObject)
 {
-    if (boost::starts_with(newObject, ":"))
+    if (newObject.starts_with(":"))
     {
         return;
     }
@@ -430,7 +429,7 @@ void removeUnneededParents(const std::string& objectPath,
         auto child = std::find_if(
             interfaceMap.begin(), interfaceMap.end(),
             [&owner, &childPath](const auto& entry) {
-                return boost::starts_with(entry.first, childPath) &&
+                return entry.first.starts_with(childPath) &&
                        (entry.second.find(owner) != entry.second.end());
             });
 
@@ -456,7 +455,7 @@ std::vector<InterfaceMapType::value_type>
     // Interfaces need to be sorted for intersect to function
     std::sort(interfaces.begin(), interfaces.end());
 
-    if (boost::ends_with(reqPath, "/"))
+    if (reqPath.ends_with("/"))
     {
         reqPath.pop_back();
     }
@@ -476,7 +475,7 @@ std::vector<InterfaceMapType::value_type>
             continue;
         }
 
-        if (boost::starts_with(reqPath, thisPath))
+        if (reqPath.starts_with(thisPath))
         {
             if (interfaces.empty())
             {
@@ -549,7 +548,7 @@ std::vector<InterfaceMapType::value_type>
 
     // reqPath is now guaranteed to have a trailing "/" while reqPathStripped
     // will be guaranteed not to have a trailing "/"
-    if (!boost::ends_with(reqPath, "/"))
+    if (!reqPath.ends_with("/"))
     {
         reqPath += "/";
     }
@@ -574,7 +573,7 @@ std::vector<InterfaceMapType::value_type>
             continue;
         }
 
-        if (boost::starts_with(thisPath, reqPath))
+        if (thisPath.starts_with(reqPath))
         {
             // count the number of slashes past the stripped search term
             int32_t thisDepth = std::count(
@@ -611,7 +610,7 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
 
     // reqPath is now guaranteed to have a trailing "/" while reqPathStripped
     // will be guaranteed not to have a trailing "/"
-    if (!boost::ends_with(reqPath, "/"))
+    if (!reqPath.ends_with("/"))
     {
         reqPath += "/";
     }
@@ -636,7 +635,7 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
             continue;
         }
 
-        if (boost::starts_with(thisPath, reqPath))
+        if (thisPath.starts_with(reqPath))
         {
             // count the number of slashes past the stripped search term
             int thisDepth = std::count(
