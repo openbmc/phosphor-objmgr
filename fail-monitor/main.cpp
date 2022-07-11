@@ -20,53 +20,35 @@
  * then it will either stop or start the target unit, depending
  * on the command line arguments.
  */
-#include "argument.hpp"
 #include "monitor.hpp"
 
-#include <iostream>
+#include <CLI/CLI.hpp>
+
 #include <map>
+#include <string>
 
 using namespace phosphor::unit::failure;
-
-/**
- * Prints usage and exits the program
- *
- * @param[in] err - the error message to print
- * @param[in] argv - argv from main()
- */
-void exitWithError(const char* err, char** argv)
-{
-    std::cerr << "ERROR: " << err << "\n";
-    ArgumentParser::usage(argv);
-    exit(EXIT_FAILURE);
-}
 
 static const std::map<std::string, Monitor::Action> actions = {
     {"start", Monitor::Action::start}, {"stop", Monitor::Action::stop}};
 
 int main(int argc, char** argv)
 {
-    ArgumentParser args(argc, argv);
+    CLI::App app;
+    std::string source;
+    std::string target;
+    Monitor::Action action{Monitor::Action::start};
 
-    auto source = args["source"];
-    if (source == ArgumentParser::emptyString)
-    {
-        exitWithError("Source not specified", argv);
-    }
+    app.add_option("-s,--source", source, "The source unit to monitor")
+        ->required();
+    app.add_option("-t,--target", target, "The target unit to start or stop")
+        ->required();
+    app.add_option("-a,--action", action, "Target unit action - start or stop")
+        ->required()
+        ->transform(CLI::CheckedTransformer(actions, CLI::ignore_space));
 
-    auto target = args["target"];
-    if (target == ArgumentParser::emptyString)
-    {
-        exitWithError("Target not specified", argv);
-    }
-
-    auto a = actions.find(args["action"]);
-    if (a == actions.end())
-    {
-        exitWithError("Missing or invalid action specified", argv);
-    }
-
-    Monitor monitor{source, target, a->second};
+    CLI11_PARSE(app, argc, argv);
+    Monitor monitor{source, target, action};
 
     monitor.analyze();
 
