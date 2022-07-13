@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f6c561b5_cf8b794f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000388
+      },
+      "writtenOn": "2022-07-13T21:18:54Z",
+      "side": 1,
+      "message": "Verified that this fixes the issue I was running into (as I also had 1.74 boost)",
+      "revId": "26ed4a1ee54f77e5476cb8cfa1c1543eb66e51e7",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
