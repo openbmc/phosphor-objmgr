@@ -15,7 +15,13 @@ project(
 phosphor_logging = dependency('phosphor-logging')
 phosphor_dbus_interfaces = dependency('phosphor-dbus-interfaces')
 sdbusplus = dependency('sdbusplus')
-
+boost = dependency('boost', version : '>=1.79.0', required: false, include_type: 'system')
+if not boost.found()
+  subproject('boost', required: false)
+  boost_inc = include_directories('subprojects/boost_1_79_0/', is_system:true)
+  boost  = declare_dependency(include_directories : boost_inc)
+  boost = boost.as_system('system')
+endif
 
 if get_option('buildtype').startswith('debug')
     add_project_arguments('-DMAPPER_ENABLE_DEBUG', language : 'cpp')
@@ -84,7 +90,7 @@ executable(
         'src/associations.cpp',
     ],
     dependencies: [
-        dependency('boost'),
+        boost,
         dependency('libsystemd'),
         phosphor_dbus_interfaces,
         phosphor_logging,
