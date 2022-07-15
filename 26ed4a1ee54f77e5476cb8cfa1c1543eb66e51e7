@@ -1,0 +1,9 @@
+Code-Review+1: Brandon Kim <brandonkim@google.com>
+Code-Review+2: Matt Spinler <spinler@us.ibm.com>
+Ok-To-Test+1: Andrew Geissler <andrew@geissonator.com>
+Verified+1: OpenBMC CI <openbmcbump-ci@yahoo.com>
+Submitted-by: Ed Tanous <ed@tanous.net>
+Submitted-at: Fri, 15 Jul 2022 15:50:41 +0000
+Reviewed-on: https://gerrit.openbmc.org/c/openbmc/phosphor-objmgr/+/55341
+Project: openbmc/phosphor-objmgr
+Branch: refs/heads/master
