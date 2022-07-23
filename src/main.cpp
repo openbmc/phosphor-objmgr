@@ -53,7 +53,7 @@ void sendIntrospectionCompleteSignal(sdbusplus::asio::connection* systemBus,
     // TODO(ed) This signal doesn't get exposed properly in the
     // introspect right now.  Find out how to register signals in
     // sdbusplus
-    sdbusplus::message::message m = systemBus->new_signal(
+    sdbusplus::message_t m = systemBus->new_signal(
         "/xyz/openbmc_project/object_mapper",
         "xyz.openbmc_project.ObjectMapper.Private", "IntrospectionComplete");
     m.append(processName);
@@ -669,9 +669,9 @@ int main(int argc, char** argv)
     InterfaceMapType interfaceMap;
     boost::container::flat_map<std::string, std::string> nameOwners;
 
-    std::function<void(sdbusplus::message::message & message)>
-        nameChangeHandler = [&interfaceMap, &io, &nameOwners, &server,
-                             systemBus](sdbusplus::message::message& message) {
+    std::function<void(sdbusplus::message_t & message)> nameChangeHandler =
+        [&interfaceMap, &io, &nameOwners, &server,
+         systemBus](sdbusplus::message_t& message) {
             std::string name;     // well-known
             std::string oldOwner; // unique-name
             std::string newOwner; // unique-name
@@ -705,13 +705,12 @@ int main(int argc, char** argv)
             }
         };
 
-    sdbusplus::bus::match::match nameOwnerChanged(
-        static_cast<sdbusplus::bus::bus&>(*systemBus),
+    sdbusplus::bus::match_t nameOwnerChanged(
+        static_cast<sdbusplus::bus_t&>(*systemBus),
         sdbusplus::bus::match::rules::nameOwnerChanged(), nameChangeHandler);
 
-    std::function<void(sdbusplus::message::message & message)>
-        interfacesAddedHandler = [&interfaceMap, &nameOwners, &server](
-                                     sdbusplus::message::message& message) {
+    std::function<void(sdbusplus::message_t & message)> interfacesAddedHandler =
+        [&interfaceMap, &nameOwners, &server](sdbusplus::message_t& message) {
             sdbusplus::message::object_path objPath;
             InterfacesAdded interfacesAdded;
             message.read(objPath, interfacesAdded);
@@ -727,14 +726,14 @@ int main(int argc, char** argv)
             }
         };
 
-    sdbusplus::bus::match::match interfacesAdded(
-        static_cast<sdbusplus::bus::bus&>(*systemBus),
+    sdbusplus::bus::match_t interfacesAdded(
+        static_cast<sdbusplus::bus_t&>(*systemBus),
         sdbusplus::bus::match::rules::interfacesAdded(),
         interfacesAddedHandler);
 
-    std::function<void(sdbusplus::message::message & message)>
-        interfacesRemovedHandler = [&interfaceMap, &nameOwners, &server](
-                                       sdbusplus::message::message& message) {
+    std::function<void(sdbusplus::message_t & message)>
+        interfacesRemovedHandler = [&interfaceMap, &nameOwners,
+                                    &server](sdbusplus::message_t& message) {
             sdbusplus::message::object_path objPath;
             std::vector<std::string> interfacesRemoved;
             message.read(objPath, interfacesRemoved);
@@ -797,14 +796,14 @@ int main(int argc, char** argv)
             removeUnneededParents(objPath.str, sender, interfaceMap);
         };
 
-    sdbusplus::bus::match::match interfacesRemoved(
-        static_cast<sdbusplus::bus::bus&>(*systemBus),
+    sdbusplus::bus::match_t interfacesRemoved(
+        static_cast<sdbusplus::bus_t&>(*systemBus),
         sdbusplus::bus::match::rules::interfacesRemoved(),
         interfacesRemovedHandler);
 
-    std::function<void(sdbusplus::message::message & message)>
+    std::function<void(sdbusplus::message_t & message)>
         associationChangedHandler = [&server, &nameOwners, &interfaceMap](
-                                        sdbusplus::message::message& message) {
+                                        sdbusplus::message_t& message) {
             std::string objectName;
             boost::container::flat_map<std::string,
                                        std::variant<std::vector<Association>>>
@@ -825,8 +824,8 @@ int main(int argc, char** argv)
                                    wellKnown, interfaceMap, associationMaps);
             }
         };
-    sdbusplus::bus::match::match assocChangedMatch(
-        static_cast<sdbusplus::bus::bus&>(*systemBus),
+    sdbusplus::bus::match_t assocChangedMatch(
+        static_cast<sdbusplus::bus_t&>(*systemBus),
         sdbusplus::bus::match::rules::interface(
             "org.freedesktop.DBus.Properties") +
             sdbusplus::bus::match::rules::member("PropertiesChanged") +

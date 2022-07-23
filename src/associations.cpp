@@ -409,7 +409,7 @@ void checkIfPendingAssociation(const std::string& objectPath,
             addSingleAssociation(server, assocPath, endpointPath, owner,
                                  ownerPath, assocMaps);
         }
-        catch (const sdbusplus::exception::exception& e)
+        catch (const sdbusplus::exception_t& e)
         {
             // In some case the interface could not be created on DBus and an
             // exception is thrown. mapper has no control of the interface/path

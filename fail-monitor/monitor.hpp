@@ -83,7 +83,7 @@ class Monitor
     /**
      * The dbus object
      */
-    sdbusplus::bus::bus bus;
+    sdbusplus::bus_t bus;
 
     /**
      * The source unit
