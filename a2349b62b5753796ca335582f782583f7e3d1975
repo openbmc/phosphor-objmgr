@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5558d2eb_e2071bed",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2022-08-25T14:14:35Z",
+      "side": 1,
+      "message": "When this merges, think it would be a good idea to mention on the mailing list that allow lists aren\u0027t needed anymore?",
+      "revId": "a2349b62b5753796ca335582f782583f7e3d1975",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
