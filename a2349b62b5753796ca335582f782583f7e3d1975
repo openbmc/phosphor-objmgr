@@ -16,6 +16,24 @@
       "message": "When this merges, think it would be a good idea to mention on the mailing list that allow lists aren\u0027t needed anymore?",
       "revId": "a2349b62b5753796ca335582f782583f7e3d1975",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f9fa4c0b_e08662f8",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2022-08-26T15:44:00Z",
+      "side": 1,
+      "message": "done: https://lore.kernel.org/openbmc/20220826154126.b265sq7vh4qk5b7q@cheese/T/#u",
+      "parentUuid": "5558d2eb_e2071bed",
+      "revId": "a2349b62b5753796ca335582f782583f7e3d1975",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
