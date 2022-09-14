@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f3ef1e01_4b1ec325",
+        "filename": "meson.build",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2022-09-14T17:41:30Z",
+      "side": 1,
+      "message": "this doesn\u0027t work with bitbake.",
+      "revId": "7a562f6220fc1d1fcf2ead20c97a50311ba32f00",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
