@@ -16,6 +16,23 @@
       "message": "This will need: https://gerrit.openbmc.org/c/openbmc/openbmc-build-scripts/+/57148",
       "revId": "8c243629a9e6866ccac247d74f274b86bc1fad50",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d9c0298c_a9619a1f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2022-09-15T13:16:57Z",
+      "side": 1,
+      "message": "looks like this will require a change to https://github.com/openbmc/openbmc/blob/master/meta-ibm/recipes-phosphor/fans/fan-watchdog/fan-watchdog-monitor%40.service?",
+      "revId": "8c243629a9e6866ccac247d74f274b86bc1fad50",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
