@@ -1,6 +1,6 @@
 #include "associations.hpp"
-#include "processing.hpp"
 #include "handler.hpp"
+#include "processing.hpp"
 #include "types.hpp"
 
 #include <tinyxml2.h>
@@ -594,6 +594,26 @@ int main()
         [&interfaceMap](std::string& reqPath, int32_t depth,
                         std::vector<std::string>& interfaces) {
             return getSubTreePaths(interfaceMap, reqPath, depth, interfaces);
+        });
+
+    iface->register_method(
+        "GetAssociatedSubTree",
+        [&interfaceMap](const sdbusplus::message::object_path& associationPath,
+                        const sdbusplus::message::object_path& reqPath,
+                        int32_t depth, std::vector<std::string>& interfaces) {
+            return getAssociatedSubTree(interfaceMap, associationMaps,
+                                        associationPath, reqPath, depth,
+                                        interfaces);
+        });
+
+    iface->register_method(
+        "GetAssociatedSubTreePaths",
+        [&interfaceMap](const sdbusplus::message::object_path& associationPath,
+                        const sdbusplus::message::object_path& reqPath,
+                        int32_t depth, std::vector<std::string>& interfaces) {
+            return getAssociatedSubTreePaths(interfaceMap, associationMaps,
+                                             associationPath, reqPath, depth,
+                                             interfaces);
         });
 
     iface->initialize();
