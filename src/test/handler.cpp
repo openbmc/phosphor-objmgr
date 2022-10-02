@@ -33,6 +33,33 @@ class TestHandler : public testing::Test
             "/test/object_path_0/child/grandchild/dog",
             {{"test_object_connection_3", {"test_interface_3"}}},
         }};
+
+    AssociationMaps associationMap = {
+        .ifaces =
+            {
+                {
+                    "/test/object_path_0/descendent",
+                    {
+                        std::shared_ptr<sdbusplus::asio::dbus_interface>(),
+                        {
+                            "/test/object_path_0/child",
+                            "/test/object_path_0/child/grandchild",
+                        },
+                    },
+                },
+                {
+                    "/test/object_path_0/child/descendent",
+                    {
+                        std::shared_ptr<sdbusplus::asio::dbus_interface>(),
+                        {
+                            "/test/object_path_0/child/grandchild",
+                        },
+                    },
+                },
+            },
+        .owners = {},
+        .pending = {},
+    };
 };
 
 TEST_F(TestHandler, AddObjectMapResult)
@@ -256,4 +283,131 @@ TEST_F(TestHandler, getSubTreePathsGood)
     subtreePath = getSubTreePaths(interfaceMap, path1, 0, interfaces);
     ASSERT_THAT(subtreePath,
                 ElementsAre("/test/object_path_0/child/grandchild/dog"));
+}
+
+TEST_F(TestHandler, getAssociatedSubTreeBad)
+{
+    sdbusplus::message::object_path path("/test/object_path_0");
+    sdbusplus::message::object_path validAssociatedPath = path / "descendent";
+    std::vector<std::string> invalidInterfaces = {"test_interface_3"};
+    std::vector<std::string> validInterfaces = {"test_interface_1",
+                                                "test_interface_2"};
+    // Associated path, but invalid interface
+    ASSERT_TRUE(getAssociatedSubTree(interfaceMap, associationMap,
+                                     validAssociatedPath, path, 0,
+                                     invalidInterfaces)
+                    .empty());
+
+    // Valid interface, not associated
+    ASSERT_TRUE(getAssociatedSubTree(interfaceMap, associationMap, path / "dog",
+                                     path, 0, validInterfaces)
+                    .empty());
+
+    // Invalid path, with valid association
+    path = sdbusplus::message::object_path("/invalid_path");
+    EXPECT_THROW(
+        getAssociatedSubTree(interfaceMap, associationMap, validAssociatedPath,
+                             path, 0, validInterfaces),
+        sdbusplus::xyz::openbmc_project::Common::Error::ResourceNotFound);
+}
+
+TEST_F(TestHandler, getAssociatedSubTreeGood)
+{
+    sdbusplus::message::object_path path0("/test/object_path_0");
+    sdbusplus::message::object_path path1("/test/object_path_0/child");
+    sdbusplus::message::object_path associatedPath = path0 / "descendent";
+    std::vector<std::string> interfaces = {"test_interface_1",
+                                           "test_interface_2",
+                                           // Not associated to path
+                                           "test_interface_3"};
+
+    // Path0
+    std::vector<InterfaceMapType::value_type> subtree = getAssociatedSubTree(
+        interfaceMap, associationMap, associatedPath, path0, 0, interfaces);
+    ASSERT_EQ(subtree.size(), 2);
+    ConnectionNames connection = subtree[0].second;
+    auto object = connection.find("test_object_connection_1");
+    ASSERT_NE(object, connection.end());
+    ASSERT_THAT(object->second, ElementsAre("test_interface_1"));
+
+    connection = subtree[1].second;
+    object = connection.find("test_object_connection_2");
+    ASSERT_NE(object, connection.end());
+    ASSERT_THAT(object->second, ElementsAre("test_interface_2"));
+
+    // Path0 with Depth path of 1
+    subtree = getAssociatedSubTree(interfaceMap, associationMap, associatedPath,
+                                   path0, 1, interfaces);
+    ASSERT_EQ(subtree.size(), 1);
+    connection = subtree[0].second;
+    object = connection.find("test_object_connection_1");
+    ASSERT_NE(object, connection.end());
+    ASSERT_THAT(object->second, ElementsAre("test_interface_1"));
+
+    // Path1
+    subtree = getAssociatedSubTree(interfaceMap, associationMap,
+                                   path1 / "descendent", path1, 0, interfaces);
+    ASSERT_EQ(subtree.size(), 1);
+    connection = subtree[0].second;
+    object = connection.find("test_object_connection_2");
+    ASSERT_NE(object, connection.end());
+    ASSERT_THAT(object->second, ElementsAre("test_interface_2"));
+}
+
+TEST_F(TestHandler, getAssociatedSubTreePathsBad)
+{
+    sdbusplus::message::object_path path("/test/object_path_0");
+    sdbusplus::message::object_path validAssociatedPath = path / "descendent";
+    std::vector<std::string> invalidInterfaces = {"test_interface_3"};
+    std::vector<std::string> validInterfaces = {"test_interface_1",
+                                                "test_interface_2"};
+    // Associated path, but invalid interface
+    ASSERT_TRUE(getAssociatedSubTreePaths(interfaceMap, associationMap,
+                                          validAssociatedPath, path, 0,
+                                          invalidInterfaces)
+                    .empty());
+
+    // Valid interface, not associated
+    ASSERT_TRUE(getAssociatedSubTreePaths(interfaceMap, associationMap,
+                                          path / "dog", path, 0,
+                                          validInterfaces)
+                    .empty());
+
+    // Invalid path, with valid association
+    path = sdbusplus::message::object_path("/invalid_path");
+    EXPECT_THROW(
+        getAssociatedSubTreePaths(interfaceMap, associationMap,
+                                  validAssociatedPath, path, 0,
+                                  validInterfaces),
+        sdbusplus::xyz::openbmc_project::Common::Error::ResourceNotFound);
+}
+
+TEST_F(TestHandler, getAssociatedSubTreePathsGood)
+{
+    sdbusplus::message::object_path path0("/test/object_path_0");
+    sdbusplus::message::object_path path1("/test/object_path_0/child");
+    sdbusplus::message::object_path associatedPath = path0 / "descendent";
+    std::vector<std::string> interfaces = {"test_interface_1",
+                                           "test_interface_2",
+                                           // Not associated to path
+                                           "test_interface_3"};
+
+    // Path0
+    std::vector<std::string> subtreePath = getAssociatedSubTreePaths(
+        interfaceMap, associationMap, associatedPath, path0, 0, interfaces);
+    ASSERT_THAT(subtreePath,
+                ElementsAre("/test/object_path_0/child",
+                            "/test/object_path_0/child/grandchild"));
+
+    // Path0 with Depth path of 1
+    subtreePath = getAssociatedSubTreePaths(
+        interfaceMap, associationMap, associatedPath, path0, 1, interfaces);
+    ASSERT_THAT(subtreePath, ElementsAre("/test/object_path_0/child"));
+
+    // Path1
+    subtreePath =
+        getAssociatedSubTreePaths(interfaceMap, associationMap,
+                                  path1 / "descendent", path1, 0, interfaces);
+    ASSERT_THAT(subtreePath,
+                ElementsAre("/test/object_path_0/child/grandchild"));
 }

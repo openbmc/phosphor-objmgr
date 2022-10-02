@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -274,4 +275,64 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
     }
 
     return ret;
+}
+
+std::vector<InterfaceMapType::value_type>
+    getAssociatedSubTree(const InterfaceMapType& interfaceMap,
+                         const AssociationMaps& associationMaps,
+                         const sdbusplus::message::object_path& associationPath,
+                         const sdbusplus::message::object_path& reqPath,
+                         int32_t depth, std::vector<std::string>& interfaces)
+{
+    auto findEndpoint = associationMaps.ifaces.find(associationPath.str);
+    if (findEndpoint == associationMaps.ifaces.end())
+    {
+        return {};
+    }
+    const std::vector<std::string>& association =
+        std::get<endpointsPos>(findEndpoint->second);
+    std::unordered_set<std::string> associationSet(association.begin(),
+                                                   association.end());
+    const std::vector<InterfaceMapType::value_type>& interfacePairs =
+        getSubTree(interfaceMap, reqPath, depth, interfaces);
+
+    std::vector<InterfaceMapType::value_type> output;
+    for (const InterfaceMapType::value_type& interfacePair : interfacePairs)
+    {
+        if (associationSet.contains(interfacePair.first))
+        {
+            output.emplace_back(interfacePair);
+        }
+    }
+    return output;
+}
+
+std::vector<std::string> getAssociatedSubTreePaths(
+    const InterfaceMapType& interfaceMap,
+    const AssociationMaps& associationMaps,
+    const sdbusplus::message::object_path& associationPath,
+    const sdbusplus::message::object_path& reqPath, int32_t depth,
+    std::vector<std::string>& interfaces)
+{
+    auto findEndpoint = associationMaps.ifaces.find(associationPath.str);
+    if (findEndpoint == associationMaps.ifaces.end())
+    {
+        return {};
+    }
+    const std::vector<std::string>& association =
+        std::get<endpointsPos>(findEndpoint->second);
+    std::unordered_set<std::string> associationSet(association.begin(),
+                                                   association.end());
+    const std::vector<std::string>& paths =
+        getSubTreePaths(interfaceMap, reqPath, depth, interfaces);
+
+    std::vector<std::string> output;
+    for (const auto& path : paths)
+    {
+        if (associationSet.contains(path))
+        {
+            output.emplace_back(path);
+        }
+    }
+    return output;
 }
