@@ -18,7 +18,9 @@
 #include <iostream>
 #include <string>
 #include <string_view>
+#include <unordered_set>
 #include <utility>
+#include <vector>
 
 AssociationMaps associationMaps;
 
@@ -644,6 +646,92 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
     return ret;
 }
 
+/**
+ * @brief Get the Associated Sub Tree object
+ *
+ * @param interfaceMap     Mapper Structure storing all associations
+ * @param associationPath  Object path to get the endpoint from
+ * @param reqPath          Base path to search for the subtree
+ * @param depth            Level of depth to search into the base path
+ * @param interfaces       Interface filter
+ *
+ * Use getSubTree and return only the dbus object that is in the endpoint of
+ * associationPath.
+ *
+ * @return std::vector<InterfaceMapType::value_type>
+ */
+std::vector<InterfaceMapType::value_type>
+    getAssociatedSubTree(const InterfaceMapType& interfaceMap,
+                         const std::string& associationPath,
+                         const std::string& reqPath, int32_t depth,
+                         std::vector<std::string>& interfaces)
+{
+    auto findEndpoint = associationMaps.ifaces.find(associationPath);
+    if (findEndpoint == associationMaps.ifaces.end())
+    {
+        return {};
+    }
+    const std::vector<std::string>& association =
+        std::get<endpointsPos>(findEndpoint->second);
+    std::unordered_set<std::string> associationSet(association.begin(),
+                                                   association.end());
+    const std::vector<InterfaceMapType::value_type>& paths =
+        getSubTree(interfaceMap, reqPath, depth, interfaces);
+
+    std::vector<InterfaceMapType::value_type> output;
+    for (const auto& interfacePair : paths)
+    {
+        if (associationSet.count(interfacePair.first) != 0)
+        {
+            output.emplace_back(interfacePair);
+        }
+    }
+    return output;
+}
+
+/**
+ * @brief Get the Associated Sub Tree Paths object
+ *
+ * @param interfaceMap     Mapper Structure storing all associations
+ * @param associationPath  Object path to get the endpoint from
+ * @param reqPath          Base path to search for the subtree
+ * @param depth            Level of depth to search into the base path
+ * @param interfaces       Interface filter
+ *
+ * Use getSubTreePaths and return only the dbus object that is in the endpoint
+ * of associationPath.
+ *
+ * @return std::vector<std::string>
+ */
+std::vector<std::string>
+    getAssociatedSubTreePaths(const InterfaceMapType& interfaceMap,
+                              const std::string& associationPath,
+                              const std::string& reqPath, int32_t depth,
+                              std::vector<std::string>& interfaces)
+{
+    auto findEndpoint = associationMaps.ifaces.find(associationPath);
+    if (findEndpoint == associationMaps.ifaces.end())
+    {
+        return {};
+    }
+    const std::vector<std::string>& association =
+        std::get<endpointsPos>(findEndpoint->second);
+    std::unordered_set<std::string> associationSet(association.begin(),
+                                                   association.end());
+    const std::vector<std::string>& paths =
+        getSubTreePaths(interfaceMap, reqPath, depth, interfaces);
+
+    std::vector<std::string> output;
+    for (const auto& path : paths)
+    {
+        if (associationSet.count(path) != 0)
+        {
+            output.emplace_back(path);
+        }
+    }
+    return output;
+}
+
 int main()
 {
     boost::asio::io_context io;
@@ -850,6 +938,22 @@ int main()
         [&interfaceMap](std::string& reqPath, int32_t depth,
                         std::vector<std::string>& interfaces) {
             return getSubTreePaths(interfaceMap, reqPath, depth, interfaces);
+        });
+
+    iface->register_method(
+        "GetAssociatedSubTree",
+        [&interfaceMap](const std::string& associationPath, std::string reqPath,
+                        int32_t depth, std::vector<std::string>& interfaces) {
+            return getAssociatedSubTree(interfaceMap, associationPath, reqPath,
+                                        depth, interfaces);
+        });
+
+    iface->register_method(
+        "GetAssociatedSubTreePaths",
+        [&interfaceMap](const std::string& associationPath, std::string reqPath,
+                        int32_t depth, std::vector<std::string>& interfaces) {
+            return getAssociatedSubTreePaths(interfaceMap, associationPath,
+                                             reqPath, depth, interfaces);
         });
 
     iface->initialize();
