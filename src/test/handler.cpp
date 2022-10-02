@@ -33,6 +33,24 @@ class TestHandler : public testing::Test
             "/test/object_path_0/child/grandchild/dog",
             {{"test_object_connection_3", {"test_interface_3"}}},
         }};
+
+    AssociationMaps associationMap = {
+        .ifaces =
+            {
+                {
+                    "/test/object_path_0/decentent",
+                    {
+                        std::shared_ptr<sdbusplus::asio::dbus_interface>(),
+                        {
+                            "/test/object_path_0/child",
+                            "/test/object_path_0/child/grandchild",
+                        },
+                    },
+                },
+            },
+        .owners = {},
+        .pending = {},
+    };
 };
 
 TEST_F(TestHandler, AddObjectMapResult)
@@ -198,5 +216,78 @@ TEST_F(TestHandler, getSubTreePathsGood)
 
     // Depth path of 1
     subtreePath = getSubTreePaths(interfaceMap, path, 1, interfaces);
+    ASSERT_THAT(subtreePath, ElementsAre("/test/object_path_0/child"));
+}
+
+TEST_F(TestHandler, getAssociatedSubTreeBad)
+{
+    sdbusplus::message::object_path path("/test/object_path_0");
+    sdbusplus::message::object_path associatedPath = path / "decentent";
+    std::vector<std::string> interfaces = {"test_interface_3"};
+
+    std::vector<InterfaceMapType::value_type> subtree = getAssociatedSubTree(
+        interfaceMap, associationMap, associatedPath, path, 0, interfaces);
+    ASSERT_EQ(subtree.size(), 0);
+}
+
+TEST_F(TestHandler, getAssociatedSubTreeGood)
+{
+    sdbusplus::message::object_path path("/test/object_path_0");
+    sdbusplus::message::object_path associatedPath = path / "decentent";
+    std::vector<std::string> interfaces = {"test_interface_1",
+                                           "test_interface_2",
+                                           // Not associated to path
+                                           "test_interface_3"};
+    std::vector<InterfaceMapType::value_type> subtree = getAssociatedSubTree(
+        interfaceMap, associationMap, associatedPath, path, 0, interfaces);
+    ASSERT_EQ(subtree.size(), 2);
+    ConnectionNames connection = subtree[0].second;
+    auto object = connection.find("test_object_connection_1");
+    ASSERT_NE(object, connection.end());
+    ASSERT_THAT(object->second, ElementsAre("test_interface_1"));
+
+    connection = subtree[1].second;
+    object = connection.find("test_object_connection_2");
+    ASSERT_NE(object, connection.end());
+    ASSERT_THAT(object->second, ElementsAre("test_interface_2"));
+
+    // Depth path of 1
+    subtree = getAssociatedSubTree(interfaceMap, associationMap, associatedPath,
+                                   path, 1, interfaces);
+    ASSERT_EQ(subtree.size(), 1);
+    connection = subtree[0].second;
+    object = connection.find("test_object_connection_1");
+    ASSERT_NE(object, connection.end());
+    ASSERT_THAT(object->second, ElementsAre("test_interface_1"));
+}
+
+TEST_F(TestHandler, getAssociatedSubTreePathsBad)
+{
+    sdbusplus::message::object_path path("/test/object_path_0");
+    sdbusplus::message::object_path associatedPath = path / "decentent";
+    std::vector<std::string> interfaces = {"test_interface_3"};
+
+    std::vector<std::string> subtreePath = getAssociatedSubTreePaths(
+        interfaceMap, associationMap, associatedPath, path, 0, interfaces);
+    ASSERT_EQ(subtreePath.size(), 0);
+}
+
+TEST_F(TestHandler, getAssociatedSubTreePathsGood)
+{
+    sdbusplus::message::object_path path("/test/object_path_0");
+    sdbusplus::message::object_path associatedPath = path / "decentent";
+    std::vector<std::string> interfaces = {"test_interface_1",
+                                           "test_interface_2",
+                                           // Not associated to path
+                                           "test_interface_3"};
+    std::vector<std::string> subtreePath = getAssociatedSubTreePaths(
+        interfaceMap, associationMap, associatedPath, path, 0, interfaces);
+    ASSERT_THAT(subtreePath,
+                ElementsAre("/test/object_path_0/child",
+                            "/test/object_path_0/child/grandchild"));
+
+    // Depth path of 1
+    subtreePath = getAssociatedSubTreePaths(
+        interfaceMap, associationMap, associatedPath, path, 1, interfaces);
     ASSERT_THAT(subtreePath, ElementsAre("/test/object_path_0/child"));
 }
