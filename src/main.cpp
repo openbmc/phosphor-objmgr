@@ -669,6 +669,12 @@ int main()
 
             message.read(name, oldOwner, newOwner);
 
+            if (name.starts_with(':'))
+            {
+                // We should do nothing with unique-name connections.
+                return;
+            }
+
             if (!oldOwner.empty())
             {
                 processNameChangeDelete(nameOwners, name, oldOwner,
