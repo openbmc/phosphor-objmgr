@@ -37,8 +37,12 @@ TEST_F(TestInterfacesAdded, InterfacesAddedGoodPath)
     auto intfAdded =
         createInterfacesAdded(assocDefsInterface, assocDefsProperty);
 
-    processInterfaceAdded(interfaceMap, defaultSourcePath, intfAdded,
+    boost::asio::io_context io;
+
+    processInterfaceAdded(io, interfaceMap, defaultSourcePath, intfAdded,
                           defaultDbusSvc, assocMaps, *server);
+
+    io.run();
 
     // Interface map will get the following:
     // /logging/entry/1 /logging/entry /logging/ / system/chassis

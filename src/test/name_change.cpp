@@ -5,7 +5,14 @@
 #include <gtest/gtest.h>
 
 class TestNameChange : public AsioServerClassTest
-{};
+{
+  public:
+    boost::asio::io_context io;
+    virtual void SetUp()
+    {
+        io.run();
+    }
+};
 sdbusplus::asio::object_server* TestNameChange::AsioServerClassTest::server =
     nullptr;
 
@@ -19,7 +26,7 @@ TEST_F(TestNameChange, UniqueNameNoInterfaces)
     InterfaceMapType interfaceMap;
     AssociationMaps assocMaps;
 
-    processNameChangeDelete(nameOwners, wellKnown, oldOwner, interfaceMap,
+    processNameChangeDelete(io, nameOwners, wellKnown, oldOwner, interfaceMap,
                             assocMaps, *server);
     EXPECT_EQ(nameOwners.size(), 0);
 }
@@ -40,8 +47,8 @@ TEST_F(TestNameChange, UniqueNameAssociationsAndInterface)
     auto interfaceMap = createInterfaceMap(defaultSourcePath, defaultDbusSvc,
                                            assocInterfacesSet);
 
-    processNameChangeDelete(nameOwners, defaultDbusSvc, oldOwner, interfaceMap,
-                            assocMaps, *server);
+    processNameChangeDelete(io, nameOwners, defaultDbusSvc, oldOwner,
+                            interfaceMap, assocMaps, *server);
     EXPECT_EQ(nameOwners.size(), 0);
 
     // Verify owner association was deleted

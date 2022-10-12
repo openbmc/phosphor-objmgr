@@ -128,7 +128,8 @@ struct InProgressIntrospect
 #endif
 };
 
-void doAssociations(sdbusplus::asio::connection* systemBus,
+void doAssociations(boost::asio::io_context& io,
+                    sdbusplus::asio::connection* systemBus,
                     InterfaceMapType& interfaceMap,
                     sdbusplus::asio::object_server& objectServer,
                     const std::string& processName, const std::string& path,
@@ -136,7 +137,7 @@ void doAssociations(sdbusplus::asio::connection* systemBus,
 {
     constexpr int maxTimeoutRetries = 3;
     systemBus->async_method_call(
-        [&objectServer, path, processName, &interfaceMap, systemBus,
+        [&io, &objectServer, path, processName, &interfaceMap, systemBus,
          timeoutRetries](
             const boost::system::error_code ec,
             const std::variant<std::vector<Association>>& variantAssociations) {
@@ -145,7 +146,7 @@ void doAssociations(sdbusplus::asio::connection* systemBus,
                 if (ec.value() == boost::system::errc::timed_out &&
                     timeoutRetries < maxTimeoutRetries)
                 {
-                    doAssociations(systemBus, interfaceMap, objectServer,
+                    doAssociations(io, systemBus, interfaceMap, objectServer,
                                    processName, path, timeoutRetries + 1);
                     return;
                 }
@@ -153,14 +154,15 @@ void doAssociations(sdbusplus::asio::connection* systemBus,
             }
             std::vector<Association> associations =
                 std::get<std::vector<Association>>(variantAssociations);
-            associationChanged(objectServer, associations, path, processName,
-                               interfaceMap, associationMaps);
+            associationChanged(io, objectServer, associations, path,
+                               processName, interfaceMap, associationMaps);
         },
         processName, path, "org.freedesktop.DBus.Properties", "Get",
         assocDefsInterface, assocDefsProperty);
 }
 
-void doIntrospect(sdbusplus::asio::connection* systemBus,
+void doIntrospect(boost::asio::io_context& io,
+                  sdbusplus::asio::connection* systemBus,
                   const std::shared_ptr<InProgressIntrospect>& transaction,
                   InterfaceMapType& interfaceMap,
                   sdbusplus::asio::object_server& objectServer,
@@ -168,7 +170,7 @@ void doIntrospect(sdbusplus::asio::connection* systemBus,
 {
     constexpr int maxTimeoutRetries = 3;
     systemBus->async_method_call(
-        [&interfaceMap, &objectServer, transaction, path, systemBus,
+        [&io, &interfaceMap, &objectServer, transaction, path, systemBus,
          timeoutRetries](const boost::system::error_code ec,
                          const std::string& introspectXml) {
             if (ec)
@@ -176,7 +178,7 @@ void doIntrospect(sdbusplus::asio::connection* systemBus,
                 if (ec.value() == boost::system::errc::timed_out &&
                     timeoutRetries < maxTimeoutRetries)
                 {
-                    doIntrospect(systemBus, transaction, interfaceMap,
+                    doIntrospect(io, systemBus, transaction, interfaceMap,
                                  objectServer, path, timeoutRetries + 1);
                     return;
                 }
@@ -217,7 +219,7 @@ void doIntrospect(sdbusplus::asio::connection* systemBus,
 
                 if (std::strcmp(ifaceName, assocDefsInterface) == 0)
                 {
-                    doAssociations(systemBus, interfaceMap, objectServer,
+                    doAssociations(io, systemBus, interfaceMap, objectServer,
                                    transaction->processName, path);
                 }
 
@@ -226,7 +228,7 @@ void doIntrospect(sdbusplus::asio::connection* systemBus,
 
             // Check if this new path has a pending association that can
             // now be completed.
-            checkIfPendingAssociation(path, interfaceMap,
+            checkIfPendingAssociation(io, path, interfaceMap,
                                       transaction->assocMaps, objectServer);
 
             pElement = pRoot->FirstChildElement("node");
@@ -241,7 +243,7 @@ void doIntrospect(sdbusplus::asio::connection* systemBus,
                         parentPath.clear();
                     }
 
-                    doIntrospect(systemBus, transaction, interfaceMap,
+                    doIntrospect(io, systemBus, transaction, interfaceMap,
                                  objectServer, parentPath + "/" + childPath);
                 }
                 pElement = pElement->NextSiblingElement("node");
@@ -272,7 +274,8 @@ void startNewIntrospect(
 #endif
             );
 
-        doIntrospect(systemBus, transaction, interfaceMap, objectServer, "/");
+        doIntrospect(io, systemBus, transaction, interfaceMap, objectServer,
+                     "/");
     }
 }
 
@@ -677,7 +680,7 @@ int main()
 
             if (!oldOwner.empty())
             {
-                processNameChangeDelete(nameOwners, name, oldOwner,
+                processNameChangeDelete(io, nameOwners, name, oldOwner,
                                         interfaceMap, associationMaps, server);
             }
 
@@ -707,7 +710,8 @@ int main()
         sdbusplus::bus::match::rules::nameOwnerChanged(), nameChangeHandler);
 
     std::function<void(sdbusplus::message_t & message)> interfacesAddedHandler =
-        [&interfaceMap, &nameOwners, &server](sdbusplus::message_t& message) {
+        [&io, &interfaceMap, &nameOwners,
+         &server](sdbusplus::message_t& message) {
             sdbusplus::message::object_path objPath;
             InterfacesAdded interfacesAdded;
             message.read(objPath, interfacesAdded);
@@ -718,8 +722,9 @@ int main()
             }
             if (needToIntrospect(wellKnown))
             {
-                processInterfaceAdded(interfaceMap, objPath, interfacesAdded,
-                                      wellKnown, associationMaps, server);
+                processInterfaceAdded(io, interfaceMap, objPath,
+                                      interfacesAdded, wellKnown,
+                                      associationMaps, server);
             }
         };
 
@@ -729,7 +734,7 @@ int main()
         interfacesAddedHandler);
 
     std::function<void(sdbusplus::message_t & message)>
-        interfacesRemovedHandler = [&interfaceMap, &nameOwners,
+        interfacesRemovedHandler = [&io, &interfaceMap, &nameOwners,
                                     &server](sdbusplus::message_t& message) {
             sdbusplus::message::object_path objPath;
             std::vector<std::string> interfacesRemoved;
@@ -755,7 +760,7 @@ int main()
 
                 if (interface == assocDefsInterface)
                 {
-                    removeAssociation(objPath.str, sender, server,
+                    removeAssociation(io, objPath.str, sender, server,
                                       associationMaps);
                 }
 
@@ -778,8 +783,8 @@ int main()
                     {
                         // Remove the 2 association D-Bus paths and move the
                         // association to pending.
-                        moveAssociationToPending(objPath.str, associationMaps,
-                                                 server);
+                        moveAssociationToPending(io, objPath.str,
+                                                 associationMaps, server);
                     }
                 }
             }
@@ -799,7 +804,7 @@ int main()
         interfacesRemovedHandler);
 
     std::function<void(sdbusplus::message_t & message)>
-        associationChangedHandler = [&server, &nameOwners, &interfaceMap](
+        associationChangedHandler = [&io, &server, &nameOwners, &interfaceMap](
                                         sdbusplus::message_t& message) {
             std::string objectName;
             boost::container::flat_map<std::string,
@@ -817,7 +822,7 @@ int main()
                 {
                     return;
                 }
-                associationChanged(server, associations, message.get_path(),
+                associationChanged(io, server, associations, message.get_path(),
                                    wellKnown, interfaceMap, associationMaps);
             }
         };
