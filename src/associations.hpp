@@ -5,8 +5,12 @@
 constexpr const char* xyzAssociationInterface =
     "xyz.openbmc_project.Association";
 
+constexpr size_t endpointsCountTimerThreshold = 100;
+constexpr int endpointUpdateDelaySeconds = 1;
+
 /** @brief Remove input association
  *
+ * @param[in] io                  - io context
  * @param[in] sourcePath          - Path of the object that contains the
  *                                  org.openbmc.Associations
  * @param[in] owner               - The Dbus service having its associations
@@ -16,7 +20,8 @@ constexpr const char* xyzAssociationInterface =
  *
  * @return Void, server, assocMaps updated if needed
  */
-void removeAssociation(const std::string& sourcePath, const std::string& owner,
+void removeAssociation(boost::asio::io_context& io,
+                       const std::string& sourcePath, const std::string& owner,
                        sdbusplus::asio::object_server& server,
                        AssociationMaps& assocMaps);
 
@@ -25,6 +30,7 @@ void removeAssociation(const std::string& sourcePath, const std::string& owner,
  * If the last endpoint was removed, then remove the whole
  * association object, otherwise just set the property
  *
+ * @param[in] io                  - io context
  * @param[in] objectServer        - sdbus system object
  * @param[in] assocPath           - Path of the object that contains the
  *                                  org.openbmc.Associations
@@ -34,7 +40,8 @@ void removeAssociation(const std::string& sourcePath, const std::string& owner,
  * @return Void, objectServer and assocMaps updated if needed
  */
 void removeAssociationEndpoints(
-    sdbusplus::asio::object_server& objectServer, const std::string& assocPath,
+    boost::asio::io_context& io, sdbusplus::asio::object_server& objectServer,
+    const std::string& assocPath,
     const boost::container::flat_set<std::string>& endpointsToRemove,
     AssociationMaps& assocMaps);
 
@@ -47,6 +54,7 @@ void removeAssociationEndpoints(
  * from the endpoints property, remove that whole association object from
  * D-Bus.
  *
+ * @param[in] io                  - io context
  * @param[in] sourcePath         - Path of the object that contains the
  *                                 org.openbmc.Associations
  * @param[in] owner              - The Dbus service having it's associatons
@@ -58,8 +66,8 @@ void removeAssociationEndpoints(
  * @return Void, objectServer and assocMaps updated if needed
  */
 void checkAssociationEndpointRemoves(
-    const std::string& sourcePath, const std::string& owner,
-    const AssociationPaths& newAssociations,
+    boost::asio::io_context& io, const std::string& sourcePath,
+    const std::string& owner, const AssociationPaths& newAssociations,
     sdbusplus::asio::object_server& objectServer, AssociationMaps& assocMaps);
 
 /** @brief Handle new or changed association interfaces
@@ -67,6 +75,7 @@ void checkAssociationEndpointRemoves(
  * Called when either a new org.openbmc.Associations interface was
  * created, or the associations property on that interface changed
  *
+ * @param[in] io                  - io context
  * @param[in,out] objectServer    - sdbus system object
  * @param[in] associations        - New associations to look at for change
  * @param[in] path                - Path of the object that contains the
@@ -78,7 +87,8 @@ void checkAssociationEndpointRemoves(
  *
  * @return Void, objectServer and assocMaps updated if needed
  */
-void associationChanged(sdbusplus::asio::object_server& objectServer,
+void associationChanged(boost::asio::io_context& io,
+                        sdbusplus::asio::object_server& objectServer,
                         const std::vector<Association>& associations,
                         const std::string& path, const std::string& owner,
                         const InterfaceMapType& interfaceMap,
@@ -123,6 +133,7 @@ void removeFromPendingAssociations(const std::string& endpointPath,
 
 /** @brief Adds a single association D-Bus object (<path>/<type>)
  *
+ * @param[in] io            - io context
  * @param[in,out] server    - sdbus system object
  * @param[in] assocPath     - The association D-Bus path
  * @param[in] endpoint      - The association's D-Bus endpoint path
@@ -130,7 +141,8 @@ void removeFromPendingAssociations(const std::string& endpointPath,
  * @param[in] ownerPath     - The D-Bus path hosting the Associations property
  * @param[in,out] assocMaps - The association maps
  */
-void addSingleAssociation(sdbusplus::asio::object_server& server,
+void addSingleAssociation(boost::asio::io_context& io,
+                          sdbusplus::asio::object_server& server,
                           const std::string& assocPath,
                           const std::string& endpoint, const std::string& owner,
                           const std::string& ownerPath,
@@ -143,12 +155,14 @@ void addSingleAssociation(sdbusplus::asio::object_server& server,
  * map, create the 2 real association objects and remove its pending
  * associations entry.  Used when a new path shows up in D-Bus.
  *
+ * @param[in] io            - io context
  * @param[in] objectPath    - the path to check
  * @param[in] interfaceMap  - The master interface map
  * @param[in,out] assocMaps - The association maps
  * @param[in,out] server    - sdbus system object
  */
-void checkIfPendingAssociation(const std::string& objectPath,
+void checkIfPendingAssociation(boost::asio::io_context& io,
+                               const std::string& objectPath,
                                const InterfaceMapType& interfaceMap,
                                AssociationMaps& assocMaps,
                                sdbusplus::asio::object_server& server);
@@ -172,10 +186,12 @@ void findAssociations(const std::string& endpointPath,
  *  association endpoint (the path that owns the association is still
  *  on D-Bus), then move the association it's involved in to pending.
  *
+ * @param[in] io            - io context
  * @param[in] endpointPath  - the D-Bus endpoint path to check
  * @param[in,out] assocMaps - The association maps
  * @param[in,out] server    - sdbus system object
  */
-void moveAssociationToPending(const std::string& endpointPath,
+void moveAssociationToPending(boost::asio::io_context& io,
+                              const std::string& endpointPath,
                               AssociationMaps& assocMaps,
                               sdbusplus::asio::object_server& server);
