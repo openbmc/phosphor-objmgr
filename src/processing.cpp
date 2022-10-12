@@ -40,6 +40,7 @@ bool needToIntrospect(const std::string& processName)
 }
 
 void processNameChangeDelete(
+    boost::asio::io_context& io,
     boost::container::flat_map<std::string, std::string>& nameOwners,
     const std::string& wellKnown, const std::string& oldOwner,
     InterfaceMapType& interfaceMap, AssociationMaps& assocMaps,
@@ -67,7 +68,8 @@ void processNameChangeDelete(
                                    assocDefsInterface);
             if (assoc != ifaces->second.end())
             {
-                removeAssociation(pathIt->first, wellKnown, server, assocMaps);
+                removeAssociation(io, pathIt->first, wellKnown, server,
+                                  assocMaps);
             }
 
             // Instead of checking if every single path is the endpoint of an
@@ -80,7 +82,7 @@ void processNameChangeDelete(
             {
                 // Remove the 2 association D-Bus paths and move the
                 // association to pending.
-                moveAssociationToPending(pathIt->first, assocMaps, server);
+                moveAssociationToPending(io, pathIt->first, assocMaps, server);
             }
         }
         pathIt->second.erase(wellKnown);
@@ -95,7 +97,8 @@ void processNameChangeDelete(
     }
 }
 
-void processInterfaceAdded(InterfaceMapType& interfaceMap,
+void processInterfaceAdded(boost::asio::io_context& io,
+                           InterfaceMapType& interfaceMap,
                            const sdbusplus::message::object_path& objPath,
                            const InterfacesAdded& intfAdded,
                            const std::string& wellKnown,
@@ -127,7 +130,7 @@ void processInterfaceAdded(InterfaceMapType& interfaceMap,
             }
             std::vector<Association> associations =
                 std::get<std::vector<Association>>(*variantAssociations);
-            associationChanged(server, associations, objPath.str, wellKnown,
+            associationChanged(io, server, associations, objPath.str, wellKnown,
                                interfaceMap, assocMaps);
         }
     }
@@ -174,5 +177,5 @@ void processInterfaceAdded(InterfaceMapType& interfaceMap,
     }
 
     // The new interface might have an association pending
-    checkIfPendingAssociation(objPath.str, interfaceMap, assocMaps, server);
+    checkIfPendingAssociation(io, objPath.str, interfaceMap, assocMaps, server);
 }
