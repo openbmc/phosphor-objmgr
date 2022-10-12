@@ -1,11 +1,79 @@
 #include "associations.hpp"
 
+#include <boost/asio.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <sdbusplus/exception.hpp>
 
 #include <iostream>
 #include <string>
 
-void removeAssociation(const std::string& sourcePath, const std::string& owner,
+void updateEndpointsOnDbus(sdbusplus::asio::object_server& objectServer,
+                           const std::string& assocPath,
+                           AssociationMaps& assocMaps)
+{
+    auto& iface = assocMaps.ifaces[assocPath];
+    auto& i = std::get<ifacePos>(iface);
+    auto& endpoints = std::get<endpointsPos>(iface);
+
+    // If the interface already exists, only need to update
+    // the property value, otherwise create it
+    if (i)
+    {
+        if (endpoints.empty())
+        {
+            objectServer.remove_interface(i);
+            i = nullptr;
+        }
+        else
+        {
+            i->set_property("endpoints", endpoints);
+        }
+    }
+    else
+    {
+        if (!endpoints.empty())
+        {
+            i = objectServer.add_interface(assocPath, xyzAssociationInterface);
+            i->register_property("endpoints", endpoints);
+            i->initialize();
+        }
+    }
+}
+
+void scheduleUpdateEndpointsOnDbus(boost::asio::io_context& io,
+                                   sdbusplus::asio::object_server& objectServer,
+                                   const std::string& assocPath,
+                                   AssociationMaps& assocMaps)
+{
+    static std::map<std::string, std::unique_ptr<boost::asio::deadline_timer>>
+        timers;
+
+    if (timers.count(assocPath) != 0)
+    {
+        return;
+    }
+
+    auto& iface = assocMaps.ifaces[assocPath];
+    auto& endpoints = std::get<endpointsPos>(iface);
+
+    if (endpoints.size() > endpointsCountTimerThreshold)
+    {
+        timers[assocPath] = std::make_unique<boost::asio::deadline_timer>(
+            io, boost::posix_time::seconds(endpointUpdateDelaySeconds));
+        timers[assocPath]->async_wait([&objectServer, &assocMaps, assocPath](
+                                          const boost::system::error_code&) {
+            updateEndpointsOnDbus(objectServer, assocPath, assocMaps);
+            timers.erase(assocPath);
+        });
+    }
+    else
+    {
+        updateEndpointsOnDbus(objectServer, assocPath, assocMaps);
+    }
+}
+
+void removeAssociation(boost::asio::io_context& io,
+                       const std::string& sourcePath, const std::string& owner,
                        sdbusplus::asio::object_server& server,
                        AssociationMaps& assocMaps)
 {
@@ -35,7 +103,7 @@ void removeAssociation(const std::string& sourcePath, const std::string& owner,
 
     for (const auto& [assocPath, endpointsToRemove] : assocs->second)
     {
-        removeAssociationEndpoints(server, assocPath, endpointsToRemove,
+        removeAssociationEndpoints(io, server, assocPath, endpointsToRemove,
                                    assocMaps);
     }
 
@@ -52,7 +120,8 @@ void removeAssociation(const std::string& sourcePath, const std::string& owner,
 }
 
 void removeAssociationEndpoints(
-    sdbusplus::asio::object_server& objectServer, const std::string& assocPath,
+    boost::asio::io_context& io, sdbusplus::asio::object_server& objectServer,
+    const std::string& assocPath,
     const boost::container::flat_set<std::string>& endpointsToRemove,
     AssociationMaps& assocMaps)
 {
@@ -75,22 +144,12 @@ void removeAssociationEndpoints(
         }
     }
 
-    if (endpointsInDBus.empty())
-    {
-        objectServer.remove_interface(std::get<ifacePos>(assoc->second));
-        std::get<ifacePos>(assoc->second) = nullptr;
-        std::get<endpointsPos>(assoc->second).clear();
-    }
-    else
-    {
-        std::get<ifacePos>(assoc->second)
-            ->set_property("endpoints", endpointsInDBus);
-    }
+    scheduleUpdateEndpointsOnDbus(io, objectServer, assocPath, assocMaps);
 }
 
 void checkAssociationEndpointRemoves(
-    const std::string& sourcePath, const std::string& owner,
-    const AssociationPaths& newAssociations,
+    boost::asio::io_context& io, const std::string& sourcePath,
+    const std::string& owner, const AssociationPaths& newAssociations,
     sdbusplus::asio::object_server& objectServer, AssociationMaps& assocMaps)
 {
     // Find the services that have associations on this path.
@@ -119,7 +178,7 @@ void checkAssociationEndpointRemoves(
         auto newEndpoints = newAssociations.find(originalAssocPath);
         if (newEndpoints == newAssociations.end())
         {
-            removeAssociationEndpoints(objectServer, originalAssocPath,
+            removeAssociationEndpoints(io, objectServer, originalAssocPath,
                                        originalEndpoints, assocMaps);
         }
         else
@@ -139,7 +198,7 @@ void checkAssociationEndpointRemoves(
             }
             if (!toRemove.empty())
             {
-                removeAssociationEndpoints(objectServer, originalAssocPath,
+                removeAssociationEndpoints(io, objectServer, originalAssocPath,
                                            toRemove, assocMaps);
             }
         }
@@ -147,12 +206,12 @@ void checkAssociationEndpointRemoves(
 }
 
 void addEndpointsToAssocIfaces(
-    sdbusplus::asio::object_server& objectServer, const std::string& assocPath,
+    boost::asio::io_context& io, sdbusplus::asio::object_server& objectServer,
+    const std::string& assocPath,
     const boost::container::flat_set<std::string>& endpointPaths,
     AssociationMaps& assocMaps)
 {
     auto& iface = assocMaps.ifaces[assocPath];
-    auto& i = std::get<ifacePos>(iface);
     auto& endpoints = std::get<endpointsPos>(iface);
 
     // Only add new endpoints
@@ -163,22 +222,11 @@ void addEndpointsToAssocIfaces(
             endpoints.push_back(e);
         }
     }
-
-    // If the interface already exists, only need to update
-    // the property value, otherwise create it
-    if (i)
-    {
-        i->set_property("endpoints", endpoints);
-    }
-    else
-    {
-        i = objectServer.add_interface(assocPath, xyzAssociationInterface);
-        i->register_property("endpoints", endpoints);
-        i->initialize();
-    }
+    scheduleUpdateEndpointsOnDbus(io, objectServer, assocPath, assocMaps);
 }
 
-void associationChanged(sdbusplus::asio::object_server& objectServer,
+void associationChanged(boost::asio::io_context& io,
+                        sdbusplus::asio::object_server& objectServer,
                         const std::vector<Association>& associations,
                         const std::string& path, const std::string& owner,
                         const InterfaceMapType& interfaceMap,
@@ -218,12 +266,12 @@ void associationChanged(sdbusplus::asio::object_server& objectServer,
     }
     for (const auto& object : objects)
     {
-        addEndpointsToAssocIfaces(objectServer, object.first, object.second,
+        addEndpointsToAssocIfaces(io, objectServer, object.first, object.second,
                                   assocMaps);
     }
 
     // Check for endpoints being removed instead of added
-    checkAssociationEndpointRemoves(path, owner, objects, objectServer,
+    checkAssociationEndpointRemoves(io, path, owner, objects, objectServer,
                                     assocMaps);
 
     if (!objects.empty())
@@ -313,7 +361,8 @@ void removeFromPendingAssociations(const std::string& endpointPath,
     }
 }
 
-void addSingleAssociation(sdbusplus::asio::object_server& server,
+void addSingleAssociation(boost::asio::io_context& io,
+                          sdbusplus::asio::object_server& server,
                           const std::string& assocPath,
                           const std::string& endpoint, const std::string& owner,
                           const std::string& ownerPath,
@@ -321,7 +370,7 @@ void addSingleAssociation(sdbusplus::asio::object_server& server,
 {
     boost::container::flat_set<std::string> endpoints{endpoint};
 
-    addEndpointsToAssocIfaces(server, assocPath, endpoints, assocMaps);
+    addEndpointsToAssocIfaces(io, server, assocPath, endpoints, assocMaps);
 
     AssociationPaths objects;
     boost::container::flat_set e{endpoint};
@@ -356,7 +405,8 @@ void addSingleAssociation(sdbusplus::asio::object_server& server,
     }
 }
 
-void checkIfPendingAssociation(const std::string& objectPath,
+void checkIfPendingAssociation(boost::asio::io_context& io,
+                               const std::string& objectPath,
                                const InterfaceMapType& interfaceMap,
                                AssociationMaps& assocMaps,
                                sdbusplus::asio::object_server& server)
@@ -400,13 +450,13 @@ void checkIfPendingAssociation(const std::string& objectPath,
 
         try
         {
-            addSingleAssociation(server, assocPath, endpointPath, owner,
+            addSingleAssociation(io, server, assocPath, endpointPath, owner,
                                  ownerPath, assocMaps);
 
             // Now the reverse direction (still the same owner and ownerPath)
             assocPath = endpointPath + '/' + std::get<reverseTypePos>(e);
             endpointPath = objectPath;
-            addSingleAssociation(server, assocPath, endpointPath, owner,
+            addSingleAssociation(io, server, assocPath, endpointPath, owner,
                                  ownerPath, assocMaps);
         }
         catch (const sdbusplus::exception_t& e)
@@ -494,7 +544,8 @@ void findAssociations(const std::string& endpointPath,
  * @param[in,out] assocMaps - the association maps
  * @param[in,out] server    - sdbus system object
  */
-void removeAssociationIfacesEntry(const std::string& assocPath,
+void removeAssociationIfacesEntry(boost::asio::io_context& io,
+                                  const std::string& assocPath,
                                   const std::string& endpointPath,
                                   AssociationMaps& assocMaps,
                                   sdbusplus::asio::object_server& server)
@@ -508,16 +559,7 @@ void removeAssociationIfacesEntry(const std::string& assocPath,
         {
             endpoints.erase(e);
 
-            if (endpoints.empty())
-            {
-                server.remove_interface(std::get<ifacePos>(assoc->second));
-                std::get<ifacePos>(assoc->second) = nullptr;
-            }
-            else
-            {
-                std::get<ifacePos>(assoc->second)
-                    ->set_property("endpoints", endpoints);
-            }
+            scheduleUpdateEndpointsOnDbus(io, server, assocPath, assocMaps);
         }
     }
 }
@@ -574,7 +616,8 @@ void removeAssociationOwnersEntry(const std::string& assocPath,
     }
 }
 
-void moveAssociationToPending(const std::string& endpointPath,
+void moveAssociationToPending(boost::asio::io_context& io,
+                              const std::string& endpointPath,
                               AssociationMaps& assocMaps,
                               sdbusplus::asio::object_server& server)
 {
@@ -596,9 +639,9 @@ void moveAssociationToPending(const std::string& endpointPath,
                               reverseType, owner, assocMaps);
 
         // Remove both sides of the association from assocMaps.ifaces
-        removeAssociationIfacesEntry(forwardPath + '/' + forwardType,
+        removeAssociationIfacesEntry(io, forwardPath + '/' + forwardType,
                                      reversePath, assocMaps, server);
-        removeAssociationIfacesEntry(reversePath + '/' + reverseType,
+        removeAssociationIfacesEntry(io, reversePath + '/' + reverseType,
                                      forwardPath, assocMaps, server);
 
         // Remove both sides of the association from assocMaps.owners
