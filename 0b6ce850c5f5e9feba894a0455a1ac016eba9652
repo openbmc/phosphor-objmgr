@@ -24,6 +24,30 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6067cf8a_c205faf6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1000885
+      },
+      "writtenOn": "2022-10-24T22:49:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0739ee6d_51e89550",
+      "range": {
+        "startLine": 13,
+        "startChar": 36,
+        "endLine": 13,
+        "endChar": 48
+      },
+      "revId": "0b6ce850c5f5e9feba894a0455a1ac016eba9652",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "88817682_8d85203b",
@@ -222,6 +246,30 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c504bee5_0709a1ac",
+        "filename": "src/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 658,
+      "author": {
+        "id": 1000885
+      },
+      "writtenOn": "2022-10-24T22:49:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1aa7d0dd_70dad3aa",
+      "range": {
+        "startLine": 658,
+        "startChar": 43,
+        "endLine": 658,
+        "endChar": 58
+      },
+      "revId": "0b6ce850c5f5e9feba894a0455a1ac016eba9652",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "72e1c01d_1c6775e1",
@@ -334,6 +382,30 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3b796288_7c7f613a",
+        "filename": "src/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 701,
+      "author": {
+        "id": 1000885
+      },
+      "writtenOn": "2022-10-24T22:49:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fd7a749c_f736e40a",
+      "range": {
+        "startLine": 701,
+        "startChar": 48,
+        "endLine": 701,
+        "endChar": 62
+      },
+      "revId": "0b6ce850c5f5e9feba894a0455a1ac016eba9652",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "161347fd_e4498b7a",
@@ -406,6 +478,30 @@
       "side": 1,
       "message": "That seems easy enough to fix.  Willy can you send an update for these new interfaces?",
       "parentUuid": "7fd887df_67fdf377",
+      "range": {
+        "startLine": 942,
+        "startChar": 0,
+        "endLine": 957,
+        "endChar": 11
+      },
+      "revId": "0b6ce850c5f5e9feba894a0455a1ac016eba9652",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "331faa0d_4ca2732c",
+        "filename": "src/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 957,
+      "author": {
+        "id": 1000885
+      },
+      "writtenOn": "2022-10-24T22:49:32Z",
+      "side": 1,
+      "message": "Cleanedup in https://gerrit.openbmc.org/c/openbmc/phosphor-objmgr/+/58129",
+      "parentUuid": "e548eb88_dc6fa896",
       "range": {
         "startLine": 942,
         "startChar": 0,
