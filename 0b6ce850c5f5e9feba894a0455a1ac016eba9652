@@ -367,6 +367,29 @@
       "parentUuid": "161347fd_e4498b7a",
       "revId": "0b6ce850c5f5e9feba894a0455a1ac016eba9652",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7fd887df_67fdf377",
+        "filename": "src/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 957,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2022-10-24T17:24:59Z",
+      "side": 1,
+      "message": "There are a number of places here where the PDI says \"object_path\" but the code here says \"string\".  I think this is an overall problem with the implementation here, but it\u0027d be nice if these new methods at least matched.",
+      "range": {
+        "startLine": 942,
+        "startChar": 0,
+        "endLine": 957,
+        "endChar": 11
+      },
+      "revId": "0b6ce850c5f5e9feba894a0455a1ac016eba9652",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
