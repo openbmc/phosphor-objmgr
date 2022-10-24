@@ -428,17 +428,19 @@ void removeUnneededParents(const std::string& objectPath,
 }
 
 std::vector<InterfaceMapType::value_type>
-    getAncestors(const InterfaceMapType& interfaceMap, std::string reqPath,
+    getAncestors(const InterfaceMapType& interfaceMap,
+                 const sdbusplus::message::object_path& reqPath,
                  std::vector<std::string>& interfaces)
 {
     // Interfaces need to be sorted for intersect to function
     std::sort(interfaces.begin(), interfaces.end());
 
-    if (reqPath.ends_with("/"))
+    std::string_view path = reqPath.str;
+    if (path.ends_with("/"))
     {
-        reqPath.pop_back();
+        path.substr(0, path.size() - 1);
     }
-    if (!reqPath.empty() && interfaceMap.find(reqPath) == interfaceMap.end())
+    if (!path.empty() && interfaceMap.find(path) == interfaceMap.end())
     {
         throw sdbusplus::xyz::openbmc_project::Common::Error::
             ResourceNotFound();
@@ -449,12 +451,12 @@ std::vector<InterfaceMapType::value_type>
     {
         const auto& thisPath = objectPath.first;
 
-        if (reqPath == thisPath)
+        if (path == thisPath)
         {
             continue;
         }
 
-        if (reqPath.starts_with(thisPath))
+        if (path.starts_with(thisPath))
         {
             if (interfaces.empty())
             {
@@ -479,14 +481,14 @@ std::vector<InterfaceMapType::value_type>
 }
 
 ConnectionNames getObject(const InterfaceMapType& interfaceMap,
-                          const std::string& path,
+                          const sdbusplus::message::object_path& path,
                           std::vector<std::string>& interfaces)
 {
     ConnectionNames results;
 
     // Interfaces need to be sorted for intersect to function
     std::sort(interfaces.begin(), interfaces.end());
-    auto pathRef = interfaceMap.find(path);
+    auto pathRef = interfaceMap.find(path.str);
     if (pathRef == interfaceMap.end())
     {
         throw sdbusplus::xyz::openbmc_project::Common::Error::
@@ -515,8 +517,9 @@ ConnectionNames getObject(const InterfaceMapType& interfaceMap,
 }
 
 std::vector<InterfaceMapType::value_type>
-    getSubTree(const InterfaceMapType& interfaceMap, std::string reqPath,
-               int32_t depth, std::vector<std::string>& interfaces)
+    getSubTree(const InterfaceMapType& interfaceMap,
+               const sdbusplus::message::object_path& reqPath, int32_t depth,
+               std::vector<std::string>& interfaces)
 {
     if (depth <= 0)
     {
@@ -527,15 +530,16 @@ std::vector<InterfaceMapType::value_type>
 
     // reqPath is now guaranteed to have a trailing "/" while reqPathStripped
     // will be guaranteed not to have a trailing "/"
-    if (!reqPath.ends_with("/"))
+    std::string path = reqPath.str;
+    if (!path.ends_with("/"))
     {
-        reqPath += "/";
+        path += "/";
     }
-    std::string_view reqPathStripped =
-        std::string_view(reqPath).substr(0, reqPath.size() - 1);
+    std::string_view pathStripped =
+        std::string_view(path).substr(0, path.size() - 1);
 
-    if (!reqPathStripped.empty() &&
-        interfaceMap.find(reqPathStripped) == interfaceMap.end())
+    if (!pathStripped.empty() &&
+        interfaceMap.find(pathStripped) == interfaceMap.end())
     {
         throw sdbusplus::xyz::openbmc_project::Common::Error::
             ResourceNotFound();
@@ -547,16 +551,16 @@ std::vector<InterfaceMapType::value_type>
         const auto& thisPath = objectPath.first;
 
         // Skip exact match on stripped search term
-        if (thisPath == reqPathStripped)
+        if (thisPath == pathStripped)
         {
             continue;
         }
 
-        if (thisPath.starts_with(reqPath))
+        if (thisPath.starts_with(path))
         {
             // count the number of slashes past the stripped search term
             int32_t thisDepth = std::count(
-                thisPath.begin() + reqPathStripped.size(), thisPath.end(), '/');
+                thisPath.begin() + pathStripped.size(), thisPath.end(), '/');
             if (thisDepth <= depth)
             {
                 for (const auto& interfaceMap : objectPath.second)
@@ -576,9 +580,10 @@ std::vector<InterfaceMapType::value_type>
     return ret;
 }
 
-std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
-                                         std::string reqPath, int32_t depth,
-                                         std::vector<std::string>& interfaces)
+std::vector<std::string>
+    getSubTreePaths(const InterfaceMapType& interfaceMap,
+                    const sdbusplus::message::object_path& reqPath,
+                    int32_t depth, std::vector<std::string>& interfaces)
 {
     if (depth <= 0)
     {
@@ -589,15 +594,16 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
 
     // reqPath is now guaranteed to have a trailing "/" while reqPathStripped
     // will be guaranteed not to have a trailing "/"
-    if (!reqPath.ends_with("/"))
+    std::string path = reqPath.str;
+    if (!path.ends_with("/"))
     {
-        reqPath += "/";
+        path += "/";
     }
-    std::string_view reqPathStripped =
-        std::string_view(reqPath).substr(0, reqPath.size() - 1);
+    std::string_view pathStripped =
+        std::string_view(path).substr(0, path.size() - 1);
 
-    if (!reqPathStripped.empty() &&
-        interfaceMap.find(reqPathStripped) == interfaceMap.end())
+    if (!pathStripped.empty() &&
+        interfaceMap.find(pathStripped) == interfaceMap.end())
     {
         throw sdbusplus::xyz::openbmc_project::Common::Error::
             ResourceNotFound();
@@ -609,16 +615,16 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
         const auto& thisPath = objectPath.first;
 
         // Skip exact match on stripped search term
-        if (thisPath == reqPathStripped)
+        if (thisPath == pathStripped)
         {
             continue;
         }
 
-        if (thisPath.starts_with(reqPath))
+        if (thisPath.starts_with(path))
         {
             // count the number of slashes past the stripped search term
-            int thisDepth = std::count(
-                thisPath.begin() + reqPathStripped.size(), thisPath.end(), '/');
+            int thisDepth = std::count(thisPath.begin() + pathStripped.size(),
+                                       thisPath.end(), '/');
             if (thisDepth <= depth)
             {
                 bool add = interfaces.empty();
@@ -834,27 +840,30 @@ int main()
                              "xyz.openbmc_project.ObjectMapper");
 
     iface->register_method(
-        "GetAncestors", [&interfaceMap](std::string& reqPath,
-                                        std::vector<std::string>& interfaces) {
+        "GetAncestors",
+        [&interfaceMap](const sdbusplus::message::object_path& reqPath,
+                        std::vector<std::string>& interfaces) {
             return getAncestors(interfaceMap, reqPath, interfaces);
         });
 
     iface->register_method(
-        "GetObject", [&interfaceMap](const std::string& path,
-                                     std::vector<std::string>& interfaces) {
+        "GetObject",
+        [&interfaceMap](const sdbusplus::message::object_path& path,
+                        std::vector<std::string>& interfaces) {
             return getObject(interfaceMap, path, interfaces);
         });
 
     iface->register_method(
-        "GetSubTree", [&interfaceMap](std::string& reqPath, int32_t depth,
-                                      std::vector<std::string>& interfaces) {
+        "GetSubTree",
+        [&interfaceMap](const sdbusplus::message::object_path& reqPath,
+                        int32_t depth, std::vector<std::string>& interfaces) {
             return getSubTree(interfaceMap, reqPath, depth, interfaces);
         });
 
     iface->register_method(
         "GetSubTreePaths",
-        [&interfaceMap](std::string& reqPath, int32_t depth,
-                        std::vector<std::string>& interfaces) {
+        [&interfaceMap](const sdbusplus::message::object_path& reqPath,
+                        int32_t depth, std::vector<std::string>& interfaces) {
             return getSubTreePaths(interfaceMap, reqPath, depth, interfaces);
         });
 
