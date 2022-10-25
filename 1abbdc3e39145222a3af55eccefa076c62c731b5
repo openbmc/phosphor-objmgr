@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d95f33c4_bd1d3d3b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2022-10-25T02:23:00Z",
+      "side": 1,
+      "message": "I’m surprised this doesn’t break every existing client. have you tried running this in a full flash image?",
+      "revId": "1abbdc3e39145222a3af55eccefa076c62c731b5",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
