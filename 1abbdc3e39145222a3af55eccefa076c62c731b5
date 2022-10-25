@@ -16,6 +16,23 @@
       "message": "I’m surprised this doesn’t break every existing client. have you tried running this in a full flash image?",
       "revId": "1abbdc3e39145222a3af55eccefa076c62c731b5",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6837a4d5_acd772fa",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2022-10-25T11:21:22Z",
+      "side": 1,
+      "message": "I wondered about that too.  I only meant for the *new* interfaces...",
+      "revId": "1abbdc3e39145222a3af55eccefa076c62c731b5",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
