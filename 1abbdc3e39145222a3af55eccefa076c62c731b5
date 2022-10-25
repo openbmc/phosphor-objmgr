@@ -105,6 +105,24 @@
       "parentUuid": "b50b2c68_0918c89f",
       "revId": "1abbdc3e39145222a3af55eccefa076c62c731b5",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3e79a7e0_0dcc5508",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000885
+      },
+      "writtenOn": "2022-10-25T18:31:25Z",
+      "side": 1,
+      "message": "reading this again, and I just tested by copying the binary. Will install the full image just in case I missed anything.",
+      "parentUuid": "316de5f7_b956fee5",
+      "revId": "1abbdc3e39145222a3af55eccefa076c62c731b5",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
