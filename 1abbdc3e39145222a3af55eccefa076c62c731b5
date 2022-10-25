@@ -159,6 +159,24 @@
       "parentUuid": "ff16dd28_5d4c9a88",
       "revId": "1abbdc3e39145222a3af55eccefa076c62c731b5",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c0c7c9e7_e02a7fd2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000885
+      },
+      "writtenOn": "2022-10-25T19:55:18Z",
+      "side": 1,
+      "message": "on my end, `phosphor-ipmi-net@usb0.service` failed. I\u0027ll see why and see if it is possible to fix all of the usages.",
+      "parentUuid": "f94cc479_291f12ac",
+      "revId": "1abbdc3e39145222a3af55eccefa076c62c731b5",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
