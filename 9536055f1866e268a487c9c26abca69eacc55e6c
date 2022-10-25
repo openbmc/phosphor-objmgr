@@ -16,6 +16,24 @@
       "message": "Would you be willing to add the new methods to the users guide at https://github.com/openbmc/docs/blob/master/architecture/object-mapper.md?",
       "revId": "9536055f1866e268a487c9c26abca69eacc55e6c",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1497ca2f_d4c6fea0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000885
+      },
+      "writtenOn": "2022-10-25T20:54:18Z",
+      "side": 1,
+      "message": "sure, marking as unresolved so I see this again.",
+      "parentUuid": "60a0d133_61fe773a",
+      "revId": "9536055f1866e268a487c9c26abca69eacc55e6c",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
