@@ -177,6 +177,24 @@
       "parentUuid": "f94cc479_291f12ac",
       "revId": "1abbdc3e39145222a3af55eccefa076c62c731b5",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5175869a_9724c7aa",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000885
+      },
+      "writtenOn": "2022-10-26T15:55:54Z",
+      "side": 1,
+      "message": "I just realized that the response also needs to be change to object_path.\n\nAlso need to fix the `mapper_get_object` function that uses `GetObject`.\n\nThat will probably take a while to fix.\n\nI will try to fix it project wide... and send out an email for people with internal usage just to FYI.\n\nShould be fine, just will take some time to make sure that we don\u0027t miss any.",
+      "parentUuid": "c0c7c9e7_e02a7fd2",
+      "revId": "1abbdc3e39145222a3af55eccefa076c62c731b5",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
