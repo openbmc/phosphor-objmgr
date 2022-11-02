@@ -20,6 +20,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "e9f13556_0c6dca8d",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2022-11-02T15:36:42Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "4c735bec_55b42260",
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "086ed18d_e43d46e9",
         "filename": "/COMMIT_MSG",
         "patchSetId": 1
@@ -49,6 +67,24 @@
       "side": 1,
       "message": "One of Intel\u0027s services is actually creating over 4000 Sensor objects. They are loaded from memory at startup (or service restart), so they are created/removed at the same time. Each sensor needs Association to be listed on bmcweb and mapped to HW.",
       "parentUuid": "086ed18d_e43d46e9",
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "39586e25_1956e508",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2022-11-02T15:36:42Z",
+      "side": 1,
+      "message": "So you aren\u0027t talking about them all coming from the createAssociation() function in d-bus sensors, which does one at a time?  What application is it then?",
+      "parentUuid": "3f60490b_b173a371",
       "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
@@ -157,6 +193,23 @@
       "writtenOn": "2022-11-02T11:12:24Z",
       "side": 1,
       "message": "std::map\u003cT,K\u003e::contains seems more verbose,\n\nhowever - you do a lookup twice below ({timers[assocPath]}), which is not optimal. You could replace this \u0027if\u0027 condition with std::map\u003cT,K\u003e::find, and use resultant iterator further to reference the entry.\n\nHowever, see further comment below with suggestion on how to make implementation less clunky..",
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c87e5052_c5a7e94b",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2022-11-02T15:36:42Z",
+      "side": 1,
+      "message": "A common associations usecase is adding the chassis/sensors one from dbus-sensors, which gets added one at a time, so the mapper would get a single change from each InterfacesAdded signal.\n\n\nSince I don\u0027t think your change recognizes the change in the endpoints size, it would add them to the chassis endpoints as normal until it hit 100, and start creating a 1s delay for each one added after that, even if they came in substantially later and just 1 at a time still.\n\nSo unless I\u0027m missing something, maybe there\u0027s a way to do it that helps both cases: when the mapper is getting spammed with IA signals, and when it finds lots of endpoints on the initial introspect.",
       "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
