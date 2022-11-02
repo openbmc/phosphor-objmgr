@@ -3,6 +3,23 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "4c735bec_55b42260",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1000534
+      },
+      "writtenOn": "2022-11-02T11:12:24Z",
+      "side": 1,
+      "message": "It would be useful to explain \u0027before\u0027 and \u0027after\u0027 behavior more clearly. It took me some time to understand, that what you\u0027re referring to is updating \"endpoints\" array.",
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "086ed18d_e43d46e9",
         "filename": "/COMMIT_MSG",
         "patchSetId": 1
@@ -32,6 +49,131 @@
       "side": 1,
       "message": "One of Intel\u0027s services is actually creating over 4000 Sensor objects. They are loaded from memory at startup (or service restart), so they are created/removed at the same time. Each sensor needs Association to be listed on bmcweb and mapped to HW.",
       "parentUuid": "086ed18d_e43d46e9",
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "997cb54e_5a328449",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1000534
+      },
+      "writtenOn": "2022-11-02T11:12:24Z",
+      "side": 1,
+      "message": "It\u0027s better to include the most specific header for given task at hand. (io_context.hpp, ***_timer.hpp etc..)",
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8b2cb219_0e5e4092",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1000534
+      },
+      "writtenOn": "2022-11-02T11:12:24Z",
+      "side": 1,
+      "message": "Dependency on posix_time should be removed when timer type will be changed.",
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4ce05c03_12f206f7",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1000534
+      },
+      "writtenOn": "2022-11-02T11:12:24Z",
+      "side": 1,
+      "message": "What if association was removed in the meantime (delay time) ? In other words - what if ifaces[assocPath] is empty by then.. will the logic behave correctly?",
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "90fea9bf_c3144456",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1000534
+      },
+      "writtenOn": "2022-11-02T11:12:24Z",
+      "side": 1,
+      "message": "NIT\n\nThis looks like function is just an encapsulation from code previously inlined in other places, right?\n\nI\u0027m not the maintainer, so I don\u0027t know what style of PR-s are expected, but usually changes like yours can be divided into handy series:\n\n1..n-1) Refactor of existing code without changing behavior to prepare \u0027pieces\u0027 to be used or modified later.\nn...) Actual changes in behavior.\n\nIt makes it so much easier to review if refactoring is not mixed with new/changed behavior. HOWEVER - I\u0027m not familiar with the code, so I can only blame myself for this kind of problems:)",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 1
+      },
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "25875728_dd601fcb",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1000534
+      },
+      "writtenOn": "2022-11-02T11:12:24Z",
+      "side": 1,
+      "message": "boost::asio::deadline_timer is prone to error on systems where system time might change asynchronously. In BMC it\u0027s quite common for time to be updated on start with NTP or other. In case system time is updated before timer expiration it might \u0027fire\u0027 much later than expected, or never.\n\nSome background here:\nhttps://stackoverflow.com/questions/14845682/boostdeadline-timer-can-fail-when-system-clock-is-modified\n\nYou can use https://www.boost.org/doc/libs/1_80_0/doc/html/boost_asio/reference/steady_timer.html instead",
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "24fecf97_0160aa13",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1000534
+      },
+      "writtenOn": "2022-11-02T11:12:24Z",
+      "side": 1,
+      "message": "std::map\u003cT,K\u003e::contains seems more verbose,\n\nhowever - you do a lookup twice below ({timers[assocPath]}), which is not optimal. You could replace this \u0027if\u0027 condition with std::map\u003cT,K\u003e::find, and use resultant iterator further to reference the entry.\n\nHowever, see further comment below with suggestion on how to make implementation less clunky..",
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "46006820_f26e83ed",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1000534
+      },
+      "writtenOn": "2022-11-02T11:12:24Z",
+      "side": 1,
+      "message": "Keeping map of timers in static variable is quite counterintuitive for me. Perhaps you could keep `std::set\u003cstd::string\u003e delayedUpdates` to properly name and track active delayed association updates.\n\nTimer could be then created as unique_ptr (or shared_ptr) on stack, and bound to async_wait handler in capture list.",
       "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
