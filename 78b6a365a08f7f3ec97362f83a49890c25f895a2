@@ -229,6 +229,24 @@
       "message": "Keeping map of timers in static variable is quite counterintuitive for me. Perhaps you could keep `std::set\u003cstd::string\u003e delayedUpdates` to properly name and track active delayed association updates.\n\nTimer could be then created as unique_ptr (or shared_ptr) on stack, and bound to async_wait handler in capture list.",
       "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7623aa46_9cb3a3d4",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1000534
+      },
+      "writtenOn": "2022-11-03T09:05:20Z",
+      "side": 1,
+      "message": "https://godbolt.org/z/M77zGGnrK example",
+      "parentUuid": "46006820_f26e83ed",
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
