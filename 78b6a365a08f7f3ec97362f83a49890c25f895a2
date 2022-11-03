@@ -91,6 +91,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "5c266165_f1fd4eb5",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1001549
+      },
+      "writtenOn": "2022-11-03T15:04:54Z",
+      "side": 1,
+      "message": "I updated the commit message, I hope it is more clear now. Our service is doing something similar to dbus-sensors, i.e. adding many interfaces and spamming Interfaces Added signal. When I wrote \"at the same time\" I meant they are created on our service start, but they are still created one by one.\n\u003e What application is it then?\nUnfortunately, I can\u0027t share details about our application yet.",
+      "parentUuid": "39586e25_1956e508",
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "997cb54e_5a328449",
         "filename": "src/associations.cpp",
         "patchSetId": 1
@@ -136,6 +154,24 @@
       "writtenOn": "2022-11-02T11:12:24Z",
       "side": 1,
       "message": "What if association was removed in the meantime (delay time) ? In other words - what if ifaces[assocPath] is empty by then.. will the logic behave correctly?",
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b61215ae_244feeb6",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1001549
+      },
+      "writtenOn": "2022-11-03T15:04:54Z",
+      "side": 1,
+      "message": "There is currently no code that removes members from \"ifaces\". If there is one added it would have to take care of removing interface from dbus. For now, this function won\u0027t do anything in such case.",
+      "parentUuid": "4ce05c03_12f206f7",
       "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
