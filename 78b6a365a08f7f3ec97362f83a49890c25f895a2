@@ -124,6 +124,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2b754bd6_68d9a387",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1000534
+      },
+      "writtenOn": "2022-11-04T07:41:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "997cb54e_5a328449",
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8b2cb219_0e5e4092",
@@ -137,6 +155,24 @@
       "writtenOn": "2022-11-02T11:12:24Z",
       "side": 1,
       "message": "Dependency on posix_time should be removed when timer type will be changed.",
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ab508338_91e3df00",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1000534
+      },
+      "writtenOn": "2022-11-04T07:41:30Z",
+      "side": 1,
+      "message": "Still not removed",
+      "parentUuid": "8b2cb219_0e5e4092",
       "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
@@ -172,6 +208,24 @@
       "side": 1,
       "message": "There is currently no code that removes members from \"ifaces\". If there is one added it would have to take care of removing interface from dbus. For now, this function won\u0027t do anything in such case.",
       "parentUuid": "4ce05c03_12f206f7",
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "51e7376e_0d506d0d",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1000534
+      },
+      "writtenOn": "2022-11-04T07:41:30Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "b61215ae_244feeb6",
       "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
@@ -216,6 +270,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "383a5e40_6d6f4c5e",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1000534
+      },
+      "writtenOn": "2022-11-04T07:41:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "25875728_dd601fcb",
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "24fecf97_0160aa13",
@@ -229,6 +301,24 @@
       "writtenOn": "2022-11-02T11:12:24Z",
       "side": 1,
       "message": "std::map\u003cT,K\u003e::contains seems more verbose,\n\nhowever - you do a lookup twice below ({timers[assocPath]}), which is not optimal. You could replace this \u0027if\u0027 condition with std::map\u003cT,K\u003e::find, and use resultant iterator further to reference the entry.\n\nHowever, see further comment below with suggestion on how to make implementation less clunky..",
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "43dbd2ea_6c540aa0",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1000534
+      },
+      "writtenOn": "2022-11-04T07:41:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "24fecf97_0160aa13",
       "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
@@ -281,6 +371,24 @@
       "side": 1,
       "message": "https://godbolt.org/z/M77zGGnrK example",
       "parentUuid": "46006820_f26e83ed",
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c70c586e_b90c1acd",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1000534
+      },
+      "writtenOn": "2022-11-04T07:41:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7623aa46_9cb3a3d4",
       "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
