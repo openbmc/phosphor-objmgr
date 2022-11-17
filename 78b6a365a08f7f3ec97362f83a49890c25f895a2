@@ -271,6 +271,30 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "256fb80d_aa96b78b",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2022-11-17T22:45:18Z",
+      "side": 1,
+      "message": "in this case I\u0027m OK with it being in this commit.",
+      "parentUuid": "90fea9bf_c3144456",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 1
+      },
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "25875728_dd601fcb",
@@ -354,6 +378,24 @@
       "writtenOn": "2022-11-02T15:36:42Z",
       "side": 1,
       "message": "A common associations usecase is adding the chassis/sensors one from dbus-sensors, which gets added one at a time, so the mapper would get a single change from each InterfacesAdded signal.\n\n\nSince I don\u0027t think your change recognizes the change in the endpoints size, it would add them to the chassis endpoints as normal until it hit 100, and start creating a 1s delay for each one added after that, even if they came in substantially later and just 1 at a time still.\n\nSo unless I\u0027m missing something, maybe there\u0027s a way to do it that helps both cases: when the mapper is getting spammed with IA signals, and when it finds lots of endpoints on the initial introspect.",
+      "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8eecc2ef_a3e81db7",
+        "filename": "src/associations.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2022-11-17T22:45:18Z",
+      "side": 1,
+      "message": "for the life of me, I\u0027m not coming up with anything better.\nAlso, I see that the check for delayedUpdatePaths prevents multiple timers for the same path.",
+      "parentUuid": "c87e5052_c5a7e94b",
       "revId": "78b6a365a08f7f3ec97362f83a49890c25f895a2",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
