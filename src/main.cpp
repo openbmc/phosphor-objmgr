@@ -660,147 +660,144 @@ int main()
     InterfaceMapType interfaceMap;
     boost::container::flat_map<std::string, std::string> nameOwners;
 
-    std::function<void(sdbusplus::message_t & message)> nameChangeHandler =
-        [&interfaceMap, &io, &nameOwners, &server,
-         systemBus](sdbusplus::message_t& message) {
-            std::string name;     // well-known
-            std::string oldOwner; // unique-name
-            std::string newOwner; // unique-name
+    auto nameChangeHandler = [&interfaceMap, &io, &nameOwners, &server,
+                              systemBus](sdbusplus::message_t& message) {
+        std::string name;     // well-known
+        std::string oldOwner; // unique-name
+        std::string newOwner; // unique-name
 
-            message.read(name, oldOwner, newOwner);
+        message.read(name, oldOwner, newOwner);
 
-            if (name.starts_with(':'))
-            {
-                // We should do nothing with unique-name connections.
-                return;
-            }
+        if (name.starts_with(':'))
+        {
+            // We should do nothing with unique-name connections.
+            return;
+        }
 
-            if (!oldOwner.empty())
-            {
-                processNameChangeDelete(nameOwners, name, oldOwner,
-                                        interfaceMap, associationMaps, server);
-            }
+        if (!oldOwner.empty())
+        {
+            processNameChangeDelete(nameOwners, name, oldOwner, interfaceMap,
+                                    associationMaps, server);
+        }
 
-            if (!newOwner.empty())
-            {
+        if (!newOwner.empty())
+        {
 #ifdef MAPPER_ENABLE_DEBUG
-                auto transaction = std::make_shared<
-                    std::chrono::time_point<std::chrono::steady_clock>>(
-                    std::chrono::steady_clock::now());
+            auto transaction = std::make_shared<
+                std::chrono::time_point<std::chrono::steady_clock>>(
+                std::chrono::steady_clock::now());
 #endif
-                // New daemon added
-                if (needToIntrospect(name))
-                {
-                    nameOwners[newOwner] = name;
-                    startNewIntrospect(systemBus.get(), io, interfaceMap, name,
-                                       associationMaps,
+            // New daemon added
+            if (needToIntrospect(name))
+            {
+                nameOwners[newOwner] = name;
+                startNewIntrospect(systemBus.get(), io, interfaceMap, name,
+                                   associationMaps,
 #ifdef MAPPER_ENABLE_DEBUG
-                                       transaction,
+                                   transaction,
 #endif
-                                       server);
-                }
+                                   server);
             }
-        };
+        }
+    };
 
     sdbusplus::bus::match_t nameOwnerChanged(
         static_cast<sdbusplus::bus_t&>(*systemBus),
-        sdbusplus::bus::match::rules::nameOwnerChanged(), nameChangeHandler);
+        sdbusplus::bus::match::rules::nameOwnerChanged(),
+        std::move(nameChangeHandler));
 
-    std::function<void(sdbusplus::message_t & message)> interfacesAddedHandler =
-        [&interfaceMap, &nameOwners, &server](sdbusplus::message_t& message) {
-            sdbusplus::message::object_path objPath;
-            InterfacesAdded interfacesAdded;
-            message.read(objPath, interfacesAdded);
-            std::string wellKnown;
-            if (!getWellKnown(nameOwners, message.get_sender(), wellKnown))
-            {
-                return; // only introspect well-known
-            }
-            if (needToIntrospect(wellKnown))
-            {
-                processInterfaceAdded(interfaceMap, objPath, interfacesAdded,
-                                      wellKnown, associationMaps, server);
-            }
-        };
+    auto interfacesAddedHandler = [&interfaceMap, &nameOwners,
+                                   &server](sdbusplus::message_t& message) {
+        sdbusplus::message::object_path objPath;
+        InterfacesAdded interfacesAdded;
+        message.read(objPath, interfacesAdded);
+        std::string wellKnown;
+        if (!getWellKnown(nameOwners, message.get_sender(), wellKnown))
+        {
+            return; // only introspect well-known
+        }
+        if (needToIntrospect(wellKnown))
+        {
+            processInterfaceAdded(interfaceMap, objPath, interfacesAdded,
+                                  wellKnown, associationMaps, server);
+        }
+    };
 
     sdbusplus::bus::match_t interfacesAdded(
         static_cast<sdbusplus::bus_t&>(*systemBus),
         sdbusplus::bus::match::rules::interfacesAdded(),
-        interfacesAddedHandler);
+        std::move(interfacesAddedHandler));
 
-    std::function<void(sdbusplus::message_t & message)>
-        interfacesRemovedHandler = [&interfaceMap, &nameOwners,
-                                    &server](sdbusplus::message_t& message) {
-            sdbusplus::message::object_path objPath;
-            std::vector<std::string> interfacesRemoved;
-            message.read(objPath, interfacesRemoved);
-            auto connectionMap = interfaceMap.find(objPath.str);
-            if (connectionMap == interfaceMap.end())
+    auto interfacesRemovedHandler = [&interfaceMap, &nameOwners,
+                                     &server](sdbusplus::message_t& message) {
+        sdbusplus::message::object_path objPath;
+        std::vector<std::string> interfacesRemoved;
+        message.read(objPath, interfacesRemoved);
+        auto connectionMap = interfaceMap.find(objPath.str);
+        if (connectionMap == interfaceMap.end())
+        {
+            return;
+        }
+
+        std::string sender;
+        if (!getWellKnown(nameOwners, message.get_sender(), sender))
+        {
+            return;
+        }
+        for (const std::string& interface : interfacesRemoved)
+        {
+            auto interfaceSet = connectionMap->second.find(sender);
+            if (interfaceSet == connectionMap->second.end())
             {
-                return;
+                continue;
             }
 
-            std::string sender;
-            if (!getWellKnown(nameOwners, message.get_sender(), sender))
+            if (interface == assocDefsInterface)
             {
-                return;
+                removeAssociation(objPath.str, sender, server, associationMaps);
             }
-            for (const std::string& interface : interfacesRemoved)
+
+            interfaceSet->second.erase(interface);
+
+            if (interfaceSet->second.empty())
             {
-                auto interfaceSet = connectionMap->second.find(sender);
-                if (interfaceSet == connectionMap->second.end())
+                // If this was the last interface on this connection,
+                // erase the connection
+                connectionMap->second.erase(interfaceSet);
+
+                // Instead of checking if every single path is the endpoint
+                // of an association that needs to be moved to pending,
+                // only check when the only remaining owner of this path is
+                // ourself, which would be because we still own the
+                // association path.
+                if ((connectionMap->second.size() == 1) &&
+                    (connectionMap->second.begin()->first ==
+                     "xyz.openbmc_project.ObjectMapper"))
                 {
-                    continue;
-                }
-
-                if (interface == assocDefsInterface)
-                {
-                    removeAssociation(objPath.str, sender, server,
-                                      associationMaps);
-                }
-
-                interfaceSet->second.erase(interface);
-
-                if (interfaceSet->second.empty())
-                {
-                    // If this was the last interface on this connection,
-                    // erase the connection
-                    connectionMap->second.erase(interfaceSet);
-
-                    // Instead of checking if every single path is the endpoint
-                    // of an association that needs to be moved to pending,
-                    // only check when the only remaining owner of this path is
-                    // ourself, which would be because we still own the
-                    // association path.
-                    if ((connectionMap->second.size() == 1) &&
-                        (connectionMap->second.begin()->first ==
-                         "xyz.openbmc_project.ObjectMapper"))
-                    {
-                        // Remove the 2 association D-Bus paths and move the
-                        // association to pending.
-                        moveAssociationToPending(objPath.str, associationMaps,
-                                                 server);
-                    }
+                    // Remove the 2 association D-Bus paths and move the
+                    // association to pending.
+                    moveAssociationToPending(objPath.str, associationMaps,
+                                             server);
                 }
             }
-            // If this was the last connection on this object path,
-            // erase the object path
-            if (connectionMap->second.empty())
-            {
-                interfaceMap.erase(connectionMap);
-            }
+        }
+        // If this was the last connection on this object path,
+        // erase the object path
+        if (connectionMap->second.empty())
+        {
+            interfaceMap.erase(connectionMap);
+        }
 
-            removeUnneededParents(objPath.str, sender, interfaceMap);
-        };
+        removeUnneededParents(objPath.str, sender, interfaceMap);
+    };
 
     sdbusplus::bus::match_t interfacesRemoved(
         static_cast<sdbusplus::bus_t&>(*systemBus),
         sdbusplus::bus::match::rules::interfacesRemoved(),
-        interfacesRemovedHandler);
+        std::move(interfacesRemovedHandler));
 
-    std::function<void(sdbusplus::message_t & message)>
-        associationChangedHandler = [&server, &nameOwners, &interfaceMap](
-                                        sdbusplus::message_t& message) {
+    auto associationChangedHandler =
+        [&server, &nameOwners, &interfaceMap](sdbusplus::message_t& message) {
             std::string objectName;
             boost::container::flat_map<std::string,
                                        std::variant<std::vector<Association>>>
@@ -827,7 +824,7 @@ int main()
             "org.freedesktop.DBus.Properties") +
             sdbusplus::bus::match::rules::member("PropertiesChanged") +
             sdbusplus::bus::match::rules::argN(0, assocDefsInterface),
-        associationChangedHandler);
+        std::move(associationChangedHandler));
 
     std::shared_ptr<sdbusplus::asio::dbus_interface> iface =
         server.add_interface("/xyz/openbmc_project/object_mapper",
