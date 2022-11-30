@@ -33,6 +33,24 @@
       "message": "I think I\u0027m ok with this change but one question to explore first...\n\nShould we consider deferring all endpoint updates and not just once we reach the 100 endpoint threshold?  Would that remove a lot of unnecessary context switches?",
       "revId": "5b4357da283bb924e6ce8e94f594c42b17eda39c",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "779920ae_5b686b2a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001549
+      },
+      "writtenOn": "2022-11-30T08:50:44Z",
+      "side": 1,
+      "message": "I believe common Associations use case is having one or a few endpoints. Creating timers and delaying those \"small\" interfaces could actually decrease performance.\nThis 100 as threshold was chosen arbitrarily, it\u0027s roughly the number of endpoints that would take more than 1 second when processed one by one on my system. I am open to change this threshold or the timeout value, but I think we shouldn\u0027t delay all interfaces.",
+      "parentUuid": "94213a5b_ea530d66",
+      "revId": "5b4357da283bb924e6ce8e94f594c42b17eda39c",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
