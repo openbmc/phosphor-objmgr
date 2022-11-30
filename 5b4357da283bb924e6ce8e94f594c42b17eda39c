@@ -51,6 +51,24 @@
       "parentUuid": "94213a5b_ea530d66",
       "revId": "5b4357da283bb924e6ce8e94f594c42b17eda39c",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "55e5fe9e_cff08b26",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2022-11-30T22:07:03Z",
+      "side": 1,
+      "message": "I\u0027m not sure how less dbus traffic and less context switches could decrease performance.  It would certainly increase latency, but I sort of wonder how much code there is that would even notice or care about that...\n\nwith that said, what you have here works - someone else can pursue something more general if they want.",
+      "parentUuid": "779920ae_5b686b2a",
+      "revId": "5b4357da283bb924e6ce8e94f594c42b17eda39c",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
