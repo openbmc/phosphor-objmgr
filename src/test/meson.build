@@ -1,5 +1,6 @@
 processing_cpp_dep = declare_dependency(sources: '../processing.cpp')
 associations_cpp_dep = declare_dependency(sources: '../associations.cpp')
+handler_cpp_dep = declare_dependency(sources: '../handler.cpp')
 
 tests = [
   [ 'well_known', [ associations_cpp_dep, processing_cpp_dep ]],
@@ -7,6 +8,7 @@ tests = [
   [ 'associations', [ associations_cpp_dep ]],
   [ 'name_change', [ associations_cpp_dep, processing_cpp_dep ]],
   [ 'interfaces_added', [ associations_cpp_dep, processing_cpp_dep ]],
+  [ 'handler', [ handler_cpp_dep, sdbusplus, phosphor_dbus_interfaces ]],
 ]
 
 foreach t : tests
