@@ -94,6 +94,7 @@ executable(
         'src/main.cpp',
         'src/processing.cpp',
         'src/associations.cpp',
+        'src/handler.cpp',
     ],
     dependencies: [
         boost,
