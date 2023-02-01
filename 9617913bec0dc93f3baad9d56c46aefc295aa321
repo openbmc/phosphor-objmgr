@@ -24,6 +24,30 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1619b4bb_21f15235",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1000885
+      },
+      "writtenOn": "2023-02-01T01:14:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "11f4ead4_cb28f61e",
+      "range": {
+        "startLine": 17,
+        "startChar": 40,
+        "endLine": 17,
+        "endChar": 50
+      },
+      "revId": "9617913bec0dc93f3baad9d56c46aefc295aa321",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4abd072e_5bc252c6",
@@ -47,6 +71,30 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3af8cdc2_7d10cf1b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1000885
+      },
+      "writtenOn": "2023-02-01T01:14:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4abd072e_5bc252c6",
+      "range": {
+        "startLine": 19,
+        "startChar": 47,
+        "endLine": 19,
+        "endChar": 58
+      },
+      "revId": "9617913bec0dc93f3baad9d56c46aefc295aa321",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "40cad2e3_b5111bc9",
@@ -60,6 +108,24 @@
       "writtenOn": "2023-02-01T01:11:37Z",
       "side": 1,
       "message": "nit: New line at the end file (Same for some of the other files in the change)",
+      "revId": "9617913bec0dc93f3baad9d56c46aefc295aa321",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "678c45c5_7515b682",
+        "filename": "src/handler.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1000885
+      },
+      "writtenOn": "2023-02-01T01:14:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "40cad2e3_b5111bc9",
       "revId": "9617913bec0dc93f3baad9d56c46aefc295aa321",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
