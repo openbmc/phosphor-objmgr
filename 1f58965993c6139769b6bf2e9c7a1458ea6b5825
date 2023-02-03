@@ -24,6 +24,30 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e5f238e9_a1af2500",
+        "filename": "src/test/handler.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1000885
+      },
+      "writtenOn": "2023-02-03T17:15:28Z",
+      "side": 1,
+      "message": "rm\u0027ed.",
+      "parentUuid": "33bd080f_0257c447",
+      "range": {
+        "startLine": 18,
+        "startChar": 4,
+        "endLine": 18,
+        "endChar": 64
+      },
+      "revId": "1f58965993c6139769b6bf2e9c7a1458ea6b5825",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "73aecce4_876a4ce9",
@@ -37,6 +61,24 @@
       "writtenOn": "2023-02-02T22:12:46Z",
       "side": 1,
       "message": "how about passing in an invalid path on these as well?",
+      "revId": "1f58965993c6139769b6bf2e9c7a1458ea6b5825",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6fe00a14_ca6a5387",
+        "filename": "src/test/handler.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1000885
+      },
+      "writtenOn": "2023-02-03T17:15:28Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "73aecce4_876a4ce9",
       "revId": "1f58965993c6139769b6bf2e9c7a1458ea6b5825",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
@@ -72,6 +114,24 @@
       "side": 1,
       "message": "heh, this testcase is indeed testing the depth.\n\nBut not reqpath?",
       "parentUuid": "8ac2580e_67f7417e",
+      "revId": "1f58965993c6139769b6bf2e9c7a1458ea6b5825",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d9240df3_7312c7bb",
+        "filename": "src/test/handler.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1000885
+      },
+      "writtenOn": "2023-02-03T17:15:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c5875cdd_c8ae879f",
       "revId": "1f58965993c6139769b6bf2e9c7a1458ea6b5825",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
