@@ -93,8 +93,8 @@ std::string Monitor::getSourceUnitPath()
 void Monitor::runTargetAction()
 {
     // Start or stop the target unit
-    const auto* methodCall =
-        (action == Action::start) ? startMethod : stopMethod;
+    const auto* methodCall = (action == Action::start) ? startMethod
+                                                       : stopMethod;
 
     log<level::INFO>("The source unit is in failed state, "
                      "running target action",
