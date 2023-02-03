@@ -4,3 +4,10 @@ option(
     value: 'enabled',
     description: 'Build tests'
 )
+
+option(
+    'unit-fail-monitor',
+    type: 'feature',
+    value: 'enabled',
+    description: 'Build unit-fail-monitor'
+)

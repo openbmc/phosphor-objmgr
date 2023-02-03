@@ -148,15 +148,17 @@ install_data(
     'src/dbus/xyz.openbmc_project.ObjectMapper.conf',
     install_dir: get_option('datadir') / 'dbus-1' / 'system.d')
 
-executable(
-    'phosphor-unit-failure-monitor',
-    [
-        'fail-monitor/main.cpp',
-        'fail-monitor/monitor.cpp',
-    ],
-    dependencies: [
-        cli11_dep,
-        phosphor_logging,
-    ],
-    install: true
-)
+if not get_option('unit-fail-monitor').disabled()
+    executable(
+        'phosphor-unit-failure-monitor',
+        [
+            'fail-monitor/main.cpp',
+            'fail-monitor/monitor.cpp',
+        ],
+        dependencies: [
+            cli11_dep,
+            phosphor_logging,
+        ],
+        install: true
+    )
+endif
