@@ -1,7 +1,5 @@
 [Unit]
 Description=mapper subtree-remove %I
-Wants=obmc-mapper.target
-After=obmc-mapper.target
 
 [Service]
 Type=oneshot
