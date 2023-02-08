@@ -1,0 +1,9 @@
+Code-Review+1: Nikhil Namjoshi <nikhilnamjoshi@google.com>
+Code-Review+2: Matt Spinler <spinler@us.ibm.com>
+Verified+1: OpenBMC CI <openbmcbump-ci@yahoo.com>
+Code-Review+1: Brad Bishop <bradleyb@fuzziesquirrel.com>
+Submitted-by: Willy Tu <wltu@google.com>
+Submitted-at: Wed, 08 Feb 2023 04:35:42 +0000
+Reviewed-on: https://gerrit.openbmc.org/c/openbmc/phosphor-objmgr/+/60552
+Project: openbmc/phosphor-objmgr
+Branch: refs/heads/master
