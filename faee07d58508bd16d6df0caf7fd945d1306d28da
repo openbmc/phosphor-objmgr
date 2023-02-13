@@ -20,6 +20,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "711d119d_ed4fd73a",
+        "filename": "src/dbus/xyz.openbmc_project.ObjectMapper.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2023-02-13T14:58:58Z",
+      "side": 1,
+      "message": "nice, I\u0027ll dig up the correct one.",
+      "parentUuid": "41c69085_38763073",
+      "revId": "faee07d58508bd16d6df0caf7fd945d1306d28da",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "e6834374_56927b18",
         "filename": "src/systemd/mapper-wait@.service.in",
         "patchSetId": 5
@@ -31,6 +49,30 @@
       "writtenOn": "2023-02-10T20:05:30Z",
       "side": 1,
       "message": "I thought we had a design point to not do things like this and instead hard code the path directly? Maybe that was just \"don\u0027t use env\"?",
+      "range": {
+        "startLine": 9,
+        "startChar": 10,
+        "endLine": 9,
+        "endChar": 18
+      },
+      "revId": "faee07d58508bd16d6df0caf7fd945d1306d28da",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bb9b486c_5dbadbe2",
+        "filename": "src/systemd/mapper-wait@.service.in",
+        "patchSetId": 5
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2023-02-13T14:58:58Z",
+      "side": 1,
+      "message": "This is how install prefixes are supported.  If I hardcode /usr/bin/mapper and do ninja install with the defaults, the program goes in /usr/local/bin/mapper and the unit file would be broken.\n\nThe design point you are thinking of is to not rely on runtime $PATH to resolve the location of the application.",
+      "parentUuid": "e6834374_56927b18",
       "range": {
         "startLine": 9,
         "startChar": 10,
