@@ -36,6 +36,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3f27e21e_9a572cb9",
+        "filename": "src/dbus/xyz.openbmc_project.ObjectMapper.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2023-02-14T20:01:55Z",
+      "side": 1,
+      "message": "I have 32 dbus activated system services installed on my up to date arch install and they all have this URL.  arch is a rolling release distro so I should be pretty close to upstream.  Maybe the freedesktop.org webserver 404s unless you use the right HTTP User-Agent?",
+      "parentUuid": "711d119d_ed4fd73a",
+      "revId": "faee07d58508bd16d6df0caf7fd945d1306d28da",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e6834374_56927b18",
