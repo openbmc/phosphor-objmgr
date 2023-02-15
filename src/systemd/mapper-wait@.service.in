@@ -1,5 +1,7 @@
 [Unit]
 Description=Wait for %I
+Wants=xyz.openbmc_project.ObjectMapper.service
+After=xyz.openbmc_project.ObjectMapper.service
 
 [Service]
 Type=oneshot
