@@ -80,9 +80,10 @@ TEST_F(TestHandler, AddObjectMapResult)
                                                        }));
     ASSERT_EQ(interfaceMaps.size(), 1);
 
-    auto entry = std::find_if(
-        interfaceMaps.begin(), interfaceMaps.end(),
-        [](const auto& i) { return "test_object_path" == i.first; });
+    auto entry = std::find_if(interfaceMaps.begin(), interfaceMaps.end(),
+                              [](const auto& i) {
+        return "test_object_path" == i.first;
+    });
     ASSERT_NE(entry, interfaceMap.end());
     for (const auto& [_, interfaces] : entry->second)
     {
@@ -97,9 +98,10 @@ TEST_F(TestHandler, AddObjectMapResult)
     addObjectMapResult(interfaceMaps, "test_object_path",
                        std::pair<std::string, InterfaceNames>(
                            "test_object_connection_1", {"test_interface_2"}));
-    entry = std::find_if(
-        interfaceMaps.begin(), interfaceMaps.end(),
-        [](const auto& i) { return "test_object_path" == i.first; });
+    entry = std::find_if(interfaceMaps.begin(), interfaceMaps.end(),
+                         [](const auto& i) {
+        return "test_object_path" == i.first;
+    });
     ASSERT_NE(entry, interfaceMaps.end());
     for (const auto& [_, interfaces] : entry->second)
     {
@@ -246,8 +248,8 @@ TEST_F(TestHandler, getSubTreePathsBad)
 {
     std::string path = "/test/object_path_0";
     std::vector<std::string> interfaces = {"bad_interface"};
-    std::vector<std::string> subtreePath =
-        getSubTreePaths(interfaceMap, path, 0, interfaces);
+    std::vector<std::string> subtreePath = getSubTreePaths(interfaceMap, path,
+                                                           0, interfaces);
     ASSERT_TRUE(subtreePath.empty());
 
     path = "/invalid_path";
@@ -263,8 +265,8 @@ TEST_F(TestHandler, getSubTreePathsGood)
     std::vector<std::string> interfaces = {"test_interface_1",
                                            "test_interface_3"};
     // Root
-    std::vector<std::string> subtreePath =
-        getSubTreePaths(interfaceMap, "/", 0, interfaces);
+    std::vector<std::string> subtreePath = getSubTreePaths(interfaceMap, "/", 0,
+                                                           interfaces);
     ASSERT_THAT(subtreePath,
                 ElementsAre("/test/object_path_0/child",
                             "/test/object_path_0/child/grandchild/dog"));
@@ -405,9 +407,9 @@ TEST_F(TestHandler, getAssociatedSubTreePathsGood)
     ASSERT_THAT(subtreePath, ElementsAre("/test/object_path_0/child"));
 
     // Path1
-    subtreePath =
-        getAssociatedSubTreePaths(interfaceMap, associationMap,
-                                  path1 / "descendent", path1, 0, interfaces);
+    subtreePath = getAssociatedSubTreePaths(interfaceMap, associationMap,
+                                            path1 / "descendent", path1, 0,
+                                            interfaces);
     ASSERT_THAT(subtreePath,
                 ElementsAre("/test/object_path_0/child/grandchild"));
 }

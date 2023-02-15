@@ -19,9 +19,10 @@ void addObjectMapResult(std::vector<InterfaceMapType::value_type>& objectMap,
     // If an entry for the object path already exists, just add the
     // service name and interfaces to that entry, otherwise create
     // a new entry.
-    auto entry = std::find_if(
-        objectMap.begin(), objectMap.end(),
-        [&objectPath](const auto& i) { return objectPath == i.first; });
+    auto entry = std::find_if(objectMap.begin(), objectMap.end(),
+                              [&objectPath](const auto& i) {
+        return objectPath == i.first;
+    });
 
     if (entry != objectMap.end())
     {

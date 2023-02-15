@@ -321,12 +321,11 @@ void addPendingAssociation(const std::string& objectPath,
         // Already waiting on this path for another association,
         // so just add this endpoint and owner.
         auto& endpoints = p->second;
-        auto e =
-            std::find_if(endpoints.begin(), endpoints.end(),
-                         [&assoc, &owner](const auto& endpoint) {
-                             return (std::get<ownerPos>(endpoint) == owner) &&
-                                    (std::get<assocPos>(endpoint) == assoc);
-                         });
+        auto e = std::find_if(endpoints.begin(), endpoints.end(),
+                              [&assoc, &owner](const auto& endpoint) {
+            return (std::get<ownerPos>(endpoint) == owner) &&
+                   (std::get<assocPos>(endpoint) == assoc);
+        });
         if (e == endpoints.end())
         {
             endpoints.emplace_back(owner, std::move(assoc));
@@ -509,14 +508,14 @@ void findAssociations(const std::string& endpointPath,
                     auto a = std::find_if(
                         assocs.begin(), assocs.end(),
                         [&endpointPath, &otherPath](const auto& ap) {
-                            const auto& endpoints = ap.second;
-                            auto endpoint = std::find(
-                                endpoints.begin(), endpoints.end(), otherPath);
-                            if (endpoint != endpoints.end())
-                            {
-                                return ap.first.starts_with(endpointPath + '/');
-                            }
-                            return false;
+                        const auto& endpoints = ap.second;
+                        auto endpoint = std::find(endpoints.begin(),
+                                                  endpoints.end(), otherPath);
+                        if (endpoint != endpoints.end())
+                        {
+                            return ap.first.starts_with(endpointPath + '/');
+                        }
+                        return false;
                         });
 
                     if (a != assocs.end())

@@ -34,13 +34,13 @@ void updateOwners(sdbusplus::asio::connection* conn,
     conn->async_method_call(
         [&, newObject](const boost::system::error_code ec,
                        const std::string& nameOwner) {
-            if (ec)
-            {
-                std::cerr << "Error getting owner of " << newObject << " : "
-                          << ec << "\n";
-                return;
-            }
-            owners[nameOwner] = newObject;
+        if (ec)
+        {
+            std::cerr << "Error getting owner of " << newObject << " : " << ec
+                      << "\n";
+            return;
+        }
+        owners[nameOwner] = newObject;
         },
         "org.freedesktop.DBus", "/", "org.freedesktop.DBus", "GetNameOwner",
         newObject);
@@ -142,21 +142,21 @@ void doAssociations(boost::asio::io_context& io,
          timeoutRetries](
             const boost::system::error_code ec,
             const std::variant<std::vector<Association>>& variantAssociations) {
-            if (ec)
+        if (ec)
+        {
+            if (ec.value() == boost::system::errc::timed_out &&
+                timeoutRetries < maxTimeoutRetries)
             {
-                if (ec.value() == boost::system::errc::timed_out &&
-                    timeoutRetries < maxTimeoutRetries)
-                {
-                    doAssociations(io, systemBus, interfaceMap, objectServer,
-                                   processName, path, timeoutRetries + 1);
-                    return;
-                }
-                std::cerr << "Error getting associations from " << path << "\n";
+                doAssociations(io, systemBus, interfaceMap, objectServer,
+                               processName, path, timeoutRetries + 1);
+                return;
             }
-            std::vector<Association> associations =
-                std::get<std::vector<Association>>(variantAssociations);
-            associationChanged(io, objectServer, associations, path,
-                               processName, interfaceMap, associationMaps);
+            std::cerr << "Error getting associations from " << path << "\n";
+        }
+        std::vector<Association> associations =
+            std::get<std::vector<Association>>(variantAssociations);
+        associationChanged(io, objectServer, associations, path, processName,
+                           interfaceMap, associationMaps);
         },
         processName, path, "org.freedesktop.DBus.Properties", "Get",
         assocDefsInterface, assocDefsProperty);
@@ -174,81 +174,80 @@ void doIntrospect(boost::asio::io_context& io,
         [&io, &interfaceMap, &objectServer, transaction, path, systemBus,
          timeoutRetries](const boost::system::error_code ec,
                          const std::string& introspectXml) {
-            if (ec)
+        if (ec)
+        {
+            if (ec.value() == boost::system::errc::timed_out &&
+                timeoutRetries < maxTimeoutRetries)
             {
-                if (ec.value() == boost::system::errc::timed_out &&
-                    timeoutRetries < maxTimeoutRetries)
-                {
-                    doIntrospect(io, systemBus, transaction, interfaceMap,
-                                 objectServer, path, timeoutRetries + 1);
-                    return;
-                }
-                std::cerr << "Introspect call failed with error: " << ec << ", "
-                          << ec.message()
-                          << " on process: " << transaction->processName
-                          << " path: " << path << "\n";
+                doIntrospect(io, systemBus, transaction, interfaceMap,
+                             objectServer, path, timeoutRetries + 1);
                 return;
             }
+            std::cerr << "Introspect call failed with error: " << ec << ", "
+                      << ec.message()
+                      << " on process: " << transaction->processName
+                      << " path: " << path << "\n";
+            return;
+        }
 
-            tinyxml2::XMLDocument doc;
+        tinyxml2::XMLDocument doc;
 
-            tinyxml2::XMLError e = doc.Parse(introspectXml.c_str());
-            if (e != tinyxml2::XMLError::XML_SUCCESS)
+        tinyxml2::XMLError e = doc.Parse(introspectXml.c_str());
+        if (e != tinyxml2::XMLError::XML_SUCCESS)
+        {
+            std::cerr << "XML parsing failed\n";
+            return;
+        }
+
+        tinyxml2::XMLNode* pRoot = doc.FirstChildElement("node");
+        if (pRoot == nullptr)
+        {
+            std::cerr << "XML document did not contain any data\n";
+            return;
+        }
+        auto& thisPathMap = interfaceMap[path];
+        tinyxml2::XMLElement* pElement = pRoot->FirstChildElement("interface");
+        while (pElement != nullptr)
+        {
+            const char* ifaceName = pElement->Attribute("name");
+            if (ifaceName == nullptr)
             {
-                std::cerr << "XML parsing failed\n";
-                return;
+                continue;
             }
 
-            tinyxml2::XMLNode* pRoot = doc.FirstChildElement("node");
-            if (pRoot == nullptr)
+            thisPathMap[transaction->processName].emplace(ifaceName);
+
+            if (std::strcmp(ifaceName, assocDefsInterface) == 0)
             {
-                std::cerr << "XML document did not contain any data\n";
-                return;
+                doAssociations(io, systemBus, interfaceMap, objectServer,
+                               transaction->processName, path);
             }
-            auto& thisPathMap = interfaceMap[path];
-            tinyxml2::XMLElement* pElement =
-                pRoot->FirstChildElement("interface");
-            while (pElement != nullptr)
+
+            pElement = pElement->NextSiblingElement("interface");
+        }
+
+        // Check if this new path has a pending association that can
+        // now be completed.
+        checkIfPendingAssociation(io, path, interfaceMap,
+                                  transaction->assocMaps, objectServer);
+
+        pElement = pRoot->FirstChildElement("node");
+        while (pElement != nullptr)
+        {
+            const char* childPath = pElement->Attribute("name");
+            if (childPath != nullptr)
             {
-                const char* ifaceName = pElement->Attribute("name");
-                if (ifaceName == nullptr)
+                std::string parentPath(path);
+                if (parentPath == "/")
                 {
-                    continue;
+                    parentPath.clear();
                 }
 
-                thisPathMap[transaction->processName].emplace(ifaceName);
-
-                if (std::strcmp(ifaceName, assocDefsInterface) == 0)
-                {
-                    doAssociations(io, systemBus, interfaceMap, objectServer,
-                                   transaction->processName, path);
-                }
-
-                pElement = pElement->NextSiblingElement("interface");
+                doIntrospect(io, systemBus, transaction, interfaceMap,
+                             objectServer, parentPath + "/" + childPath);
             }
-
-            // Check if this new path has a pending association that can
-            // now be completed.
-            checkIfPendingAssociation(io, path, interfaceMap,
-                                      transaction->assocMaps, objectServer);
-
-            pElement = pRoot->FirstChildElement("node");
-            while (pElement != nullptr)
-            {
-                const char* childPath = pElement->Attribute("name");
-                if (childPath != nullptr)
-                {
-                    std::string parentPath(path);
-                    if (parentPath == "/")
-                    {
-                        parentPath.clear();
-                    }
-
-                    doIntrospect(io, systemBus, transaction, interfaceMap,
-                                 objectServer, parentPath + "/" + childPath);
-                }
-                pElement = pElement->NextSiblingElement("node");
-            }
+            pElement = pElement->NextSiblingElement("node");
+        }
         },
         transaction->processName, path, "org.freedesktop.DBus.Introspectable",
         "Introspect");
@@ -290,33 +289,33 @@ void doListNames(
         [&io, &interfaceMap, &nameOwners, &objectServer, systemBus,
          &assocMaps](const boost::system::error_code ec,
                      std::vector<std::string> processNames) {
-            if (ec)
-            {
-                std::cerr << "Error getting names: " << ec << "\n";
-                std::exit(EXIT_FAILURE);
-                return;
-            }
-            // Try to make startup consistent
-            std::sort(processNames.begin(), processNames.end());
+        if (ec)
+        {
+            std::cerr << "Error getting names: " << ec << "\n";
+            std::exit(EXIT_FAILURE);
+            return;
+        }
+        // Try to make startup consistent
+        std::sort(processNames.begin(), processNames.end());
 #ifdef MAPPER_ENABLE_DEBUG
-            std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
-                globalStartTime = std::make_shared<
-                    std::chrono::time_point<std::chrono::steady_clock>>(
-                    std::chrono::steady_clock::now());
+        std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
+            globalStartTime = std::make_shared<
+                std::chrono::time_point<std::chrono::steady_clock>>(
+                std::chrono::steady_clock::now());
 #endif
-            for (const std::string& processName : processNames)
+        for (const std::string& processName : processNames)
+        {
+            if (needToIntrospect(processName))
             {
-                if (needToIntrospect(processName))
-                {
-                    startNewIntrospect(systemBus, io, interfaceMap, processName,
-                                       assocMaps,
+                startNewIntrospect(systemBus, io, interfaceMap, processName,
+                                   assocMaps,
 #ifdef MAPPER_ENABLE_DEBUG
-                                       globalStartTime,
+                                   globalStartTime,
 #endif
-                                       objectServer);
-                    updateOwners(systemBus, nameOwners, processName);
-                }
+                                   objectServer);
+                updateOwners(systemBus, nameOwners, processName);
             }
+        }
         },
         "org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus",
         "ListNames");
@@ -362,12 +361,11 @@ void removeUnneededParents(const std::string& objectPath,
         auto childPath = parent + '/';
 
         // Remove this parent if there isn't a remaining child on this owner
-        auto child = std::find_if(
-            interfaceMap.begin(), interfaceMap.end(),
-            [&owner, &childPath](const auto& entry) {
-                return entry.first.starts_with(childPath) &&
-                       (entry.second.find(owner) != entry.second.end());
-            });
+        auto child = std::find_if(interfaceMap.begin(), interfaceMap.end(),
+                                  [&owner, &childPath](const auto& entry) {
+            return entry.first.starts_with(childPath) &&
+                   (entry.second.find(owner) != entry.second.end());
+        });
 
         if (child == interfaceMap.end())
         {
@@ -593,7 +591,7 @@ int main()
         "GetSubTreePaths",
         [&interfaceMap](std::string& reqPath, int32_t depth,
                         std::vector<std::string>& interfaces) {
-            return getSubTreePaths(interfaceMap, reqPath, depth, interfaces);
+        return getSubTreePaths(interfaceMap, reqPath, depth, interfaces);
         });
 
     iface->register_method(
@@ -601,9 +599,9 @@ int main()
         [&interfaceMap](const sdbusplus::message::object_path& associationPath,
                         const sdbusplus::message::object_path& reqPath,
                         int32_t depth, std::vector<std::string>& interfaces) {
-            return getAssociatedSubTree(interfaceMap, associationMaps,
-                                        associationPath, reqPath, depth,
-                                        interfaces);
+        return getAssociatedSubTree(interfaceMap, associationMaps,
+                                    associationPath, reqPath, depth,
+                                    interfaces);
         });
 
     iface->register_method(
@@ -611,9 +609,9 @@ int main()
         [&interfaceMap](const sdbusplus::message::object_path& associationPath,
                         const sdbusplus::message::object_path& reqPath,
                         int32_t depth, std::vector<std::string>& interfaces) {
-            return getAssociatedSubTreePaths(interfaceMap, associationMaps,
-                                             associationPath, reqPath, depth,
-                                             interfaces);
+        return getAssociatedSubTreePaths(interfaceMap, associationMaps,
+                                         associationPath, reqPath, depth,
+                                         interfaces);
         });
 
     iface->initialize();
