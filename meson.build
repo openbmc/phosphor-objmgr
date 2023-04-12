@@ -8,7 +8,7 @@ project(
         'werror=true',
     ],
     license: 'Apache-2.0',
-    meson_version: '>=0.57.0',
+    meson_version: '>=0.58.0',
     version: '1.0',
 )
 
@@ -112,7 +112,7 @@ executable(
 )
 
 systemd_system_unit_dir = dependency('systemd').get_variable(
-    pkgconfig : 'systemdsystemunitdir'
+    'systemdsystemunitdir'
 )
 
 conf = configuration_data()
@@ -137,7 +137,7 @@ foreach u : unit_files
 endforeach
 
 dbus_system_bus_services_dir = dependency('dbus-1').get_variable(
-    pkgconfig: 'system_bus_services_dir',
+    'system_bus_services_dir',
     pkgconfig_define: ['prefix', get_option('prefix')]
 )
 
