@@ -3,12 +3,12 @@ project(
     'c', 'cpp',
     default_options: [
         'buildtype=debugoptimized',
-        'cpp_std=c++20',
+        'cpp_std=c++23',
         'warning_level=3',
         'werror=true',
     ],
     license: 'Apache-2.0',
-    meson_version: '>=0.58.0',
+    meson_version: '>=1.1.1',
     version: '1.0',
 )
 
