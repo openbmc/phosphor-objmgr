@@ -484,6 +484,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "b171c7ef_4e3ff754",
+        "filename": "src/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2023-07-20T19:13:05Z",
+      "side": 1,
+      "message": "\u003e From the observation of our online products, there is no such case for a mapper to do multiple introspect for a process.\n\nYou say \"observation\" but I\u0027m not sure what that means.  Multiple introspects can happen in the case where InterfacesAdded is called while an introspect is in progress.\n\n\u003e So I think std::set here is OK for now.",
+      "parentUuid": "68a7eeda_af110a5f",
+      "range": {
+        "startLine": 27,
+        "startChar": 12,
+        "endLine": 27,
+        "endChar": 15
+      },
+      "revId": "c804bff683b9ad7fd9743a638a94bc69ce5701f1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "8531a93d_b79e42b6",
         "filename": "src/main.cpp",
         "patchSetId": 1
@@ -603,6 +627,24 @@
       "side": 1,
       "message": "Right, the solution of this patch is to make mapper throw if the introspect is not done.\nThe caller is expected to handle such exception anyway because the exception is thrown without this change.",
       "parentUuid": "bce52dc0_19243b89",
+      "revId": "c804bff683b9ad7fd9743a638a94bc69ce5701f1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "39babb32_e953a797",
+        "filename": "src/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2023-07-20T19:13:05Z",
+      "side": 1,
+      "message": "\u003e Right, the solution of this patch is to make mapper throw if the introspect is not done.\n\u003e The caller is expected to handle such exception anyway because the exception is thrown without this change.\n\nAnd I don\u0027t believe that\u0027s acceptable, nor do we have the testing expertise to go find every mapper call that now needs to handle an exception in a reasonable way.",
+      "parentUuid": "9fbcdbe7_bd8b3d9b",
       "revId": "c804bff683b9ad7fd9743a638a94bc69ce5701f1",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
