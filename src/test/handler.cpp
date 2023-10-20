@@ -80,10 +80,9 @@ TEST_F(TestHandler, AddObjectMapResult)
                                                        }));
     ASSERT_EQ(interfaceMaps.size(), 1);
 
-    auto entry = std::find_if(interfaceMaps.begin(), interfaceMaps.end(),
-                              [](const auto& i) {
-        return "test_object_path" == i.first;
-    });
+    auto entry = std::find_if(
+        interfaceMaps.begin(), interfaceMaps.end(),
+        [](const auto& i) { return "test_object_path" == i.first; });
     ASSERT_NE(entry, interfaceMap.end());
     for (const auto& [_, interfaces] : entry->second)
     {
@@ -98,10 +97,9 @@ TEST_F(TestHandler, AddObjectMapResult)
     addObjectMapResult(interfaceMaps, "test_object_path",
                        std::pair<std::string, InterfaceNames>(
                            "test_object_connection_1", {"test_interface_2"}));
-    entry = std::find_if(interfaceMaps.begin(), interfaceMaps.end(),
-                         [](const auto& i) {
-        return "test_object_path" == i.first;
-    });
+    entry = std::find_if(
+        interfaceMaps.begin(), interfaceMaps.end(),
+        [](const auto& i) { return "test_object_path" == i.first; });
     ASSERT_NE(entry, interfaceMaps.end());
     for (const auto& [_, interfaces] : entry->second)
     {

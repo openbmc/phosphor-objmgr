@@ -41,7 +41,7 @@ void updateOwners(sdbusplus::asio::connection* conn,
             return;
         }
         owners[nameOwner] = newObject;
-        },
+    },
         "org.freedesktop.DBus", "/", "org.freedesktop.DBus", "GetNameOwner",
         newObject);
 }
@@ -157,7 +157,7 @@ void doAssociations(boost::asio::io_context& io,
             std::get<std::vector<Association>>(variantAssociations);
         associationChanged(io, objectServer, associations, path, processName,
                            interfaceMap, associationMaps);
-        },
+    },
         processName, path, "org.freedesktop.DBus.Properties", "Get",
         assocDefsInterface, assocDefsProperty);
 }
@@ -248,7 +248,7 @@ void doIntrospect(boost::asio::io_context& io,
             }
             pElement = pElement->NextSiblingElement("node");
         }
-        },
+    },
         transaction->processName, path, "org.freedesktop.DBus.Introspectable",
         "Introspect");
 }
@@ -316,7 +316,7 @@ void doListNames(
                 updateOwners(systemBus, nameOwners, processName);
             }
         }
-        },
+    },
         "org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus",
         "ListNames");
 }
@@ -572,27 +572,27 @@ int main()
     iface->register_method(
         "GetAncestors", [&interfaceMap](std::string& reqPath,
                                         std::vector<std::string>& interfaces) {
-            return getAncestors(interfaceMap, reqPath, interfaces);
-        });
+        return getAncestors(interfaceMap, reqPath, interfaces);
+    });
 
     iface->register_method(
         "GetObject", [&interfaceMap](const std::string& path,
                                      std::vector<std::string>& interfaces) {
-            return getObject(interfaceMap, path, interfaces);
-        });
+        return getObject(interfaceMap, path, interfaces);
+    });
 
     iface->register_method(
         "GetSubTree", [&interfaceMap](std::string& reqPath, int32_t depth,
                                       std::vector<std::string>& interfaces) {
-            return getSubTree(interfaceMap, reqPath, depth, interfaces);
-        });
+        return getSubTree(interfaceMap, reqPath, depth, interfaces);
+    });
 
     iface->register_method(
         "GetSubTreePaths",
         [&interfaceMap](std::string& reqPath, int32_t depth,
                         std::vector<std::string>& interfaces) {
         return getSubTreePaths(interfaceMap, reqPath, depth, interfaces);
-        });
+    });
 
     iface->register_method(
         "GetAssociatedSubTree",
@@ -602,7 +602,7 @@ int main()
         return getAssociatedSubTree(interfaceMap, associationMaps,
                                     associationPath, reqPath, depth,
                                     interfaces);
-        });
+    });
 
     iface->register_method(
         "GetAssociatedSubTreePaths",
@@ -612,7 +612,7 @@ int main()
         return getAssociatedSubTreePaths(interfaceMap, associationMaps,
                                          associationPath, reqPath, depth,
                                          interfaces);
-        });
+    });
 
     iface->initialize();
 

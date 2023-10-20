@@ -516,7 +516,7 @@ void findAssociations(const std::string& endpointPath,
                             return ap.first.starts_with(endpointPath + '/');
                         }
                         return false;
-                        });
+                    });
 
                     if (a != assocs.end())
                     {

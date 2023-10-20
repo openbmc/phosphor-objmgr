@@ -35,7 +35,7 @@ bool needToIntrospect(const std::string& processName)
     auto inSkipList = std::find_if(skipNamespaces.begin(), skipNamespaces.end(),
                                    [&processName](auto prefix) {
         return processName.starts_with(prefix);
-                      }) != skipNamespaces.end();
+    }) != skipNamespaces.end();
     return !(inSkipList || processName.empty());
 }
 
