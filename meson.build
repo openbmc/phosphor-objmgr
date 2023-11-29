@@ -34,7 +34,7 @@ if get_option('buildtype').startswith('debug')
     add_project_arguments('-DMAPPER_ENABLE_DEBUG', language : 'cpp')
 endif
 
-if get_option('tests').enabled()
+if get_option('tests').allowed()
     gtest = dependency('gtest', main: true, disabler: true, required: false)
     gmock = dependency('gmock', disabler: true, required: false)
     if not gtest.found() or not gmock.found()
@@ -50,7 +50,7 @@ if get_option('tests').enabled()
             gmock = gtest_proj.dependency('gmock')
         else
             assert(
-                not get_option('tests').enabled(),
+                not get_option('tests').allowed(),
                 'Googletest is required if tests are enabled'
             )
         endif
