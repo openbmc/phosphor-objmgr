@@ -29,8 +29,8 @@ bool getWellKnown(
 bool needToIntrospect(const std::string& processName)
 {
     using namespace std::string_view_literals;
-    static constexpr std::array<std::string_view, 2> skipNamespaces{
-        ":"sv, "org.freedesktop"sv};
+    static constexpr std::array<std::string_view, 3> skipNamespaces{
+        ":"sv, "org.freedesktop"sv, "xyz.openbmc_project.ObjectMapper"sv};
 
     auto inSkipList = std::find_if(skipNamespaces.begin(), skipNamespaces.end(),
                                    [&processName](auto prefix) {
