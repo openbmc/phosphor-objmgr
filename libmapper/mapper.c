@@ -654,19 +654,36 @@ _public_ int mapper_get_service(sd_bus* conn, const char* obj, char** service)
     if (r < 0)
         goto exit;
 
-    r = sd_bus_message_enter_container(reply, 0, NULL);
-    if (r < 0)
-        goto exit;
+    const char* sig = sd_bus_message_get_signature(reply, 0);
+    if (!strcmp(sig, "a{sas}"))
+    {
+        r = sd_bus_message_enter_container(reply, 'a', "{sas}");
+        if (r < 0)
+            goto exit;
 
-    r = sd_bus_message_enter_container(reply, 0, NULL);
-    if (r < 0)
-        goto exit;
+        while (true)
+        {
+            r = sd_bus_message_enter_container(reply, 'e', "sas");
+            if (r < 0)
+                goto exit;
 
-    r = sd_bus_message_read(reply, "s", &tmp);
-    if (r < 0)
-        goto exit;
+            r = sd_bus_message_read(reply, "s", &tmp);
+            if (r < 0)
+                goto exit;
 
-    *service = strdup(tmp);
+            r = sd_bus_message_skip(reply, "as");
+            if (r < 0)
+                goto exit;
+
+            if (strcmp(tmp, "xyz.openbmc_project.ObjectMapper"))
+            {
+                *service = strdup(tmp);
+                break;
+            }
+            r = sd_bus_message_exit_container(reply);
+        }
+        r = sd_bus_message_exit_container(reply);
+    }
 
 exit:
     sd_bus_message_unref(reply);
