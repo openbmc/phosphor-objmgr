@@ -16,6 +16,24 @@
       "message": "This is kind of silly to do it on the client library side, when nobody really uses this client library, isn\u0027t it?\n\nOr ... is it only useful to do on the client library?\n\nIt seems like we should do this filtering on the server side.  Unless, it is useful to get in some cases but not others?",
       "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3f146d2a_89143e69",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 647,
+      "author": {
+        "id": 1000397
+      },
+      "writtenOn": "2024-01-23T00:41:05Z",
+      "side": 1,
+      "message": "Thanks Patrick.\nI don\u0027t think filtering on the client side is reasonable for two reasons:\n* For the server, we can obtain the service through dbus path and interfaces. For the client, maybe we want to know which service the current path belongs to (at least IEI uses this command very frequently downstream).\n* If possible, I think it is reasonable to return all services. As for why I didn’t do this, it’s because I didn’t want to break the original logic.\n\nIn any case, it is very unreasonable to use this command to return xyz.openbmc_project.ObjectMapper.",
+      "parentUuid": "e051b5fe_1049f641",
+      "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
