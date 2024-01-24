@@ -34,6 +34,24 @@
       "parentUuid": "e051b5fe_1049f641",
       "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "80b3654d_f1e2e4ca",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 647,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2024-01-24T19:47:36Z",
+      "side": 1,
+      "message": "I don\u0027t know how to interpret your response here.  Are you planning to change this code or you think it is right?\n\n\u003e In any case, it is very unreasonable to use this command to return xyz.openbmc_project.ObjectMapper.\n\nIt does this due to associations, right?  I agree it\u0027s probably not what is interesting in most cases, but part of this is just due to extra filtering being done by this `mapper_get_service` function.  Probably better to avoid using that?",
+      "parentUuid": "3f146d2a_89143e69",
+      "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
