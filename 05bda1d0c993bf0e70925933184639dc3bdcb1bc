@@ -106,6 +106,24 @@
       "parentUuid": "53b5343d_69a96caa",
       "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5e5d9da1_4b5f4992",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 647,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2024-01-25T16:15:05Z",
+      "side": 1,
+      "message": "Trying a few of the sensors on my system, it looks like it\u0027s just alphabetical.  VirtualSensor comes after ObjectMapper, so it returns ObjectMapper.  But ObjectMapper comes after ADCSensor, so for that one I do get ADCSensor.\n\nThose paths in the mapper don\u0027t actually have any interfaces on them, it\u0027s just that it\u0027s a subpath of an association path that does.\n\nSo maybe then yea it would be better to change the server to not return objects that only have the 3 default freedesktop interfaces?",
+      "parentUuid": "f2cc529b_4b762f04",
+      "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
