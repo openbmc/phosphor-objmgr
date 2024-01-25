@@ -70,6 +70,24 @@
       "parentUuid": "80b3654d_f1e2e4ca",
       "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "53b5343d_69a96caa",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 647,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2024-01-25T14:36:11Z",
+      "side": 1,
+      "message": "If associations had been invented when this get-service API was created, I suspect either a) it would have done the same change as in this commit, or b) it would have been shot down as a bad idea since assuming a path has one service is wrong.",
+      "parentUuid": "fb644d5c_85cb13c3",
+      "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
