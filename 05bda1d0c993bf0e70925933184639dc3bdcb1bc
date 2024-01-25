@@ -88,6 +88,24 @@
       "parentUuid": "fb644d5c_85cb13c3",
       "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f2cc529b_4b762f04",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 647,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2024-01-25T15:59:56Z",
+      "side": 1,
+      "message": "It looks like the only use of this function in the whole codebase is in phosphor-host-ipmid.  Should we just fix it there to use the mapper calls directly?\n\nI guess I don\u0027t really care one way or the other if this change goes in.  It just seemed odd to do filtering on the client side when we\u0027re in the mapper library.  You\u0027d think that if it was important for mapper there would be server-side work for it.",
+      "parentUuid": "53b5343d_69a96caa",
+      "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
