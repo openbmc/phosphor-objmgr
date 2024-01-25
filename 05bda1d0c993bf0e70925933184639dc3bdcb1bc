@@ -52,6 +52,24 @@
       "parentUuid": "3f146d2a_89143e69",
       "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fb644d5c_85cb13c3",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 647,
+      "author": {
+        "id": 1000397
+      },
+      "writtenOn": "2024-01-25T01:12:12Z",
+      "side": 1,
+      "message": "\u003e I don\u0027t know how to interpret your response here.  Are you planning to change this code or you think it is right?\n\n1. Without breaking the original logic, I think it is correct to filter out `xyz.openbmc_project.ObjectMapper`.\n2. Otherwise we could return all service names, but this would require refactoring everywhere `mapper_get_service` is used.\n\nI prefer the first way and would like to hear your suggestions.",
+      "parentUuid": "80b3654d_f1e2e4ca",
+      "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
