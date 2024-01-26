@@ -142,6 +142,24 @@
       "parentUuid": "5e5d9da1_4b5f4992",
       "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8b50e228_c8d04eaa",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 647,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2024-01-26T14:12:16Z",
+      "side": 1,
+      "message": "Why can\u0027t that code just call GetObject instead?",
+      "parentUuid": "102c9481_6ab0e8d7",
+      "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
