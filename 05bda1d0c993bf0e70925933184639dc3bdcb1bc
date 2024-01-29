@@ -160,6 +160,24 @@
       "parentUuid": "102c9481_6ab0e8d7",
       "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "aa0e4776_183980e8",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 647,
+      "author": {
+        "id": 1000397
+      },
+      "writtenOn": "2024-01-29T00:25:07Z",
+      "side": 1,
+      "message": "\u003e Why can\u0027t that code just call GetObject instead?\n\nBecause I don\u0027t know what the original design intention was? I don\u0027t want to break the existing logic, I just want to get the correct service name through the object path",
+      "parentUuid": "8b50e228_c8d04eaa",
+      "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
