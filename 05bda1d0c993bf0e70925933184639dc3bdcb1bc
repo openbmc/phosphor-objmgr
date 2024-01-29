@@ -178,6 +178,24 @@
       "parentUuid": "8b50e228_c8d04eaa",
       "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3fe9bf92_62ccddd5",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 647,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2024-01-29T12:47:48Z",
+      "side": 1,
+      "message": "I\u0027m not especially satisfied with that response.  It isn\u0027t like the code we\u0027re talking about is especially complex and you seem to already understand the \"fix\".\n\nThe only call to this code is in sensorhandler.cpp as just a trivial redirection:\n```\nint get_bus_for_path(const char* path, char** busname)\n{\n    return mapper_get_service(bus, path, busname);\n}\n```\n\nThe interesting code is where this is called from, which is in `find_openbmc_path`:\n\n    rc \u003d get_bus_for_path(info.sensorPath.c_str(), \u0026busname);\n\nThere is a full path to a sensor that they\u0027re looking for an object at that path.  Isn\u0027t this exactly what GetObject is for?",
+      "parentUuid": "aa0e4776_183980e8",
+      "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
