@@ -214,6 +214,24 @@
       "parentUuid": "3fe9bf92_62ccddd5",
       "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9ada795b_26b4ffa5",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 647,
+      "author": {
+        "id": 1000397
+      },
+      "writtenOn": "2024-01-30T05:09:43Z",
+      "side": 1,
+      "message": "\u003e 1. get_bus_for_path should not call the mapper_get_service method directly but should call the GetObject method\n\nFixed: https://gerrit.openbmc.org/c/openbmc/phosphor-host-ipmid/+/69082",
+      "parentUuid": "3a061968_3337eb88",
+      "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
