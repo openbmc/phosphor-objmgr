@@ -196,6 +196,24 @@
       "parentUuid": "aa0e4776_183980e8",
       "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3a061968_3337eb88",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 647,
+      "author": {
+        "id": 1000397
+      },
+      "writtenOn": "2024-01-30T00:39:02Z",
+      "side": 1,
+      "message": "I see.\nI just want to clarify that for us this should be two questions:\n1. `get_bus_for_path` should not call the mapper_get_service method directly but should call the GetObject method\n2. `mapper get-service` is just a tool, we should let it return all existing service names right?\n\nIf we can agree here, I will fix both issues above 😊",
+      "parentUuid": "3fe9bf92_62ccddd5",
+      "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
