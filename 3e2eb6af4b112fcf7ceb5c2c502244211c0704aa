@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9c3d8f4d_e5b05088",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2024-03-29T21:19:56Z",
+      "side": 1,
+      "message": "tinyxml2 is packaged by most Linux distros?  Just install the dependency prior to building?",
+      "revId": "3e2eb6af4b112fcf7ceb5c2c502244211c0704aa",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
