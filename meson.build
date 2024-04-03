@@ -104,7 +104,7 @@ executable(
         sdbusplus,
         dependency('systemd'),
         dependency('threads'),
-        dependency('tinyxml2'),
+        dependency('tinyxml2', default_options: ['tests=false']),
     ],
     install: true,
     install_dir: join_paths(
