@@ -16,6 +16,24 @@
       "message": "lets squash this into the parent commit so we aren\u0027t left with a broken build if someone ever does a git bisect or something along those lines.",
       "revId": "883d91d7d8f9a0f2bcf150990f75073cad21d94c",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "81f8de03_f38b7057",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000926
+      },
+      "writtenOn": "2024-04-04T20:07:42Z",
+      "side": 1,
+      "message": "I want to clarify, that this is a first commit where local meson build on the system without tinyxml actually works. It is broken on all the commits before in the repo. So technically the programmer wouldn\u0027t see any working build using `git bisect` on older commits.\n\nI\u0027ve decided to split this change into 2 logical commits to have a better history messages explaining why we do things like we do.\n\nBut off course I can squash the commits if you want to.",
+      "parentUuid": "7b01d66e_52ce6757",
+      "revId": "883d91d7d8f9a0f2bcf150990f75073cad21d94c",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
