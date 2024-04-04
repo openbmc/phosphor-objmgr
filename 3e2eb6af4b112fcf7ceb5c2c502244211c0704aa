@@ -67,6 +67,23 @@
       "message": "I see there was a long discussion on discord about this.  Sounds like in bmcweb doing this solved a problem because there was an issue with the distro provided one.\n\nI don\u0027t have much of an opinion either way, I guess at least this would save somebody an iteration of them having to install this themselves? \n\nif it causes a problem in the future we can revisit.",
       "revId": "3e2eb6af4b112fcf7ceb5c2c502244211c0704aa",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ce8b12c7_49d67956",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2024-04-04T17:29:31Z",
+      "side": 1,
+      "message": "actually, lets squash in the other commit so we never end up with a build break",
+      "revId": "3e2eb6af4b112fcf7ceb5c2c502244211c0704aa",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
