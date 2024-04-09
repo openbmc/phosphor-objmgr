@@ -68,3 +68,53 @@ std::vector<std::string> getAssociatedSubTreePaths(
     const sdbusplus::message::object_path& associationPath,
     const sdbusplus::message::object_path& reqPath, int32_t depth,
     std::vector<std::string>& interfaces);
+
+/**
+ * @brief Get the Associated Sub Tree Paths object by id
+ *
+ * @param interfaceMap       Mapper Structure storing all associations
+ * @param associationMaps    Map of association between objects
+ * @param id                 Identifier to search for the subtree
+ * @param objectPath         Base path to search for the subtree
+ * @param depth              Level of depth to search into the base path
+ * @param subtreeInterfaces  Interface filter for the subtree
+ * @param association        The endpoint association
+ * @param endpointInterfaces Interface filter for the endpoint association
+ *
+ * Use getAssociatedSubTree and return only the dbus objects that
+ * are associated with the provided identifier, filtering based on on their
+ * endpoint association.
+ *
+ * @return std::vector<InterfaceMapType::value_type>
+ */
+std::vector<InterfaceMapType::value_type> getAssociatedSubTreeById(
+    const InterfaceMapType& interfaceMap,
+    const AssociationMaps& associationMaps, const std::string& id,
+    std::string& objectPath, int32_t depth,
+    std::vector<std::string>& subtreeInterfaces, const std::string& association,
+    std::vector<std::string>& endpointInterfaces);
+
+/**
+ * @brief Get the Associated Sub Tree Paths object by id
+ *
+ * @param interfaceMap       Mapper Structure storing all associations
+ * @param associationMaps    Map of association between objects
+ * @param id                 Identifier to search for the subtree
+ * @param objectPath         Base path to search for the subtree
+ * @param depth              Level of depth to search into the base path
+ * @param subtreeInterfaces  Interface filter for the subtree
+ * @param association        The endpoint association
+ * @param endpointInterfaces Interface filter for the endpoint association
+ *
+ * Use getAssociatedSubTreePaths and return only the dbus objects that
+ * are associated with the provided identifier, filtering based on on their
+ * endpoint association.
+ *
+ * @return std::vector<std::string>
+ */
+std::vector<std::string> getAssociatedSubTreePathsById(
+    const InterfaceMapType& interfaceMap,
+    const AssociationMaps& associationMaps, const std::string& id,
+    std::string& objectPath, int32_t depth,
+    std::vector<std::string>& subtreeInterfaces, const std::string& association,
+    std::vector<std::string>& endpointInterfaces);
