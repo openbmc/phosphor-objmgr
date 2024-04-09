@@ -614,6 +614,30 @@ int main()
                                          interfaces);
     });
 
+    iface->register_method(
+        "GetAssociatedSubTreeById",
+        [&interfaceMap](const std::string& id, std::string& reqPath,
+                        int32_t depth,
+                        std::vector<std::string>& subtreeInterfaces,
+                        const std::string& association,
+                        std::vector<std::string>& associationInterfaces) {
+        return getAssociatedSubTreeById(interfaceMap, associationMaps, id,
+                                        reqPath, depth, subtreeInterfaces,
+                                        association, associationInterfaces);
+    });
+
+    iface->register_method(
+        "GetAssociatedSubTreePathsById",
+        [&interfaceMap](const std::string& id, std::string& reqPath,
+                        int32_t depth,
+                        std::vector<std::string>& subtreeInterfaces,
+                        const std::string& association,
+                        std::vector<std::string>& associationInterfaces) {
+        return getAssociatedSubTreePathsById(
+            interfaceMap, associationMaps, id, reqPath, depth,
+            subtreeInterfaces, association, associationInterfaces);
+    });
+
     iface->initialize();
 
     io.post([&]() {
