@@ -336,3 +336,127 @@ std::vector<std::string> getAssociatedSubTreePaths(
     }
     return output;
 }
+
+std::vector<std::string>
+    getSubTreePathsById(const InterfaceMapType& interfaceMap,
+                        const std::string& id, std::string& objectPath,
+                        int32_t depth, std::vector<std::string>& interfaces)
+{
+    if (depth <= 0)
+    {
+        depth = std::numeric_limits<int32_t>::max();
+    }
+
+    std::sort(interfaces.begin(), interfaces.end());
+
+    if (!objectPath.ends_with("/"))
+    {
+        objectPath += "/";
+    }
+    std::string_view objectPathStripped =
+        std::string_view(objectPath).substr(0, objectPath.size() - 1);
+
+    if (!objectPathStripped.empty() &&
+        interfaceMap.find(objectPathStripped) == interfaceMap.end())
+    {
+        throw sdbusplus::xyz::openbmc_project::Common::Error::
+            ResourceNotFound();
+    }
+
+    std::vector<std::string> output;
+    for (const auto& path : interfaceMap)
+    {
+        const auto& thisPath = path.first;
+
+        // Skip exact match on stripped search term or
+        // the path does not end with the id
+        if (thisPath == objectPathStripped || !thisPath.ends_with("/" + id))
+        {
+            continue;
+        }
+
+        if (thisPath.starts_with(objectPath))
+        {
+            int thisDepth =
+                std::count(thisPath.begin() + objectPathStripped.size(),
+                           thisPath.end(), '/');
+            if (thisDepth <= depth)
+            {
+                for (const auto& interfaceMap : path.second)
+                {
+                    std::vector<std::string> tempoutput(std::min(
+                        interfaces.size(), interfaceMap.second.size()));
+                    if (std::set_intersection(
+                            interfaces.begin(), interfaces.end(),
+                            interfaceMap.second.begin(),
+                            interfaceMap.second.end(),
+                            tempoutput.begin()) != tempoutput.begin())
+                    {
+                        output.emplace_back(thisPath);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    if (output.empty())
+    {
+        throw sdbusplus::xyz::openbmc_project::Common::Error::
+            ResourceNotFound();
+    }
+    return output;
+}
+
+std::vector<InterfaceMapType::value_type> getAssociatedSubTreeById(
+    const InterfaceMapType& interfaceMap,
+    const AssociationMaps& associationMaps, const std::string& id,
+    std::string& objectPath, int32_t depth,
+    std::vector<std::string>& subtreeInterfaces, const std::string& association,
+    std::vector<std::string>& endpointInterfaces)
+{
+    const std::vector<std::string>& subtreePaths = getSubTreePathsById(
+        interfaceMap, id, objectPath, depth, subtreeInterfaces);
+
+    std::vector<InterfaceMapType::value_type> output;
+    for (const auto& subtreePath : subtreePaths)
+    {
+        // Form the association path
+        std::string associationPathStr = subtreePath + "/" + association;
+        sdbusplus::message::object_path associationPath(associationPathStr);
+
+        auto associatedSubTree =
+            getAssociatedSubTree(interfaceMap, associationMaps, associationPath,
+                                 objectPath, depth, endpointInterfaces);
+
+        output.insert(output.end(), associatedSubTree.begin(),
+                      associatedSubTree.end());
+    }
+    return output;
+}
+
+std::vector<std::string> getAssociatedSubTreePathsById(
+    const InterfaceMapType& interfaceMap,
+    const AssociationMaps& associationMaps, const std::string& id,
+    std::string& objectPath, const int32_t depth,
+    std::vector<std::string>& subtreeInterfaces, const std::string& association,
+    std::vector<std::string>& endpointInterfaces)
+{
+    const std::vector<std::string>& subtreePaths = getSubTreePathsById(
+        interfaceMap, id, objectPath, depth, subtreeInterfaces);
+    std::vector<std::string> output;
+    for (const auto& subtreePath : subtreePaths)
+    {
+        // Form the association path
+        std::string associationPathStr = subtreePath + "/" + association;
+        sdbusplus::message::object_path associationPath(associationPathStr);
+
+        auto associatedSubTree = getAssociatedSubTreePaths(
+            interfaceMap, associationMaps, associationPath, objectPath, depth,
+            endpointInterfaces);
+
+        output.insert(output.end(), associatedSubTree.begin(),
+                      associatedSubTree.end());
+    }
+
+    return output;
+}
