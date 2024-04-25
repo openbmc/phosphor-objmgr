@@ -36,6 +36,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "48df3764_61796100",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000397
+      },
+      "writtenOn": "2024-04-25T01:06:41Z",
+      "side": 1,
+      "message": "I still think it\u0027s two problems.\nThis patch is mainly to fix the problem of filtering out `xyz.openbmc_project.ObjectMapper` when calling mapper ger-service.",
+      "parentUuid": "bc0ce416_46d3d9d5",
+      "revId": "05bda1d0c993bf0e70925933184639dc3bdcb1bc",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e051b5fe_1049f641",
