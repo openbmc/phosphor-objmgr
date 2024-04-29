@@ -49,8 +49,8 @@ class Monitor
      */
     Monitor(const std::string& sourceUnit, const std::string& targetUnit,
             Action action) :
-        bus(sdbusplus::bus::new_default()),
-        source(sourceUnit), target(targetUnit), action(action)
+        bus(sdbusplus::bus::new_default()), source(sourceUnit),
+        target(targetUnit), action(action)
     {}
 
     /**

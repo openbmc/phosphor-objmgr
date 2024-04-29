@@ -75,8 +75,7 @@ struct InProgressIntrospect
             globalStartTime
 #endif
         ) :
-        systemBus(systemBus),
-        io(io), processName(processName), assocMaps(am)
+        systemBus(systemBus), io(io), processName(processName), assocMaps(am)
 #ifdef MAPPER_ENABLE_DEBUG
         ,
         globalStartTime(std::move(globalStartTime)),
