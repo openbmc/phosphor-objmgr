@@ -88,7 +88,7 @@ executable(
     dependencies: [ dependency('libsystemd') ],
     install: true)
 
-executable(
+mapperx = executable(
     'mapperx',
     [
         'src/main.cpp',
@@ -110,6 +110,7 @@ executable(
     install_dir: join_paths(
         get_option('prefix'), get_option('libexecdir'), meson.project_name())
 )
+meson.override_find_program('mapperx', mapperx)
 
 systemd_system_unit_dir = dependency('systemd').get_variable(
     'systemdsystemunitdir'
