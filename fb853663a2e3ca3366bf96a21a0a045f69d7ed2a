@@ -16,6 +16,24 @@
       "message": "what\u0027s going to use this?",
       "revId": "fb853663a2e3ca3366bf96a21a0a045f69d7ed2a",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "26803c6e_8076767d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2024-05-07T00:04:04Z",
+      "side": 1,
+      "message": "It\u0027s something that will be helpful to me when upstreaming changes implementing tests for nvmesensor. For example:\n\nhttps://github.com/amboar/dbus-sensors/blob/nvme-tests-lift-container-constraint/tests/meson.build#L72-L78\n\nwhich feeds into:\n\nhttps://github.com/amboar/dbus-sensors/blob/nvme-tests-lift-container-constraint/tests/test_nvme_mi_wrapper",
+      "parentUuid": "597ca1ab_876e5f98",
+      "revId": "fb853663a2e3ca3366bf96a21a0a045f69d7ed2a",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
