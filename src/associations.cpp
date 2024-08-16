@@ -39,10 +39,9 @@ void updateEndpointsOnDbus(sdbusplus::asio::object_server& objectServer,
     }
 }
 
-void scheduleUpdateEndpointsOnDbus(boost::asio::io_context& io,
-                                   sdbusplus::asio::object_server& objectServer,
-                                   const std::string& assocPath,
-                                   AssociationMaps& assocMaps)
+void scheduleUpdateEndpointsOnDbus(
+    boost::asio::io_context& io, sdbusplus::asio::object_server& objectServer,
+    const std::string& assocPath, AssociationMaps& assocMaps)
 {
     static std::set<std::string> delayedUpdatePaths;
 
@@ -192,8 +191,8 @@ void checkAssociationEndpointRemoves(
             for (const auto& originalEndpoint : originalEndpoints)
             {
                 if (std::find(newEndpoints->second.begin(),
-                              newEndpoints->second.end(),
-                              originalEndpoint) == newEndpoints->second.end())
+                              newEndpoints->second.end(), originalEndpoint) ==
+                    newEndpoints->second.end())
                 {
                     toRemove.emplace(originalEndpoint);
                 }
@@ -227,12 +226,11 @@ void addEndpointsToAssocIfaces(
     scheduleUpdateEndpointsOnDbus(io, objectServer, assocPath, assocMaps);
 }
 
-void associationChanged(boost::asio::io_context& io,
-                        sdbusplus::asio::object_server& objectServer,
-                        const std::vector<Association>& associations,
-                        const std::string& path, const std::string& owner,
-                        const InterfaceMapType& interfaceMap,
-                        AssociationMaps& assocMaps)
+void associationChanged(
+    boost::asio::io_context& io, sdbusplus::asio::object_server& objectServer,
+    const std::vector<Association>& associations, const std::string& path,
+    const std::string& owner, const InterfaceMapType& interfaceMap,
+    AssociationMaps& assocMaps)
 {
     AssociationPaths objects;
 
@@ -301,11 +299,10 @@ void associationChanged(boost::asio::io_context& io,
     }
 }
 
-void addPendingAssociation(const std::string& objectPath,
-                           const std::string& type,
-                           const std::string& endpointPath,
-                           const std::string& endpointType,
-                           const std::string& owner, AssociationMaps& assocMaps)
+void addPendingAssociation(
+    const std::string& objectPath, const std::string& type,
+    const std::string& endpointPath, const std::string& endpointType,
+    const std::string& owner, AssociationMaps& assocMaps)
 {
     Association assoc{type, endpointType, endpointPath};
 
@@ -321,11 +318,12 @@ void addPendingAssociation(const std::string& objectPath,
         // Already waiting on this path for another association,
         // so just add this endpoint and owner.
         auto& endpoints = p->second;
-        auto e = std::find_if(endpoints.begin(), endpoints.end(),
-                              [&assoc, &owner](const auto& endpoint) {
-            return (std::get<ownerPos>(endpoint) == owner) &&
-                   (std::get<assocPos>(endpoint) == assoc);
-        });
+        auto e =
+            std::find_if(endpoints.begin(), endpoints.end(),
+                         [&assoc, &owner](const auto& endpoint) {
+                             return (std::get<ownerPos>(endpoint) == owner) &&
+                                    (std::get<assocPos>(endpoint) == assoc);
+                         });
         if (e == endpoints.end())
         {
             endpoints.emplace_back(owner, std::move(assoc));
@@ -362,12 +360,11 @@ void removeFromPendingAssociations(const std::string& endpointPath,
     }
 }
 
-void addSingleAssociation(boost::asio::io_context& io,
-                          sdbusplus::asio::object_server& server,
-                          const std::string& assocPath,
-                          const std::string& endpoint, const std::string& owner,
-                          const std::string& ownerPath,
-                          AssociationMaps& assocMaps)
+void addSingleAssociation(
+    boost::asio::io_context& io, sdbusplus::asio::object_server& server,
+    const std::string& assocPath, const std::string& endpoint,
+    const std::string& owner, const std::string& ownerPath,
+    AssociationMaps& assocMaps)
 {
     boost::container::flat_set<std::string> endpoints{endpoint};
 
@@ -406,11 +403,10 @@ void addSingleAssociation(boost::asio::io_context& io,
     }
 }
 
-void checkIfPendingAssociation(boost::asio::io_context& io,
-                               const std::string& objectPath,
-                               const InterfaceMapType& interfaceMap,
-                               AssociationMaps& assocMaps,
-                               sdbusplus::asio::object_server& server)
+void checkIfPendingAssociation(
+    boost::asio::io_context& io, const std::string& objectPath,
+    const InterfaceMapType& interfaceMap, AssociationMaps& assocMaps,
+    sdbusplus::asio::object_server& server)
 {
     auto pending = assocMaps.pending.find(objectPath);
     if (pending == assocMaps.pending.end())
@@ -508,15 +504,15 @@ void findAssociations(const std::string& endpointPath,
                     auto a = std::find_if(
                         assocs.begin(), assocs.end(),
                         [&endpointPath, &otherPath](const auto& ap) {
-                        const auto& endpoints = ap.second;
-                        auto endpoint = std::find(endpoints.begin(),
-                                                  endpoints.end(), otherPath);
-                        if (endpoint != endpoints.end())
-                        {
-                            return ap.first.starts_with(endpointPath + '/');
-                        }
-                        return false;
-                    });
+                            const auto& endpoints = ap.second;
+                            auto endpoint = std::find(
+                                endpoints.begin(), endpoints.end(), otherPath);
+                            if (endpoint != endpoints.end())
+                            {
+                                return ap.first.starts_with(endpointPath + '/');
+                            }
+                            return false;
+                        });
 
                     if (a != assocs.end())
                     {
@@ -545,11 +541,10 @@ void findAssociations(const std::string& endpointPath,
  * @param[in,out] assocMaps - the association maps
  * @param[in,out] server    - sdbus system object
  */
-void removeAssociationIfacesEntry(boost::asio::io_context& io,
-                                  const std::string& assocPath,
-                                  const std::string& endpointPath,
-                                  AssociationMaps& assocMaps,
-                                  sdbusplus::asio::object_server& server)
+void removeAssociationIfacesEntry(
+    boost::asio::io_context& io, const std::string& assocPath,
+    const std::string& endpointPath, AssociationMaps& assocMaps,
+    sdbusplus::asio::object_server& server)
 {
     auto assoc = assocMaps.ifaces.find(assocPath);
     if (assoc != assocMaps.ifaces.end())
@@ -576,10 +571,9 @@ void removeAssociationIfacesEntry(boost::asio::io_context& io,
  * @param[in] owner         - the owner of the association
  * @param[in,out] assocMaps - the association maps
  */
-void removeAssociationOwnersEntry(const std::string& assocPath,
-                                  const std::string& endpointPath,
-                                  const std::string& owner,
-                                  AssociationMaps& assocMaps)
+void removeAssociationOwnersEntry(
+    const std::string& assocPath, const std::string& endpointPath,
+    const std::string& owner, AssociationMaps& assocMaps)
 {
     auto sources = assocMaps.owners.begin();
     while (sources != assocMaps.owners.end())
@@ -617,10 +611,9 @@ void removeAssociationOwnersEntry(const std::string& assocPath,
     }
 }
 
-void moveAssociationToPending(boost::asio::io_context& io,
-                              const std::string& endpointPath,
-                              AssociationMaps& assocMaps,
-                              sdbusplus::asio::object_server& server)
+void moveAssociationToPending(
+    boost::asio::io_context& io, const std::string& endpointPath,
+    AssociationMaps& assocMaps, sdbusplus::asio::object_server& server)
 {
     FindAssocResults associationData;
 

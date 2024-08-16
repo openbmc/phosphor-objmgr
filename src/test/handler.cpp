@@ -246,8 +246,8 @@ TEST_F(TestHandler, getSubTreePathsBad)
 {
     std::string path = "/test/object_path_0";
     std::vector<std::string> interfaces = {"bad_interface"};
-    std::vector<std::string> subtreePath = getSubTreePaths(interfaceMap, path,
-                                                           0, interfaces);
+    std::vector<std::string> subtreePath =
+        getSubTreePaths(interfaceMap, path, 0, interfaces);
     ASSERT_TRUE(subtreePath.empty());
 
     path = "/invalid_path";
@@ -263,8 +263,8 @@ TEST_F(TestHandler, getSubTreePathsGood)
     std::vector<std::string> interfaces = {"test_interface_1",
                                            "test_interface_3"};
     // Root
-    std::vector<std::string> subtreePath = getSubTreePaths(interfaceMap, "/", 0,
-                                                           interfaces);
+    std::vector<std::string> subtreePath =
+        getSubTreePaths(interfaceMap, "/", 0, interfaces);
     ASSERT_THAT(subtreePath,
                 ElementsAre("/test/object_path_0/child",
                             "/test/object_path_0/child/grandchild/dog"));
@@ -293,10 +293,10 @@ TEST_F(TestHandler, getAssociatedSubTreeBad)
     std::vector<std::string> validInterfaces = {"test_interface_1",
                                                 "test_interface_2"};
     // Associated path, but invalid interface
-    ASSERT_TRUE(getAssociatedSubTree(interfaceMap, associationMap,
-                                     validAssociatedPath, path, 0,
-                                     invalidInterfaces)
-                    .empty());
+    ASSERT_TRUE(
+        getAssociatedSubTree(interfaceMap, associationMap, validAssociatedPath,
+                             path, 0, invalidInterfaces)
+            .empty());
 
     // Valid interface, not associated
     ASSERT_TRUE(getAssociatedSubTree(interfaceMap, associationMap, path / "dog",
@@ -316,10 +316,10 @@ TEST_F(TestHandler, getAssociatedSubTreeGood)
     sdbusplus::message::object_path path0("/test/object_path_0");
     sdbusplus::message::object_path path1("/test/object_path_0/child");
     sdbusplus::message::object_path associatedPath = path0 / "descendent";
-    std::vector<std::string> interfaces = {"test_interface_1",
-                                           "test_interface_2",
-                                           // Not associated to path
-                                           "test_interface_3"};
+    std::vector<std::string> interfaces = {
+        "test_interface_1", "test_interface_2",
+        // Not associated to path
+        "test_interface_3"};
 
     // Path0
     std::vector<InterfaceMapType::value_type> subtree = getAssociatedSubTree(
@@ -368,10 +368,10 @@ TEST_F(TestHandler, getAssociatedSubTreePathsBad)
                     .empty());
 
     // Valid interface, not associated
-    ASSERT_TRUE(getAssociatedSubTreePaths(interfaceMap, associationMap,
-                                          path / "dog", path, 0,
-                                          validInterfaces)
-                    .empty());
+    ASSERT_TRUE(
+        getAssociatedSubTreePaths(interfaceMap, associationMap, path / "dog",
+                                  path, 0, validInterfaces)
+            .empty());
 
     // Invalid path, with valid association
     path = sdbusplus::message::object_path("/invalid_path");
@@ -387,10 +387,10 @@ TEST_F(TestHandler, getAssociatedSubTreePathsGood)
     sdbusplus::message::object_path path0("/test/object_path_0");
     sdbusplus::message::object_path path1("/test/object_path_0/child");
     sdbusplus::message::object_path associatedPath = path0 / "descendent";
-    std::vector<std::string> interfaces = {"test_interface_1",
-                                           "test_interface_2",
-                                           // Not associated to path
-                                           "test_interface_3"};
+    std::vector<std::string> interfaces = {
+        "test_interface_1", "test_interface_2",
+        // Not associated to path
+        "test_interface_3"};
 
     // Path0
     std::vector<std::string> subtreePath = getAssociatedSubTreePaths(
@@ -405,9 +405,9 @@ TEST_F(TestHandler, getAssociatedSubTreePathsGood)
     ASSERT_THAT(subtreePath, ElementsAre("/test/object_path_0/child"));
 
     // Path1
-    subtreePath = getAssociatedSubTreePaths(interfaceMap, associationMap,
-                                            path1 / "descendent", path1, 0,
-                                            interfaces);
+    subtreePath =
+        getAssociatedSubTreePaths(interfaceMap, associationMap,
+                                  path1 / "descendent", path1, 0, interfaces);
     ASSERT_THAT(subtreePath,
                 ElementsAre("/test/object_path_0/child/grandchild"));
 }

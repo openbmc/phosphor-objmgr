@@ -87,12 +87,11 @@ void checkAssociationEndpointRemoves(
  *
  * @return Void, objectServer and assocMaps updated if needed
  */
-void associationChanged(boost::asio::io_context& io,
-                        sdbusplus::asio::object_server& objectServer,
-                        const std::vector<Association>& associations,
-                        const std::string& path, const std::string& owner,
-                        const InterfaceMapType& interfaceMap,
-                        AssociationMaps& assocMaps);
+void associationChanged(
+    boost::asio::io_context& io, sdbusplus::asio::object_server& objectServer,
+    const std::vector<Association>& associations, const std::string& path,
+    const std::string& owner, const InterfaceMapType& interfaceMap,
+    AssociationMaps& assocMaps);
 
 /** @brief Add a pending associations entry
  *
@@ -114,12 +113,10 @@ void associationChanged(boost::asio::io_context& io,
  * @param[in] owner         - The service name that owns the association.
  * @param[in,out] assocMaps - The association maps
  */
-void addPendingAssociation(const std::string& objectPath,
-                           const std::string& type,
-                           const std::string& endpointPath,
-                           const std::string& endpointType,
-                           const std::string& owner,
-                           AssociationMaps& assocMaps);
+void addPendingAssociation(
+    const std::string& objectPath, const std::string& type,
+    const std::string& endpointPath, const std::string& endpointType,
+    const std::string& owner, AssociationMaps& assocMaps);
 
 /** @brief Removes an endpoint from the pending associations map
  *
@@ -141,12 +138,11 @@ void removeFromPendingAssociations(const std::string& endpointPath,
  * @param[in] ownerPath     - The D-Bus path hosting the Associations property
  * @param[in,out] assocMaps - The association maps
  */
-void addSingleAssociation(boost::asio::io_context& io,
-                          sdbusplus::asio::object_server& server,
-                          const std::string& assocPath,
-                          const std::string& endpoint, const std::string& owner,
-                          const std::string& ownerPath,
-                          AssociationMaps& assocMaps);
+void addSingleAssociation(
+    boost::asio::io_context& io, sdbusplus::asio::object_server& server,
+    const std::string& assocPath, const std::string& endpoint,
+    const std::string& owner, const std::string& ownerPath,
+    AssociationMaps& assocMaps);
 
 /** @brief Create a real association out of a pending association
  *         if there is one for this path.
@@ -161,11 +157,10 @@ void addSingleAssociation(boost::asio::io_context& io,
  * @param[in,out] assocMaps - The association maps
  * @param[in,out] server    - sdbus system object
  */
-void checkIfPendingAssociation(boost::asio::io_context& io,
-                               const std::string& objectPath,
-                               const InterfaceMapType& interfaceMap,
-                               AssociationMaps& assocMaps,
-                               sdbusplus::asio::object_server& server);
+void checkIfPendingAssociation(
+    boost::asio::io_context& io, const std::string& objectPath,
+    const InterfaceMapType& interfaceMap, AssociationMaps& assocMaps,
+    sdbusplus::asio::object_server& server);
 
 /** @brief Find all associations in the association owners map with the
  *         specified endpoint path.
@@ -191,7 +186,6 @@ void findAssociations(const std::string& endpointPath,
  * @param[in,out] assocMaps - The association maps
  * @param[in,out] server    - sdbus system object
  */
-void moveAssociationToPending(boost::asio::io_context& io,
-                              const std::string& endpointPath,
-                              AssociationMaps& assocMaps,
-                              sdbusplus::asio::object_server& server);
+void moveAssociationToPending(
+    boost::asio::io_context& io, const std::string& endpointPath,
+    AssociationMaps& assocMaps, sdbusplus::asio::object_server& server);

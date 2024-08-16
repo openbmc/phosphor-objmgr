@@ -79,10 +79,8 @@ void processNameChangeDelete(
  * @param[in,out] server          - sdbus system object
  *
  */
-void processInterfaceAdded(boost::asio::io_context& io,
-                           InterfaceMapType& interfaceMap,
-                           const sdbusplus::message::object_path& objPath,
-                           const InterfacesAdded& intfAdded,
-                           const std::string& wellKnown,
-                           AssociationMaps& assocMaps,
-                           sdbusplus::asio::object_server& server);
+void processInterfaceAdded(
+    boost::asio::io_context& io, InterfaceMapType& interfaceMap,
+    const sdbusplus::message::object_path& objPath,
+    const InterfacesAdded& intfAdded, const std::string& wellKnown,
+    AssociationMaps& assocMaps, sdbusplus::asio::object_server& server);

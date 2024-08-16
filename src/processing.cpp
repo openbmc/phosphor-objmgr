@@ -34,8 +34,8 @@ bool needToIntrospect(const std::string& processName)
 
     auto inSkipList = std::find_if(skipNamespaces.begin(), skipNamespaces.end(),
                                    [&processName](auto prefix) {
-        return processName.starts_with(prefix);
-    }) != skipNamespaces.end();
+                                       return processName.starts_with(prefix);
+                                   }) != skipNamespaces.end();
     return !(inSkipList || processName.empty());
 }
 
@@ -97,13 +97,11 @@ void processNameChangeDelete(
     }
 }
 
-void processInterfaceAdded(boost::asio::io_context& io,
-                           InterfaceMapType& interfaceMap,
-                           const sdbusplus::message::object_path& objPath,
-                           const InterfacesAdded& intfAdded,
-                           const std::string& wellKnown,
-                           AssociationMaps& assocMaps,
-                           sdbusplus::asio::object_server& server)
+void processInterfaceAdded(
+    boost::asio::io_context& io, InterfaceMapType& interfaceMap,
+    const sdbusplus::message::object_path& objPath,
+    const InterfacesAdded& intfAdded, const std::string& wellKnown,
+    AssociationMaps& assocMaps, sdbusplus::asio::object_server& server)
 {
     auto& ifaceList = interfaceMap[objPath.str];
 

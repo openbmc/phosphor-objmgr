@@ -77,11 +77,11 @@ std::vector<InterfaceMapType::value_type>
                         interfaces.size(), interfaceMap.second.size()));
                     // Return iterator points at the first output elemtn,
                     // meaning that there are no intersections.
-                    if (std::set_intersection(interfaces.begin(),
-                                              interfaces.end(),
-                                              interfaceMap.second.begin(),
-                                              interfaceMap.second.end(),
-                                              output.begin()) != output.begin())
+                    if (std::set_intersection(
+                            interfaces.begin(), interfaces.end(),
+                            interfaceMap.second.begin(),
+                            interfaceMap.second.end(), output.begin()) !=
+                        output.begin())
                     {
                         addObjectMapResult(ret, thisPath, interfaceMap);
                     }
@@ -119,8 +119,8 @@ ConnectionNames getObject(const InterfaceMapType& interfaceMap,
         // meaning that there are no intersections.
         if (std::set_intersection(interfaces.begin(), interfaces.end(),
                                   interfaceMap.second.begin(),
-                                  interfaceMap.second.end(),
-                                  output.begin()) != output.begin())
+                                  interfaceMap.second.end(), output.begin()) !=
+            output.begin())
         {
             results.emplace(interfaceMap.first, interfaceMap.second);
         }
@@ -203,9 +203,9 @@ std::vector<InterfaceMapType::value_type>
     return ret;
 }
 
-std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
-                                         std::string reqPath, int32_t depth,
-                                         std::vector<std::string>& interfaces)
+std::vector<std::string>
+    getSubTreePaths(const InterfaceMapType& interfaceMap, std::string reqPath,
+                    int32_t depth, std::vector<std::string>& interfaces)
 {
     if (depth <= 0)
     {
@@ -255,11 +255,11 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
                         interfaces.size(), interfaceMap.second.size()));
                     // Return iterator points at the first output elemtn,
                     // meaning that there are no intersections.
-                    if (std::set_intersection(interfaces.begin(),
-                                              interfaces.end(),
-                                              interfaceMap.second.begin(),
-                                              interfaceMap.second.end(),
-                                              output.begin()) != output.begin())
+                    if (std::set_intersection(
+                            interfaces.begin(), interfaces.end(),
+                            interfaceMap.second.begin(),
+                            interfaceMap.second.end(), output.begin()) !=
+                        output.begin())
                     {
                         add = true;
                         break;
@@ -277,12 +277,12 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
     return ret;
 }
 
-std::vector<InterfaceMapType::value_type>
-    getAssociatedSubTree(const InterfaceMapType& interfaceMap,
-                         const AssociationMaps& associationMaps,
-                         const sdbusplus::message::object_path& associationPath,
-                         const sdbusplus::message::object_path& reqPath,
-                         int32_t depth, std::vector<std::string>& interfaces)
+std::vector<InterfaceMapType::value_type> getAssociatedSubTree(
+    const InterfaceMapType& interfaceMap,
+    const AssociationMaps& associationMaps,
+    const sdbusplus::message::object_path& associationPath,
+    const sdbusplus::message::object_path& reqPath, int32_t depth,
+    std::vector<std::string>& interfaces)
 {
     auto findEndpoint = associationMaps.ifaces.find(associationPath.str);
     if (findEndpoint == associationMaps.ifaces.end())

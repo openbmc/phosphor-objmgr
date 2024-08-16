@@ -21,9 +21,9 @@ std::vector<InterfaceMapType::value_type>
     getSubTree(const InterfaceMapType& interfaceMap, std::string reqPath,
                int32_t depth, std::vector<std::string>& interfaces);
 
-std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
-                                         std::string reqPath, int32_t depth,
-                                         std::vector<std::string>& interfaces);
+std::vector<std::string>
+    getSubTreePaths(const InterfaceMapType& interfaceMap, std::string reqPath,
+                    int32_t depth, std::vector<std::string>& interfaces);
 
 /**
  * @brief Get the Associated Sub Tree object
@@ -40,12 +40,12 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
  *
  * @return std::vector<InterfaceMapType::value_type>
  */
-std::vector<InterfaceMapType::value_type>
-    getAssociatedSubTree(const InterfaceMapType& interfaceMap,
-                         const AssociationMaps& associationMaps,
-                         const sdbusplus::message::object_path& associationPath,
-                         const sdbusplus::message::object_path& reqPath,
-                         int32_t depth, std::vector<std::string>& interfaces);
+std::vector<InterfaceMapType::value_type> getAssociatedSubTree(
+    const InterfaceMapType& interfaceMap,
+    const AssociationMaps& associationMaps,
+    const sdbusplus::message::object_path& associationPath,
+    const sdbusplus::message::object_path& reqPath, int32_t depth,
+    std::vector<std::string>& interfaces);
 
 /**
  * @brief Get the Associated Sub Tree Paths object
