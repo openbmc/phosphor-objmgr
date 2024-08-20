@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4ed65ec0_b01bf88c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2024-08-20T13:50:00Z",
+      "side": 1,
+      "message": "rebased to see if it still passes with the new clang format",
+      "revId": "fa25b37fece75f6384f9d3bfd4439d3a78aea02b",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
