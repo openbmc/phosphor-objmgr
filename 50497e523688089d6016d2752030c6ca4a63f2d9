@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4c74d7a5_ac8a2bf8",
+        "filename": "src/handler.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 369,
+      "author": {
+        "id": 1000427
+      },
+      "writtenOn": "2024-08-22T09:41:57Z",
+      "side": 1,
+      "message": "Its not working for below query to get a list of error log which associated with hw-isolation record.\n\n```\nbusctl call -j xyz.openbmc_project.ObjectMapper /xyz/openbmc_project/object_mapper xyz.openbmc_project.ObjectMapper GetAssociatedSubTreePathsById ssassas entry /xyz/openbmc_project 1 xyz.openbmc_project.HardwareIsolation.Entry isolated_hw_errorlog 2 xyz.openbmc_project.Logging.Entry org.open_power.Logging.PEL.Entry\n```\n\nChanged into `!thisPath.contains(id)` then its working.\n\nI think it helps to get associated endpoints which could be in different hierarchy. is it make sense?\n\nFor example,\n\n\nGet all error log entries which associated with hw-isolation record:\n```\nbusctl call -j xyz.openbmc_project.ObjectMapper /xyz/openbmc_project/object_mapper xyz.openbmc_project.ObjectMapper GetAssociatedSubTreePathsById ssassas entry /xyz/openbmc_project 1 xyz.openbmc_project.HardwareIsolation.Entry isolated_hw_errorlog 2 xyz.openbmc_project.Logging.Entry org.open_power.Logging.PEL.Entry\n{\n\t\"type\" : \"as\",\n\t\"data\" : [\n\t\t[\n\t\t\t\"/xyz/openbmc_project/logging/entry/599\",\n\t\t\t\"/xyz/openbmc_project/logging/entry/600\"\n\t\t]\n\t]\n}\n```\n\nGet all hw-isolation record which associated with error log:\n\n```\nbusctl call -j xyz.openbmc_project.ObjectMapper /xyz/openbmc_project/object_mapper xyz.openbmc_project.ObjectMapper GetAssociatedSubTreePathsById ssassas entry /xyz/openbmc_project 2 xyz.openbmc_project.Logging.Entry org.open_power.Logging.PEL.Entry isolated_hw_entry 1 xyz.openbmc_project.HardwareIsolation.Entry\n{\n\t\"type\" : \"as\",\n\t\"data\" : [\n\t\t[\n\t\t\t\"/xyz/openbmc_project/hardware_isolation/entry/1\",\n\t\t\t\"/xyz/openbmc_project/hardware_isolation/entry/2\"\n\t\t]\n\t]\n}\n```\n\nGet all power supply which associated with chassis:\n\n(Tested this case which in mentioned in the https://gerrit.openbmc.org/c/openbmc/phosphor-objmgr/+/70699 change commit mssage)\n\n```\nbusctl call -j xyz.openbmc_project.ObjectMapper /xyz/openbmc_project/object_mapper xyz.openbmc_project.ObjectMapper GetAssociatedSubTreePathsById ssassas chassis /xyz/openbmc_project/inventory 1 xyz.openbmc_project.Inventory.Item.Chassis powered_by 1 xyz.openbmc_project.Inventory.Item.PowerSupply\n{\n\t\"type\" : \"as\",\n\t\"data\" : [\n\t\t[\n\t\t\t\"/xyz/openbmc_project/inventory/system/chassis/motherboard/powersupply0\",\n\t\t\t\"/xyz/openbmc_project/inventory/system/chassis/motherboard/powersupply1\"\n\t\t]\n\t]\n}\n```",
+      "range": {
+        "startLine": 369,
+        "startChar": 46,
+        "endLine": 369,
+        "endChar": 75
+      },
+      "revId": "50497e523688089d6016d2752030c6ca4a63f2d9",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
