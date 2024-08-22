@@ -46,6 +46,30 @@
       },
       "revId": "50497e523688089d6016d2752030c6ca4a63f2d9",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "66fdea30_3b7a532f",
+        "filename": "src/handler.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 369,
+      "author": {
+        "id": 1001604
+      },
+      "writtenOn": "2024-08-22T13:26:27Z",
+      "side": 1,
+      "message": "These new methods are designed for the cases when `id` is uniquely specified in the system - https://github.com/openbmc/phosphor-dbus-interfaces/blob/522846cf10edf2bee60aa6867594db1efd8cd585/yaml/xyz/openbmc_project/ObjectMapper.interface.yaml#L171\n\nIn case PEL, many of the leaf names may be duplicated as they are using the incremental seq numbers - e.g. `entry/1`, `entry/2` etc.\n\nTo use these new methods, I think those PEL entries may need to be renamed like `entry/hw_1`, etc so that they are uniquely identified from the other types of PEL entries.\n\nThe related uniqueness on dbus name is also discussed \n- https://github.com/openbmc/technical-oversight-forum/issues/18\n- https://gerrit.openbmc.org/c/openbmc/docs/+/41468",
+      "parentUuid": "4c74d7a5_ac8a2bf8",
+      "range": {
+        "startLine": 369,
+        "startChar": 46,
+        "endLine": 369,
+        "endChar": 75
+      },
+      "revId": "50497e523688089d6016d2752030c6ca4a63f2d9",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
