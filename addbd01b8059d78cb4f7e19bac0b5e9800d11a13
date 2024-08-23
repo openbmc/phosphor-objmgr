@@ -18,6 +18,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "bd5d814a_7f25c9af",
+        "filename": "src/handler.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 1001604
+      },
+      "writtenOn": "2024-08-23T15:56:53Z",
+      "side": 1,
+      "message": "I add a short comment above the function like\n\u003e// This function works like getSubTreePaths() but only matching id with\n// the leaf-name instead of full path.\n\nI\u0027m also intending to add doc to https://github.com/openbmc/docs/blob/master/architecture/object-mapper.md",
+      "parentUuid": "1f787477_efe98abf",
+      "revId": "addbd01b8059d78cb4f7e19bac0b5e9800d11a13",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a6eb9785_733d17c5",
@@ -35,6 +53,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "afb8788b_5efc55e0",
+        "filename": "src/handler.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 344,
+      "author": {
+        "id": 1001604
+      },
+      "writtenOn": "2024-08-23T15:56:53Z",
+      "side": 1,
+      "message": "The function `std::set_intersection()` requires the sorted inputs - https://en.cppreference.com/w/cpp/algorithm/set_intersection.\n\nThe caller may potentially specify the unsorted list of interfaces, and thus it needs to be sorted for the coming `std::set_intersection()` call.",
+      "parentUuid": "a6eb9785_733d17c5",
+      "revId": "addbd01b8059d78cb4f7e19bac0b5e9800d11a13",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b6f84a49_48b96c82",
@@ -48,6 +84,30 @@
       "writtenOn": "2024-08-23T14:59:49Z",
       "side": 1,
       "message": "getSubTreePathsById isn\u0027t returning a reference, so there\u0027s no need for this to be a reference.  Return value optimization will elide the copy.",
+      "range": {
+        "startLine": 406,
+        "startChar": 10,
+        "endLine": 406,
+        "endChar": 36
+      },
+      "revId": "addbd01b8059d78cb4f7e19bac0b5e9800d11a13",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f559c994_335e1d17",
+        "filename": "src/handler.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 1001604
+      },
+      "writtenOn": "2024-08-23T15:56:53Z",
+      "side": 1,
+      "message": "This part is modeled after the existing code - https://github.com/openbmc/phosphor-objmgr/blob/9052ebd36b0e4a016f769983b774dff49a3ea423/src/handler.cpp#L326C1-L327C67\n\nI think - using `const type\u0026 var \u003d function()` still has a potential optimization benefit - which compiler may avoid the move of the return var from function to this scope.\n\nSo, I\u0027d like to leave this as is.",
+      "parentUuid": "b6f84a49_48b96c82",
       "range": {
         "startLine": 406,
         "startChar": 10,
