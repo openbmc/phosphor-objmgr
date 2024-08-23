@@ -33,6 +33,24 @@
       "message": "@Myung you\u0027ll take it out of yours?",
       "revId": "8c25006cb0667c390249d77b9feb77cb7a862094",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0282e0b5_dd611449",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001604
+      },
+      "writtenOn": "2024-08-23T20:40:44Z",
+      "side": 1,
+      "message": "Yes, I removed this part from https://gerrit.openbmc.org/c/openbmc/phosphor-objmgr/+/70699\nPlease re-review it again. Thanks",
+      "parentUuid": "a7cc8f5b_43154632",
+      "revId": "8c25006cb0667c390249d77b9feb77cb7a862094",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
