@@ -94,6 +94,30 @@
       },
       "revId": "50497e523688089d6016d2752030c6ca4a63f2d9",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fc6f546e_9bf4d153",
+        "filename": "src/handler.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 369,
+      "author": {
+        "id": 1001604
+      },
+      "writtenOn": "2024-08-23T12:35:30Z",
+      "side": 1,
+      "message": "This new method is mainly to optimize/reduce the number of dbus-calls to do the existing `GetAssociatedSubTreePaths()` which requires the full dbus path. \nThus to use it, typically a dbus call (e.g. GetSubTreePaths) is needed to find the full dbus path out of `id`.  There are currently many use patterns in bmcweb.\n\n\u003eThe current API handles \"Getting all power supplies associated with a particular chassis.\" However, it won\u0027t handle \"Getting all power supplies associated with all chassis.\"\n\nRight.  This is for specific given `id` (e.g. a chassis). \nFor multiple ids, multiple calls would need be needed (e.g. `id1`, `id2` etc).\n\nThe wildcard cases (e.g. all chassises) are not considered here.\n(I think such implementation may not be very efficient as a generic method).\n\nSo, unless if it can be easily \u0026 efficiently done with this API (or some modified ones) and its implementation, it may be better to consider separately in the future when there are more use patterns.\n(I\u0027ll mark this conversation as Resolved.  If there are some suggestions, please make another comment)",
+      "parentUuid": "a7f4b8ea_c0874fd2",
+      "range": {
+        "startLine": 369,
+        "startChar": 46,
+        "endLine": 369,
+        "endChar": 75
+      },
+      "revId": "50497e523688089d6016d2752030c6ca4a63f2d9",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
