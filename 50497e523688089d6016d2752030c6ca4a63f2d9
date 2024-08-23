@@ -70,6 +70,30 @@
       },
       "revId": "50497e523688089d6016d2752030c6ca4a63f2d9",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a7f4b8ea_c0874fd2",
+        "filename": "src/handler.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 369,
+      "author": {
+        "id": 1000427
+      },
+      "writtenOn": "2024-08-23T04:50:14Z",
+      "side": 1,
+      "message": "\u003e Ramesh, I think you mentioned it was just a wrong call?\n\nMatt, it only works with !thisPath.contains(id).\n\n\u003e These new methods are designed for cases where the id is uniquely specified in the system.\n\nMyung,\n\nI understand your point, but the API could be slightly adjusted to support the use cases I mentioned earlier.\n\nThere may be associations where the leaf object name is unique and incremented as you said, but per the DBus spec, it cannot be duplicated. To retrieve these associations, we could specify the immediate parent object ID of the leaf object with the `id` parameter, the required interfaces using the `subtreeInterfaces` parameter, and the common object path hierarchy between the associated objects using the `objectPath` parameter. This would provide a list of associated objects.\n\nFor example, to get a list of error logs associated with hardware isolation entries:\n\n```\nbusctl call -j xyz.openbmc_project.ObjectMapper /xyz/openbmc_project/object_mapper xyz.openbmc_project.ObjectMapper GetAssociatedSubTreePathsById ssassas entry /xyz/openbmc_project 1 xyz.openbmc_project.HardwareIsolation.Entry isolated_hw_errorlog 2 xyz.openbmc_project.Logging.Entry org.open_power.Logging.PEL.Entry\n{\n    \"type\" : \"as\",\n    \"data\" : [\n        [\n            \"/xyz/openbmc_project/logging/entry/599\",\n            \"/xyz/openbmc_project/logging/entry/600\"\n        ]\n    ]\n}\n```\nHere’s a breakdown:\n\nImmediate parent object ID of the hw-isolation entry: `entry`\nHW-Isolation entry interfaces: `xyz.openbmc_project.HardwareIsolation.Entry`\nCommon object path hierarchy: `/xyz/openbmc_project`\nError log association ID: `isolated_hw_errorlog`\nError log entry interfaces: `xyz.openbmc_project.Logging.Entry` and `org.open_power.Logging.PEL.Entry`\n\n\nThe current API handles \"Getting all power supplies associated with a particular chassis.\" However, it won\u0027t handle \"Getting all power supplies associated with all chassis.\"\n\nThis could be resolved by either adding a `depth` parameter or checking whether the given `id` is contained in the path, rather than simply checking if it ends with `id`. The subtreeInterfaces parameter would filter out the necessary objects and ignore other matching objects like dump entries.\n\nThat said, I understand the limitations of this API proposal. We may need to address this separately or propose a new API to support use cases like \"Getting all power supplies associated with a particular chassis.\" So, removing my `-1` score.\n\nIt would be ideal to address this now so that we could avoid additional API. If it\u0027s not possible, that\u0027s fine; we can revisit it in the future.",
+      "parentUuid": "66fdea30_3b7a532f",
+      "range": {
+        "startLine": 369,
+        "startChar": 46,
+        "endLine": 369,
+        "endChar": 75
+      },
+      "revId": "50497e523688089d6016d2752030c6ca4a63f2d9",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
