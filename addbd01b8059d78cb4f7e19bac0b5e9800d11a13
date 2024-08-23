@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1f787477_efe98abf",
+        "filename": "src/handler.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2024-08-23T14:59:49Z",
+      "side": 1,
+      "message": "it would be nice to have comments somewhere describing what this function does.",
+      "revId": "addbd01b8059d78cb4f7e19bac0b5e9800d11a13",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a6eb9785_733d17c5",
+        "filename": "src/handler.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 344,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2024-08-23T14:59:49Z",
+      "side": 1,
+      "message": "it\u0027s a bit unsettling to have the interfaces vector sorted as a side effect of this call, but I suppose it\u0027s just passed through from the dbus code.",
+      "revId": "addbd01b8059d78cb4f7e19bac0b5e9800d11a13",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b6f84a49_48b96c82",
+        "filename": "src/handler.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2024-08-23T14:59:49Z",
+      "side": 1,
+      "message": "getSubTreePathsById isn\u0027t returning a reference, so there\u0027s no need for this to be a reference.  Return value optimization will elide the copy.",
+      "range": {
+        "startLine": 406,
+        "startChar": 10,
+        "endLine": 406,
+        "endChar": 36
+      },
+      "revId": "addbd01b8059d78cb4f7e19bac0b5e9800d11a13",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
