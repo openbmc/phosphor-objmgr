@@ -293,7 +293,7 @@ std::vector<InterfaceMapType::value_type> getAssociatedSubTree(
         std::get<endpointsPos>(findEndpoint->second);
     std::unordered_set<std::string> associationSet(association.begin(),
                                                    association.end());
-    const std::vector<InterfaceMapType::value_type>& interfacePairs =
+    const std::vector<InterfaceMapType::value_type> interfacePairs =
         getSubTree(interfaceMap, reqPath, depth, interfaces);
 
     std::vector<InterfaceMapType::value_type> output;
@@ -323,7 +323,7 @@ std::vector<std::string> getAssociatedSubTreePaths(
         std::get<endpointsPos>(findEndpoint->second);
     std::unordered_set<std::string> associationSet(association.begin(),
                                                    association.end());
-    const std::vector<std::string>& paths =
+    const std::vector<std::string> paths =
         getSubTreePaths(interfaceMap, reqPath, depth, interfaces);
 
     std::vector<std::string> output;
