@@ -140,6 +140,30 @@
       },
       "revId": "addbd01b8059d78cb4f7e19bac0b5e9800d11a13",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d1cb8bb2_73c164c6",
+        "filename": "src/handler.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2024-08-23T16:24:44Z",
+      "side": 1,
+      "message": "I don\u0027t know how this even compiles.  You\u0027re saving a reference to a temporary return?  Why?\n\n\u003e I think - using const type\u0026 var \u003d function() still has a potential optimization benefit - which compiler may avoid the move of the return var from function to this scope.\n\nNot at all.  As Matt said, RVO is the proper way here.  The compiler will construct the return direction into your variable without even using a move constructor.  What you\u0027ve done is just undefined behavior.",
+      "parentUuid": "50155c5d_3355fcca",
+      "range": {
+        "startLine": 406,
+        "startChar": 10,
+        "endLine": 406,
+        "endChar": 36
+      },
+      "revId": "addbd01b8059d78cb4f7e19bac0b5e9800d11a13",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
