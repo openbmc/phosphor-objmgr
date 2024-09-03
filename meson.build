@@ -102,7 +102,6 @@ mapperx = executable(
         phosphor_dbus_interfaces,
         phosphor_logging,
         sdbusplus,
-        dependency('systemd'),
         dependency('threads'),
         dependency('tinyxml2', default_options: ['tests=false']),
     ],
