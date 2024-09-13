@@ -449,18 +449,16 @@ TEST_F(TestHandler, getAssociatedSubTreeByIdBad)
     std::vector<std::string> endpointvalidInterfaces = {"test_interface_1",
                                                         "test_interface_2"};
     // invalid id
-    EXPECT_THROW(
-        getAssociatedSubTreeById(interfaceMap, associationMap, "childx", path,
-                                 subtreeInterfaces, "descendent",
-                                 endpointvalidInterfaces),
-        sdbusplus::xyz::openbmc_project::Common::Error::ResourceNotFound);
+    ASSERT_TRUE(getAssociatedSubTreeById(interfaceMap, associationMap, "childx",
+                                         path, subtreeInterfaces, "descendent",
+                                         endpointvalidInterfaces)
+                    .empty());
 
     // invalid subtreeInterfaces
-    EXPECT_THROW(
-        getAssociatedSubTreeById(interfaceMap, associationMap, "child", path,
-                                 badsubtreeInterfaces, "descendent",
-                                 endpointvalidInterfaces),
-        sdbusplus::xyz::openbmc_project::Common::Error::ResourceNotFound);
+    ASSERT_TRUE(getAssociatedSubTreeById(interfaceMap, associationMap, "child",
+                                         path, badsubtreeInterfaces,
+                                         "descendent", endpointvalidInterfaces)
+                    .empty());
 
     // invalid endpointinterface
     ASSERT_TRUE(getAssociatedSubTreeById(interfaceMap, associationMap, "child",
@@ -468,11 +466,10 @@ TEST_F(TestHandler, getAssociatedSubTreeByIdBad)
                                          endpointinvalidInterfaces)
                     .empty());
     // valid id, but doesn't have specified interface
-    EXPECT_THROW(
-        getAssociatedSubTreeById(interfaceMap, associationMap, "grandchild",
-                                 path, subtreeInterfaces, "descendent",
-                                 endpointvalidInterfaces),
-        sdbusplus::xyz::openbmc_project::Common::Error::ResourceNotFound);
+    ASSERT_TRUE(getAssociatedSubTreeById(interfaceMap, associationMap,
+                                         "grandchild", path, subtreeInterfaces,
+                                         "descendent", endpointvalidInterfaces)
+                    .empty());
 
     // invalid association
     ASSERT_TRUE(getAssociatedSubTreeById(interfaceMap, associationMap, "child",
@@ -524,18 +521,16 @@ TEST_F(TestHandler, getAssociatedSubTreePathsByIdBad)
     std::vector<std::string> endpointvalidInterfaces = {"test_interface_1",
                                                         "test_interface_2"};
     // invalid id
-    EXPECT_THROW(
-        getAssociatedSubTreePathsById(interfaceMap, associationMap, "childx",
-                                      path, subtreeInterfaces, "descendent",
-                                      endpointvalidInterfaces),
-        sdbusplus::xyz::openbmc_project::Common::Error::ResourceNotFound);
+    ASSERT_TRUE(getAssociatedSubTreePathsById(
+                    interfaceMap, associationMap, "childx", path,
+                    subtreeInterfaces, "descendent", endpointvalidInterfaces)
+                    .empty());
 
     // invalid subtreeInterfaces
-    EXPECT_THROW(
-        getAssociatedSubTreePathsById(interfaceMap, associationMap, "child",
-                                      path, badsubtreeInterfaces, "descendent",
-                                      endpointvalidInterfaces),
-        sdbusplus::xyz::openbmc_project::Common::Error::ResourceNotFound);
+    ASSERT_TRUE(getAssociatedSubTreePathsById(
+                    interfaceMap, associationMap, "child", path,
+                    badsubtreeInterfaces, "descendent", endpointvalidInterfaces)
+                    .empty());
 
     // invalid endpointinterface
     ASSERT_TRUE(getAssociatedSubTreePathsById(
@@ -543,11 +538,10 @@ TEST_F(TestHandler, getAssociatedSubTreePathsByIdBad)
                     subtreeInterfaces, "descendent", endpointinvalidInterfaces)
                     .empty());
     // valid id, but doesn't have specified interface
-    EXPECT_THROW(
-        getAssociatedSubTreePathsById(interfaceMap, associationMap,
-                                      "grandchild", path, subtreeInterfaces,
-                                      "descendent", endpointvalidInterfaces),
-        sdbusplus::xyz::openbmc_project::Common::Error::ResourceNotFound);
+    ASSERT_TRUE(getAssociatedSubTreePathsById(
+                    interfaceMap, associationMap, "grandchild", path,
+                    subtreeInterfaces, "descendent", endpointvalidInterfaces)
+                    .empty());
 
     // invalid association
     ASSERT_TRUE(getAssociatedSubTreePathsById(interfaceMap, associationMap,
