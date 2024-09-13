@@ -390,11 +390,6 @@ std::vector<std::string> getSubTreePathsById(
             }
         }
     }
-    if (output.empty())
-    {
-        throw sdbusplus::xyz::openbmc_project::Common::Error::
-            ResourceNotFound();
-    }
     return output;
 }
 
