@@ -148,10 +148,6 @@ void processInterfaceAdded(
     using iface_map_iterator = InterfaceMapType::iterator;
     using name_map_iterator = ConnectionNames::iterator;
 
-    static const InterfaceNames defaultIfaces{
-        "org.freedesktop.DBus.Introspectable", "org.freedesktop.DBus.Peer",
-        "org.freedesktop.DBus.Properties"};
-
     std::string parent = objPath.str;
     auto pos = parent.find_last_of('/');
 
@@ -163,7 +159,7 @@ void processInterfaceAdded(
             interfaceMap.emplace(parent, ConnectionNames{});
 
         std::pair<name_map_iterator, bool> ifaceEntry =
-            parentEntry.first->second.emplace(wellKnown, defaultIfaces);
+            parentEntry.first->second.emplace(wellKnown, InterfaceNames{});
 
         if (!ifaceEntry.second)
         {
