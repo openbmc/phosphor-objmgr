@@ -16,6 +16,24 @@
       "message": "A \"weird\" issue is found during the test:\n\n```\n# busctl call xyz.openbmc_project.ObjectMapper /xyz/openbmc_project/software/c172a378/inventory org.freedesktop.DBus.Properties GetAll s org.freedesktop.DBus.Introspectable\na{sv} 0\n# busctl call xyz.openbmc_project.ObjectMapper /xyz/openbmc_project/software/c172a378 org.freedesktop.DBus.Properties GetAll s org.freedesktop.DBus.Introspectable\nCall failed: Unknown object \u0027/xyz/openbmc_project/software/c172a378\u0027.\n# busctl call xyz.openbmc_project.ObjectMapper /xyz/openbmc_project/software/c172a378 org.freedesktop.DBus.Peer GetMachineId\ns \"a9af6f883ddf45289683c9583541a5ba\"\n```\n\n\n1. mapper does implement `/xyz/openbmc_project/software/c172a378/inventory` object, and on this object, it\u0027s OK to call `org.freedesktop.DBus.Properties`\u0027s method `GetAll`.\n2. mapper does not implement the object `/xyz/openbmc_project/software/c172a378`, this is just the parent of `/xyz/openbmc_project/software/c172a378/inventory`. On this object, it fails to call `org.freedesktop.DBus.Properties`\u0027s method  `GetAll`.\n3. On the above object path, it\u0027s OK to call `org.freedesktop.DBus.Peer` interface\u0027s method `GetMachineId`.\n\n\n* For 1 \u0026 3, it\u0027s expected behavior;\n* For 2, it looks like some bug?",
       "revId": "c8ae58687614946882dfafc1791b353aa60825e6",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "be363348_fc031b83",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2024-09-24T03:38:13Z",
+      "side": 1,
+      "message": "\u003e A \"weird\" issue is found during the test:\n\u003e \n\u003e ```\n\u003e # busctl call xyz.openbmc_project.ObjectMapper /xyz/openbmc_project/software/c172a378/inventory org.freedesktop.DBus.Properties GetAll s org.freedesktop.DBus.Introspectable\n\u003e a{sv} 0\n\u003e # busctl call xyz.openbmc_project.ObjectMapper /xyz/openbmc_project/software/c172a378 org.freedesktop.DBus.Properties GetAll s org.freedesktop.DBus.Introspectable\n\u003e Call failed: Unknown object \u0027/xyz/openbmc_project/software/c172a378\u0027.\n\u003e # busctl call xyz.openbmc_project.ObjectMapper /xyz/openbmc_project/software/c172a378 org.freedesktop.DBus.Peer GetMachineId\n\u003e s \"a9af6f883ddf45289683c9583541a5ba\"\n\u003e ```\n\u003e \n\u003e \n\u003e 1. mapper does implement `/xyz/openbmc_project/software/c172a378/inventory` object, and on this object, it\u0027s OK to call `org.freedesktop.DBus.Properties`\u0027s method `GetAll`.\n\u003e 2. mapper does not implement the object `/xyz/openbmc_project/software/c172a378`, this is just the parent of `/xyz/openbmc_project/software/c172a378/inventory`. On this object, it fails to call `org.freedesktop.DBus.Properties`\u0027s method  `GetAll`.\n\u003e 3. On the above object path, it\u0027s OK to call `org.freedesktop.DBus.Peer` interface\u0027s method `GetMachineId`.\n\u003e \n\u003e \n\u003e * For 1 \u0026 3, it\u0027s expected behavior;\n\u003e * For 2, it looks like some bug?\n\n\nWhy do we care if we can call GetAll on an interface that has no properties?  So long as the interfaces that have properties respond correctly respond correctly, we should be good.\n\nI don\u0027t think anything using the mapper uses any of these 3 interfaces, so I suspect we can just omit them.",
+      "parentUuid": "ab64af82_cd87d24b",
+      "revId": "c8ae58687614946882dfafc1791b353aa60825e6",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
