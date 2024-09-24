@@ -148,9 +148,7 @@ void processInterfaceAdded(
     using iface_map_iterator = InterfaceMapType::iterator;
     using name_map_iterator = InterfaceMapType::mapped_type::iterator;
 
-    static const InterfaceNames defaultIfaces{
-        "org.freedesktop.DBus.Introspectable", "org.freedesktop.DBus.Peer",
-        "org.freedesktop.DBus.Properties"};
+    static const InterfaceNames defaultIfaces{};
 
     std::string parent = objPath.str;
     auto pos = parent.find_last_of('/');
