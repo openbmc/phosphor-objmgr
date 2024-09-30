@@ -52,6 +52,24 @@
       "parentUuid": "be363348_fc031b83",
       "revId": "c8ae58687614946882dfafc1791b353aa60825e6",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b50a03e8_fba51e41",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000044
+      },
+      "writtenOn": "2024-09-30T02:32:50Z",
+      "side": 1,
+      "message": "The use case is in bmcweb\u0027s REST API, see https://gerrit.openbmc.org/c/openbmc/bmcweb/+/74593, that calls `GetAll()`, reads all the properties from every interface, and fails on the \"default\" interfaces.\nFor example if user uses REST API to GET `https://$bmc//xyz/openbmc_project/software/c172a378`, it does get all the properties in the response, but in BMC\u0027s journal log, it gets below error:\n```\nCall failed: Unknown object \u0027/xyz/openbmc_project/software/c172a378\u0027\n```",
+      "parentUuid": "91d0e034_b4f5e910",
+      "revId": "c8ae58687614946882dfafc1791b353aa60825e6",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
