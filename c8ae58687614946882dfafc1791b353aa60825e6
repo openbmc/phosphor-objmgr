@@ -70,6 +70,24 @@
       "parentUuid": "91d0e034_b4f5e910",
       "revId": "c8ae58687614946882dfafc1791b353aa60825e6",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "45f633d4_3b6d16d0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2024-10-19T17:41:24Z",
+      "side": 1,
+      "message": "If we don\u0027t return the default interfaces, bmcweb will never call them, right?",
+      "parentUuid": "b50a03e8_fba51e41",
+      "revId": "c8ae58687614946882dfafc1791b353aa60825e6",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
