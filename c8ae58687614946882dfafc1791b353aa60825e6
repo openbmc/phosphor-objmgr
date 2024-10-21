@@ -26,6 +26,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "3b97c744_6ccd1bc0",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1000044
+      },
+      "writtenOn": "2024-10-21T12:17:02Z",
+      "side": 1,
+      "message": "Probably not really invalid, but it\u0027s discouraged for a service to implement no interface on an object path due to the implications it has for usability and clarity in communication between services.\n\nFor example, bmcweb will give error on such case: https://github.com/openbmc/bmcweb/blob/master/include/openbmc_dbus_rest.hpp#L1752-L1758\nbecause we usually assume that an object shall implement as least one interface.",
+      "parentUuid": "ac05c0b1_306379d5",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 19
+      },
+      "revId": "c8ae58687614946882dfafc1791b353aa60825e6",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "ab64af82_cd87d24b",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 2
@@ -109,6 +133,24 @@
       "side": 1,
       "message": "If we don\u0027t return the default interfaces, bmcweb will never call them, right?",
       "parentUuid": "b50a03e8_fba51e41",
+      "revId": "c8ae58687614946882dfafc1791b353aa60825e6",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "abb92abe_9e1fade9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000044
+      },
+      "writtenOn": "2024-10-21T12:17:02Z",
+      "side": 1,
+      "message": "In such case, bmcweb responses with error at https://github.com/openbmc/bmcweb/blob/master/include/openbmc_dbus_rest.hpp#L1754, so we get error as well.",
+      "parentUuid": "45f633d4_3b6d16d0",
       "revId": "c8ae58687614946882dfafc1791b353aa60825e6",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
