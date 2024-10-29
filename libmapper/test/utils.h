@@ -1,7 +1,8 @@
 #pragma once
 #include <stddef.h>
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 char** generate_test_sarray(size_t);
 #ifdef __cplusplus

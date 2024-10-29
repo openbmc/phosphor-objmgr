@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "mapper.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <systemd/sd-bus.h>
 #include <systemd/sd-event.h>
 #include <unistd.h>
-
-#include "mapper.h"
 
 static void quit(int r, void* loop)
 {
@@ -253,11 +253,19 @@ int main(int argc, char* argv[])
     }
 
     if (!strcmp(argv[1], "wait"))
+    {
         wait_main(argc, argv);
+    }
+
     if (!strcmp(argv[1], "subtree-remove"))
+    {
         subtree_main(argc, argv);
+    }
+
     if (!strcmp(argv[1], "get-service"))
+    {
         get_service_main(argc, argv);
+    }
 
     fprintf(stderr, usage, argv[0]);
     exit(EXIT_FAILURE);
