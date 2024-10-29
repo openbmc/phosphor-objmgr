@@ -50,6 +50,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "b9631b29_e3f2f4f9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2024-10-29T04:33:49Z",
+      "side": 1,
+      "message": "so lets just fix that in bmcweb?  That check seems like an issue regardless",
+      "parentUuid": "3b97c744_6ccd1bc0",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 19
+      },
+      "revId": "c8ae58687614946882dfafc1791b353aa60825e6",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "ab64af82_cd87d24b",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 2
