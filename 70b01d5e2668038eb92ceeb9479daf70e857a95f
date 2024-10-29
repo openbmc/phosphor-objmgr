@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7ef4555d_838072cd",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2024-10-29T13:46:25Z",
+      "side": 1,
+      "message": "I think it\u0027s more important to emphasize that this affects all of mapperx\u0027s APIs, as libmapper is just a client.  So maybe reword the commit message to make that clear.",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 10
+      },
+      "revId": "70b01d5e2668038eb92ceeb9479daf70e857a95f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7a8fd55b_75a83c72",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2024-10-29T13:46:25Z",
+      "side": 1,
+      "message": "can you show how the GetObject response changes for normal objects, and also for associations?",
+      "revId": "70b01d5e2668038eb92ceeb9479daf70e857a95f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
