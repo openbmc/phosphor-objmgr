@@ -3,7 +3,8 @@
 #include <systemd/sd-event.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 typedef enum mapper_operation
 {

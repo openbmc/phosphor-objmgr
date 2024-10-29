@@ -15,6 +15,8 @@
  */
 #include "mapper.h"
 
+#include "internal.h"
+
 #include <errno.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -25,8 +27,6 @@
 #include <systemd/sd-bus.h>
 #include <systemd/sd-event.h>
 #include <unistd.h>
-
-#include "internal.h"
 
 #define _public_ __attribute__((__visibility__("default")))
 #define _unused_ __attribute__((unused))
@@ -134,13 +134,17 @@ char** sarraydup(char* array[])
 
     ret = calloc(count + 1, sizeof(*ret));
     if (!ret)
+    {
         return NULL;
+    }
 
     for (i = 0; i < count; ++i)
     {
         ret[i] = strdup(array[i]);
         if (!ret[i])
+        {
             goto error;
+        }
     }
 
     return ret;
@@ -182,11 +186,15 @@ static int async_wait_getobject_callback(sd_bus_message* m, void* userdata,
     uint64_t next_retry;
 
     if (wait->finished)
+    {
         goto exit;
+    }
 
     if (sd_bus_message_is_method_error(
             m, "xyz.openbmc_project.Common.Error.ResourceNotFound"))
+    {
         goto exit;
+    }
 
     r = sd_bus_message_get_errno(m);
 
@@ -227,7 +235,9 @@ static int async_wait_getobject_callback(sd_bus_message* m, void* userdata,
     }
 
     if (async_wait_check_done(wait))
+    {
         async_wait_done(0, wait);
+    }
 
 exit:
     free(data);
@@ -243,7 +253,9 @@ static int async_wait_get_objects(mapper_async_wait* wait)
     for (i = 0; i < wait->count; ++i)
     {
         if (wait->status[i])
+        {
             continue;
+        }
         data = malloc(sizeof(*data));
         data->wait = wait;
         data->path = wait->objs[i];
@@ -265,19 +277,22 @@ static int async_wait_get_objects(mapper_async_wait* wait)
     return 0;
 }
 
-static int async_wait_match_introspection_complete(_unused_ sd_bus_message* m,
-                                                   void* w,
-                                                   _unused_ sd_bus_error* e)
+static int async_wait_match_introspection_complete(
+    _unused_ sd_bus_message* m, void* w, _unused_ sd_bus_error* e)
 {
     int r;
 
     mapper_async_wait* wait = w;
     if (wait->finished)
+    {
         return 0;
+    }
 
     r = async_wait_get_objects(wait);
     if (r < 0)
+    {
         async_wait_done(r, wait);
+    }
 
     return 0;
 }
@@ -285,14 +300,18 @@ static int async_wait_match_introspection_complete(_unused_ sd_bus_message* m,
 static void async_wait_done(int r, mapper_async_wait* w)
 {
     if (w->finished)
+    {
         return;
+    }
 
     w->finished = 1;
     sd_bus_slot_unref(w->introspection_slot);
     sd_bus_slot_unref(w->intf_slot);
 
     if (w->callback)
+    {
         w->callback(r, w->userdata);
+    }
 }
 
 static int async_wait_check_done(mapper_async_wait* w)
@@ -300,11 +319,17 @@ static int async_wait_check_done(mapper_async_wait* w)
     size_t i;
 
     if (w->finished)
+    {
         return 1;
+    }
 
     for (i = 0; i < w->count; ++i)
+    {
         if (!w->status[i])
+        {
             return 0;
+        }
+    }
 
     return 1;
 }
@@ -325,7 +350,9 @@ _public_ int mapper_wait_async(sd_bus* conn, sd_event* loop, char* objs[],
 
     wait = malloc(sizeof(*wait));
     if (!wait)
+    {
         return -ENOMEM;
+    }
 
     memset(wait, 0, sizeof(*wait));
     wait->conn = conn;
@@ -397,9 +424,8 @@ free_wait:
     return r;
 }
 
-static int async_subtree_timeout_callback(_unused_ sd_event_source* s,
-                                          _unused_ uint64_t usec,
-                                          void* userdata)
+static int async_subtree_timeout_callback(
+    _unused_ sd_event_source* s, _unused_ uint64_t usec, void* userdata)
 {
     int r;
     struct mapper_async_subtree* subtree = userdata;
@@ -412,7 +438,9 @@ static int async_subtree_timeout_callback(_unused_ sd_event_source* s,
         async_subtree_getpaths_callback, subtree, "sias", subtree->namespace, 0,
         1, subtree->interface);
     if (r < 0)
+    {
         async_subtree_done(r, subtree);
+    }
 
     return 0;
 }
@@ -425,7 +453,9 @@ static int async_subtree_getpaths_callback(sd_bus_message* m, void* userdata,
     uint64_t next_retry;
 
     if (subtree->finished)
+    {
         goto exit;
+    }
 
     r = sd_bus_message_get_errno(m);
 
@@ -433,9 +463,13 @@ static int async_subtree_getpaths_callback(sd_bus_message* m, void* userdata,
             m, "xyz.openbmc_project.Common.Error.ResourceNotFound"))
     {
         if (subtree->op == MAPPER_OP_REMOVE)
+        {
             r = 0;
+        }
         else
+        {
             goto exit;
+        }
     }
 
     if ((r == EBUSY || r == ENOBUFS) && subtree->retry < mapper_busy_retries)
@@ -522,11 +556,15 @@ static int async_subtree_match_callback(_unused_ sd_bus_message* m, void* t,
 
     mapper_async_subtree* subtree = t;
     if (subtree->finished)
-        return 0;
+    {
+        return;
+    }
 
     r = async_subtree_getpaths(subtree);
     if (r < 0)
+    {
         async_subtree_done(r, subtree);
+    }
 
     return 0;
 }
@@ -534,13 +572,17 @@ static int async_subtree_match_callback(_unused_ sd_bus_message* m, void* t,
 static void async_subtree_done(int r, mapper_async_subtree* t)
 {
     if (t->finished)
+    {
         return;
+    }
 
     t->finished = 1;
     sd_bus_slot_unref(t->slot);
 
     if (t->callback)
+    {
         t->callback(r, t->userdata);
+    }
 }
 
 _public_ int mapper_subtree_async(sd_bus* conn, sd_event* loop, char* namespace,
@@ -553,7 +595,9 @@ _public_ int mapper_subtree_async(sd_bus* conn, sd_event* loop, char* namespace,
 
     subtree = malloc(sizeof(*subtree));
     if (!subtree)
+    {
         return -ENOMEM;
+    }
 
     memset(subtree, 0, sizeof(*subtree));
     subtree->conn = conn;
@@ -611,14 +655,20 @@ _public_ int mapper_get_object(sd_bus* conn, const char* obj,
         "/xyz/openbmc_project/object_mapper",
         "xyz.openbmc_project.ObjectMapper", "GetObject");
     if (r < 0)
+    {
         goto exit;
+    }
 
     r = sd_bus_message_append(request, "s", obj);
     if (r < 0)
+    {
         goto exit;
+    }
     r = sd_bus_message_append(request, "as", 0, NULL);
     if (r < 0)
+    {
         goto exit;
+    }
 
     while (true)
     {
@@ -636,7 +686,9 @@ _public_ int mapper_get_object(sd_bus* conn, const char* obj,
     }
 
     if (r < 0)
+    {
         goto exit;
+    }
 
 exit:
     sd_bus_message_unref(request);
@@ -652,19 +704,27 @@ _public_ int mapper_get_service(sd_bus* conn, const char* obj, char** service)
 
     r = mapper_get_object(conn, obj, &reply);
     if (r < 0)
+    {
         goto exit;
+    }
 
     r = sd_bus_message_enter_container(reply, 0, NULL);
     if (r < 0)
+    {
         goto exit;
+    }
 
     r = sd_bus_message_enter_container(reply, 0, NULL);
     if (r < 0)
+    {
         goto exit;
+    }
 
     r = sd_bus_message_read(reply, "s", &tmp);
     if (r < 0)
+    {
         goto exit;
+    }
 
     *service = strdup(tmp);
 
