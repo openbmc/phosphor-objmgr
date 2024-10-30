@@ -24,6 +24,30 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "0b4dde01_523d1d92",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1000397
+      },
+      "writtenOn": "2024-10-30T01:07:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ef4555d_838072cd",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 10
+      },
+      "revId": "70b01d5e2668038eb92ceeb9479daf70e857a95f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7a8fd55b_75a83c72",
@@ -37,6 +61,24 @@
       "writtenOn": "2024-10-29T13:46:25Z",
       "side": 1,
       "message": "can you show how the GetObject response changes for normal objects, and also for associations?",
+      "revId": "70b01d5e2668038eb92ceeb9479daf70e857a95f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9ff1e613_eaa06741",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1000397
+      },
+      "writtenOn": "2024-10-30T01:07:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a8fd55b_75a83c72",
       "revId": "70b01d5e2668038eb92ceeb9479daf70e857a95f",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
