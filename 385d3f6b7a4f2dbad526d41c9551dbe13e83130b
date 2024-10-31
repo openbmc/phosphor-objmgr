@@ -33,6 +33,24 @@
       "message": "We don\u0027t want to skip xyz.openbmc_project.ObjectMapper as a service when it is the one hosting the associations.",
       "revId": "385d3f6b7a4f2dbad526d41c9551dbe13e83130b",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b2a848ee_664f892c",
+        "filename": "src/processing.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1000397
+      },
+      "writtenOn": "2024-10-31T00:37:24Z",
+      "side": 1,
+      "message": "so you mean that xyz.openbmc_project.ObjectMapper needs to be filtered when calling `GetObject`?",
+      "parentUuid": "b7465d48_6d4941dc",
+      "revId": "385d3f6b7a4f2dbad526d41c9551dbe13e83130b",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
