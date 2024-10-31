@@ -16,6 +16,24 @@
       "message": "Can we just delete this \"special\" format?  The repository is primarily C++.  Let\u0027s use the C++ formatting.",
       "revId": "70b01d5e2668038eb92ceeb9479daf70e857a95f",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9ebaa1b5_56863c23",
+        "filename": "libmapper/.clang-format",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1000397
+      },
+      "writtenOn": "2024-10-31T00:39:50Z",
+      "side": 0,
+      "message": "Sure, If we can agree, it\u0027s fine with me, I\u0027ll resubmit and convert the C to C++ code.\n\n@Matt, what do you think?",
+      "parentUuid": "a1d2cefb_f0c55933",
+      "revId": "70b01d5e2668038eb92ceeb9479daf70e857a95f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
