@@ -52,6 +52,24 @@
       "parentUuid": "9ebaa1b5_56863c23",
       "revId": "70b01d5e2668038eb92ceeb9479daf70e857a95f",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e064dc77_d234f4c3",
+        "filename": "libmapper/.clang-format",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1000397
+      },
+      "writtenOn": "2024-10-31T01:47:31Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "fdb12f2c_c96000dc",
+      "revId": "70b01d5e2668038eb92ceeb9479daf70e857a95f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
