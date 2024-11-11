@@ -146,7 +146,7 @@ void processInterfaceAdded(
     // This is all needed so that mapper operations can be done
     // on the new parent paths.
     using iface_map_iterator = InterfaceMapType::iterator;
-    using name_map_iterator = InterfaceMapType::mapped_type::iterator;
+    using name_map_iterator = ConnectionNames::iterator;
 
     static const InterfaceNames defaultIfaces{
         "org.freedesktop.DBus.Introspectable", "org.freedesktop.DBus.Peer",
@@ -160,10 +160,10 @@ void processInterfaceAdded(
         parent = parent.substr(0, pos);
 
         std::pair<iface_map_iterator, bool> parentEntry =
-            interfaceMap.try_emplace(parent);
+            interfaceMap.emplace(parent, ConnectionNames{});
 
         std::pair<name_map_iterator, bool> ifaceEntry =
-            parentEntry.first->second.try_emplace(wellKnown, defaultIfaces);
+            parentEntry.first->second.emplace(wellKnown, defaultIfaces);
 
         if (!ifaceEntry.second)
         {
