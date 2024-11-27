@@ -90,6 +90,8 @@ struct mapper_async_subtree
 
 static int async_wait_match_introspection_complete(sd_bus_message*, void*,
                                                    sd_bus_error*);
+static int async_wait_match_interfaces_added(sd_bus_message*, void* w,
+                                             sd_bus_error* e);
 static int async_wait_check_done(mapper_async_wait*);
 static void async_wait_done(int r, mapper_async_wait*);
 static int async_wait_get_objects(mapper_async_wait*);
@@ -297,6 +299,40 @@ static int async_wait_match_introspection_complete(
     return 0;
 }
 
+static int async_wait_match_interfaces_added(_unused_ sd_bus_message* m,
+                                             void* w, _unused_ sd_bus_error* e)
+{
+    char* path = NULL;
+    size_t i;
+    int r;
+
+    mapper_async_wait* wait = w;
+    if (wait->finished)
+        return 0;
+
+    r = sd_bus_message_read(m, "o", &path);
+    if (r < 0)
+        return r;
+
+    for (i = 0; i < wait->count; ++i)
+    {
+        if (strncmp(path, wait->objs[i], strlen(path)))
+            continue;
+
+        break;
+    }
+
+    /* unexpected path */
+    if (i == wait->count)
+        return 0;
+
+    r = async_wait_get_objects(wait);
+    if (r < 0)
+        async_wait_done(r, wait);
+
+    return 0;
+}
+
 static void async_wait_done(int r, mapper_async_wait* w)
 {
     if (w->finished)
@@ -392,7 +428,7 @@ _public_ int mapper_wait_async(sd_bus* conn, sd_event* loop, char* objs[],
 
     r = sd_bus_add_match(conn, &wait->intf_slot,
                          async_wait_interfaces_added_match,
-                         async_wait_match_introspection_complete, wait);
+                         async_wait_match_interfaces_added, wait);
     if (r < 0)
     {
         fprintf(stderr, "Error adding match rule: %s\n", strerror(-r));
