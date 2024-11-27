@@ -59,6 +59,7 @@ struct mapper_async_wait
     sd_bus* conn;
     sd_bus_slot* introspection_slot;
     sd_bus_slot* intf_slot;
+    sd_event_source* timer_source;
     int* status;
     size_t count;
     int finished;
@@ -88,8 +89,7 @@ struct mapper_async_subtree
     int retry;
 };
 
-static int async_wait_match_introspection_complete(sd_bus_message*, void*,
-                                                   sd_bus_error*);
+static int async_wait_match_callback(sd_bus_message*, void*, sd_bus_error*);
 static int async_wait_check_done(mapper_async_wait*);
 static void async_wait_done(int r, mapper_async_wait*);
 static int async_wait_get_objects(mapper_async_wait*);
@@ -277,12 +277,15 @@ static int async_wait_get_objects(mapper_async_wait* wait)
     return 0;
 }
 
-static int async_wait_match_introspection_complete(
-    _unused_ sd_bus_message* m, void* w, _unused_ sd_bus_error* e)
+static int async_wait_timer_callback(_unused_ sd_event_source* s,
+                                     _unused_ uint64_t usec, void* userdata)
 {
+    mapper_async_wait* wait = userdata;
     int r;
 
-    mapper_async_wait* wait = w;
+    sd_event_source_unref(wait->timer_source);
+    wait->timer_source = NULL;
+
     if (wait->finished)
     {
         return 0;
@@ -295,6 +298,33 @@ static int async_wait_match_introspection_complete(
     }
 
     return 0;
+}
+
+static int async_wait_match_callback(_unused_ sd_bus_message* m, void* w,
+                                     _unused_ sd_bus_error* e)
+{
+    uint64_t now_usec;
+    uint64_t trigger_time;
+    int r;
+
+    mapper_async_wait* wait = w;
+    if (wait->finished)
+        return 0;
+
+    r = sd_event_now(wait->loop, CLOCK_MONOTONIC, &now_usec);
+    if (r < 0)
+        return r;
+
+    trigger_time = now_usec + 10000; // 10ms
+
+    if (wait->timer_source == NULL)
+        r = sd_event_add_time(wait->loop, &(wait->timer_source),
+                              CLOCK_MONOTONIC, trigger_time, 0,
+                              async_wait_timer_callback, wait);
+    else
+        r = sd_event_source_set_time(wait->timer_source, trigger_time);
+
+    return r;
 }
 
 static void async_wait_done(int r, mapper_async_wait* w)
@@ -383,7 +413,7 @@ _public_ int mapper_wait_async(sd_bus* conn, sd_event* loop, char* objs[],
 
     r = sd_bus_add_match(conn, &wait->introspection_slot,
                          async_wait_introspection_match,
-                         async_wait_match_introspection_complete, wait);
+                         async_wait_match_callback, wait);
     if (r < 0)
     {
         fprintf(stderr, "Error adding match rule: %s\n", strerror(-r));
@@ -392,7 +422,7 @@ _public_ int mapper_wait_async(sd_bus* conn, sd_event* loop, char* objs[],
 
     r = sd_bus_add_match(conn, &wait->intf_slot,
                          async_wait_interfaces_added_match,
-                         async_wait_match_introspection_complete, wait);
+                         async_wait_match_callback, wait);
     if (r < 0)
     {
         fprintf(stderr, "Error adding match rule: %s\n", strerror(-r));
