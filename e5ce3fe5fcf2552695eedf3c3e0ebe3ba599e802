@@ -24,6 +24,30 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1c9b0475_f2340003",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1001371
+      },
+      "writtenOn": "2024-12-11T20:56:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0887725c_3d0a6549",
+      "range": {
+        "startLine": 10,
+        "startChar": 19,
+        "endLine": 10,
+        "endChar": 22
+      },
+      "revId": "e5ce3fe5fcf2552695eedf3c3e0ebe3ba599e802",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "0b55f27f_d62d2f9b",
@@ -73,6 +97,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "6f5f94ad_5bb7926e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1001371
+      },
+      "writtenOn": "2024-12-11T20:56:55Z",
+      "side": 1,
+      "message": "\u003e This could stand to use a bit more of an elaboration.\nThe 10ms here doesn\u0027t have any special meaning; it\u0027s just a very short time used to filter out excessive calls.\n\u003e I think it needs at least 10ms without a signal until it actually tries again?\nyes!\n\u003e How much does this improve?\nIn our system, there are 5 mappers waiting for some debugging from the entity manager. Some calculations have been made here that can reduce over 500 GetObject calls.\n\u003e Does it reduce BMC boot up time?\nupdate in commit.",
+      "parentUuid": "2d137c3a_65640d05",
+      "range": {
+        "startLine": 18,
+        "startChar": 4,
+        "endLine": 18,
+        "endChar": 24
+      },
+      "revId": "e5ce3fe5fcf2552695eedf3c3e0ebe3ba599e802",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "3c8e74bd_6dc47392",
         "filename": "libmapper/mapper.c",
         "patchSetId": 4
@@ -90,6 +138,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "762b7045_03cc1244",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 4
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 1001371
+      },
+      "writtenOn": "2024-12-11T20:56:55Z",
+      "side": 1,
+      "message": "Both \"introspection_complete\" and \"interfaces added\" use this callback... so I think renaming it is feasible.",
+      "parentUuid": "3c8e74bd_6dc47392",
+      "revId": "e5ce3fe5fcf2552695eedf3c3e0ebe3ba599e802",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "e47824cd_b82c9990",
         "filename": "libmapper/mapper.c",
         "patchSetId": 4
@@ -101,6 +167,24 @@
       "writtenOn": "2024-12-11T17:53:24Z",
       "side": 1,
       "message": "Is this somehow combining all the triggers together into one handle event?  Can we comment what the side-effects of this are better?",
+      "revId": "e5ce3fe5fcf2552695eedf3c3e0ebe3ba599e802",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9126ee76_1a4da76a",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 4
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 1001371
+      },
+      "writtenOn": "2024-12-11T20:56:55Z",
+      "side": 1,
+      "message": "The previous behavior was also within the same handler... I believe there should be no side effects.",
+      "parentUuid": "e47824cd_b82c9990",
       "revId": "e5ce3fe5fcf2552695eedf3c3e0ebe3ba599e802",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
