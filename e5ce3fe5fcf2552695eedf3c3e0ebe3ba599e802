@@ -45,6 +45,64 @@
       },
       "revId": "e5ce3fe5fcf2552695eedf3c3e0ebe3ba599e802",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2d137c3a_65640d05",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2024-12-11T17:53:24Z",
+      "side": 1,
+      "message": "I think it would also be good to show some data on what this does for us.  How much does this improve?  Does it reduce BMC boot up time?",
+      "parentUuid": "0b55f27f_d62d2f9b",
+      "range": {
+        "startLine": 18,
+        "startChar": 4,
+        "endLine": 18,
+        "endChar": 24
+      },
+      "revId": "e5ce3fe5fcf2552695eedf3c3e0ebe3ba599e802",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3c8e74bd_6dc47392",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 4
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2024-12-11T17:53:24Z",
+      "side": 1,
+      "message": "I\u0027m not super pleased that we lost the \"introspection_complete\" naming of these functions.",
+      "revId": "e5ce3fe5fcf2552695eedf3c3e0ebe3ba599e802",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e47824cd_b82c9990",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 4
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2024-12-11T17:53:24Z",
+      "side": 1,
+      "message": "Is this somehow combining all the triggers together into one handle event?  Can we comment what the side-effects of this are better?",
+      "revId": "e5ce3fe5fcf2552695eedf3c3e0ebe3ba599e802",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
