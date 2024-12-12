@@ -187,6 +187,24 @@
       "parentUuid": "e47824cd_b82c9990",
       "revId": "e5ce3fe5fcf2552695eedf3c3e0ebe3ba599e802",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "01449066_94b4e22b",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 4
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2024-12-12T14:55:40Z",
+      "side": 1,
+      "message": "How is the behavior the same?  You said that the main purpose of this commit was to reduce the pending async callbacks.  It looks like these lines do some magic to ensure that we are coalescing the callbacks in a 10ms window.  That was never done before.",
+      "parentUuid": "9126ee76_1a4da76a",
+      "revId": "e5ce3fe5fcf2552695eedf3c3e0ebe3ba599e802",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
