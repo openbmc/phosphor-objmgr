@@ -223,6 +223,24 @@
       "parentUuid": "01449066_94b4e22b",
       "revId": "e5ce3fe5fcf2552695eedf3c3e0ebe3ba599e802",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8699ec59_0e22a492",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 4
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 1001371
+      },
+      "writtenOn": "2024-12-16T05:19:36Z",
+      "side": 1,
+      "message": "At first, I wanted to match the InterfacesAdded path, but if the params like `mapper wait /xyz/openbmc_project/inventory/system/board`. In fact, this path doesn\u0027t emit any signals.\nLater, I considered that if we use a path namespace, such as a large namespace like this, it could still lead to excessive calls.\n\n* The current issue is that this wait operation makes mapperx overly busy, to the extent that some initialization processes occasionally fail unexpectedly.\n\nRegarding the current behavior:\nFrom a functional perspective, a one-shot delay in the overall logic shouldn\u0027t cause any issues. If it was retrievable before, it should still be retrievable now.\nFrom a real-time perspective, this delay might cause a slight delay in triggering. In extreme cases, for example, if we have 500 InterfacesAdded events, each stuck for 9ms, the first call might only happen after 4.5 seconds.\nHowever, without this delay, based on my observation of the startup process, the time taken could very well exceed 4.5 seconds.",
+      "parentUuid": "18fef996_99cadabe",
+      "revId": "e5ce3fe5fcf2552695eedf3c3e0ebe3ba599e802",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
