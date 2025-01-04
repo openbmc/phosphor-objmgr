@@ -201,6 +201,23 @@
       "parentUuid": "45f633d4_3b6d16d0",
       "revId": "c8ae58687614946882dfafc1791b353aa60825e6",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "28ccfeea_19f3fa29",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2025-01-04T00:26:34Z",
+      "side": 1,
+      "message": "I would like to see this merge.  I\u0027m the one that wrote the code being changed, and it\u0027s not only incorrect, it\u0027s inconsistent dependent on whether you hit the \"new\" interface paths or the \"existing\" interface paths.\n\nI would like to understand (in terms of a user facing interface) what is broken if this merges.  I don\u0027t see anything that would be broken.",
+      "revId": "c8ae58687614946882dfafc1791b353aa60825e6",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
