@@ -308,6 +308,24 @@
       "parentUuid": "0000b985_82ff2012",
       "revId": "c8ae58687614946882dfafc1791b353aa60825e6",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9d27de4c_5af783f7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2025-01-07T03:26:01Z",
+      "side": 1,
+      "message": "Ok, I understand.  Why is that a problem?  With the exception of the one check in bmcweb, which looks like incorrect error handling, is anything else a problem?\n\nKeep in mind, you can get that same response if the mapper starts second and uses GetManagedObjects to fill the interfaces.",
+      "parentUuid": "e167d4e7_fbbdd9bb",
+      "revId": "c8ae58687614946882dfafc1791b353aa60825e6",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
