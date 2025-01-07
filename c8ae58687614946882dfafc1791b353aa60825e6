@@ -272,6 +272,24 @@
       "parentUuid": "779e4857_d14ea008",
       "revId": "c8ae58687614946882dfafc1791b353aa60825e6",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0000b985_82ff2012",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2025-01-07T02:43:01Z",
+      "side": 1,
+      "message": "\u003e I will update the commit message.\n\u003e \n\u003e And be noted that if we merge this, there will be the case that a DBus service `xyz.openbmc_project.ObjectMapper` implements no interface.\n\nI\u0027m not understanding.  xyz.openbmc_project.ObjectMapper service will still implement the interface it always has: xyz.openbmc_project.ObjectMapper\n\n\u003e This behavior will break the existing code that assumes a service shall implement interfaces. E.g. https://github.com/openbmc/bmcweb/blob/master/include/openbmc_dbus_rest.hpp#L1740-L1746\n\nIf I post up a change to fix this one case in bmcweb, can this patch merge?\n\n\u003e \n\u003e This is also mentioned in https://gerrit.openbmc.org/c/openbmc/bmcweb/+/74593/, and it tries to resolve the issue in another way.",
+      "parentUuid": "2e518568_8430ff5b",
+      "revId": "c8ae58687614946882dfafc1791b353aa60825e6",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
