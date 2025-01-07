@@ -236,6 +236,24 @@
       "parentUuid": "28ccfeea_19f3fa29",
       "revId": "c8ae58687614946882dfafc1791b353aa60825e6",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "779e4857_d14ea008",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2025-01-07T00:24:15Z",
+      "side": 1,
+      "message": "This removes registering the default interfaces (peer, properties, Introspectable) when done as part of an ObjectManager event, because they\u0027re generally not received as part of an InterfacesAdded call.  These don\u0027t generally get searched on, and don\u0027t make a ton of sense to have the mapper implicitly add, but were done to make the introspect and objectmapper results match.\n\nKeep in mind that the GetManagedObjects path doesn\u0027t add these implicit interfaces, so if you reboot the mapper, it will cache a different result than if it starts up with the system.  Either way we decide, we\u0027re broken in some way.\n\n\n@mine260309@gmail.com is this something you\u0027d like to type up in the commit message?  If so, go ahead, if not I\u0027m happy to update it or move to another patch.\n\nFWIW, this was a bug I found a few years ago when trying to do comparisons of a different mapper implementation.  It doesn\u0027t really impact the user aside from causing the mapper to take more memory and be inconsistent between startup and restart.",
+      "parentUuid": "44c8c55e_6e25cd23",
+      "revId": "c8ae58687614946882dfafc1791b353aa60825e6",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
