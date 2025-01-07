@@ -290,6 +290,24 @@
       "parentUuid": "2e518568_8430ff5b",
       "revId": "c8ae58687614946882dfafc1791b353aa60825e6",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e167d4e7_fbbdd9bb",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000044
+      },
+      "writtenOn": "2025-01-07T03:16:57Z",
+      "side": 1,
+      "message": "\u003e I\u0027m not understanding. xyz.openbmc_project.ObjectMapper service will still implement the interface it always has: xyz.openbmc_project.ObjectMapper\n\nSorry but it\u0027s really hard to express the \"precise\" information here.\n\nWithout this change, if we do \"GetObject\" on a software object:\n\n```json\n# busctl --json\u003dpretty call xyz.openbmc_project.ObjectMapper /xyz/openbmc_project/object_mapper xyz.openbmc_project.ObjectMapper GetObject sas /xyz/openbmc_project/software/64876e4e 0\n{\n        \"type\" : \"a{sas}\",\n        \"data\" : [\n                {\n                        \"xyz.openbmc_project.ObjectMapper\" : [\n                                \"org.freedesktop.DBus.Introspectable\",\n                                \"org.freedesktop.DBus.Peer\",\n                                \"org.freedesktop.DBus.Properties\"\n                        ],\n                        \"xyz.openbmc_project.Software.BMC.Updater\" : [\n                                \"org.freedesktop.DBus.Introspectable\",\n                                \"org.freedesktop.DBus.Peer\",\n                                \"org.freedesktop.DBus.Properties\",\n                                \"xyz.openbmc_project.Association.Definitions\",\n                                \"xyz.openbmc_project.Common.FilePath\",\n                                \"xyz.openbmc_project.Inventory.Decorator.Compatible\",\n                                \"xyz.openbmc_project.Software.Activation\",\n                                \"xyz.openbmc_project.Software.ExtendedVersion\",\n                                \"xyz.openbmc_project.Software.RedundancyPriority\",\n                                \"xyz.openbmc_project.Software.Version\"\n                        ]\n                }\n        ]\n}\n```\n\nIt shows that the service \"xyz.openbmc_project.ObjectMapper\" implements the default interfaces on this object.\n\nIf we merge this patch and do the same \"GetObject\" call:\n\n```json\n# busctl --json\u003dpretty call xyz.openbmc_project.ObjectMapper /xyz/openbmc_project/object_mapper xyz.openbmc_project.ObjectMapper GetObject sas /xyz/openbmc_project/software/64876e4e 0\n{\n        \"type\" : \"a{sas}\",\n        \"data\" : [\n                {\n                        \"xyz.openbmc_project.ObjectMapper\" : [],\n                        \"xyz.openbmc_project.Software.BMC.Updater\" : [\n                                \"org.freedesktop.DBus.Introspectable\",\n                                \"org.freedesktop.DBus.Peer\",\n                                \"org.freedesktop.DBus.Properties\",\n                                \"xyz.openbmc_project.Association.Definitions\",\n                                \"xyz.openbmc_project.Common.FilePath\",\n                                \"xyz.openbmc_project.Inventory.Decorator.Compatible\",\n                                \"xyz.openbmc_project.Software.Activation\",\n                                \"xyz.openbmc_project.Software.ExtendedVersion\",\n                                \"xyz.openbmc_project.Software.RedundancyPriority\",\n                                \"xyz.openbmc_project.Software.Version\"\n                        ]\n                }\n        ]\n}\n```\n\nIt will show the service \"xyz.openbmc_project.ObjectMapper\" implements **no** interfaces on this object.",
+      "parentUuid": "0000b985_82ff2012",
+      "revId": "c8ae58687614946882dfafc1791b353aa60825e6",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
