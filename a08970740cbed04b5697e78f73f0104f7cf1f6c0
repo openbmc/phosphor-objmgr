@@ -33,6 +33,24 @@
       "message": "Can this entire variable be removed?  I thought I mentioned that previously.",
       "revId": "a08970740cbed04b5697e78f73f0104f7cf1f6c0",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5cda4d8f_fe4c735c",
+        "filename": "src/processing.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2025-01-17T19:11:02Z",
+      "side": 1,
+      "message": "Yes.  It should be able to be removed entirely.\n\n        std::pair\u003cname_map_iterator, bool\u003e ifaceEntry \u003d\n            parentEntry.first-\u003esecond.emplace(wellKnown, {});\n\nI think is what it should be replaced with (haven\u0027t tested if it compiles)",
+      "parentUuid": "b4c9cc30_641bf7ea",
+      "revId": "a08970740cbed04b5697e78f73f0104f7cf1f6c0",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
