@@ -10,9 +10,13 @@ void updateEndpointsOnDbus(sdbusplus::asio::object_server& objectServer,
                            const std::string& assocPath,
                            AssociationMaps& assocMaps)
 {
-    auto& iface = assocMaps.ifaces[assocPath];
-    auto& i = std::get<ifacePos>(iface);
-    auto& endpoints = std::get<endpointsPos>(iface);
+    auto iface = assocMaps.ifaces.find(assocPath);
+    if (iface == assocMaps.ifaces.end())
+    {
+        return;
+    }
+    auto& i = std::get<ifacePos>(iface->second);
+    auto& endpoints = std::get<endpointsPos>(iface->second);
 
     // If the interface already exists, only need to update
     // the property value, otherwise create it
@@ -22,6 +26,7 @@ void updateEndpointsOnDbus(sdbusplus::asio::object_server& objectServer,
         {
             objectServer.remove_interface(i);
             i = nullptr;
+            assocMaps.ifaces.erase(iface);
         }
         else
         {
@@ -50,8 +55,12 @@ void scheduleUpdateEndpointsOnDbus(
         return;
     }
 
-    auto& iface = assocMaps.ifaces[assocPath];
-    auto& endpoints = std::get<endpointsPos>(iface);
+    auto iface = assocMaps.ifaces.find(assocPath);
+    if (iface == assocMaps.ifaces.end())
+    {
+        return;
+    }
+    auto& endpoints = std::get<endpointsPos>(iface->second);
 
     if (endpoints.size() > endpointsCountTimerThreshold)
     {
