@@ -10,9 +10,14 @@ void updateEndpointsOnDbus(sdbusplus::asio::object_server& objectServer,
                            const std::string& assocPath,
                            AssociationMaps& assocMaps)
 {
-    auto& iface = assocMaps.ifaces[assocPath];
-    auto& i = std::get<ifacePos>(iface);
-    auto& endpoints = std::get<endpointsPos>(iface);
+    // Don't create an entry in assocMaps.ifaces if not needed.
+    auto iface = assocMaps.ifaces.find(assocPath);
+    if (iface == assocMaps.ifaces.end())
+    {
+        return;
+    }
+    auto& i = std::get<ifacePos>(iface->second);
+    auto& endpoints = std::get<endpointsPos>(iface->second);
 
     // If the interface already exists, only need to update
     // the property value, otherwise create it
@@ -28,14 +33,16 @@ void updateEndpointsOnDbus(sdbusplus::asio::object_server& objectServer,
             i->set_property("endpoints", endpoints);
         }
     }
-    else
+    else if (!endpoints.empty())
     {
-        if (!endpoints.empty())
-        {
-            i = objectServer.add_interface(assocPath, xyzAssociationInterface);
-            i->register_property("endpoints", endpoints);
-            i->initialize();
-        }
+        i = objectServer.add_interface(assocPath, xyzAssociationInterface);
+        i->register_property("endpoints", endpoints);
+        i->initialize();
+    }
+
+    if (endpoints.empty())
+    {
+        assocMaps.ifaces.erase(iface);
     }
 }
 
@@ -50,8 +57,12 @@ void scheduleUpdateEndpointsOnDbus(
         return;
     }
 
-    auto& iface = assocMaps.ifaces[assocPath];
-    auto& endpoints = std::get<endpointsPos>(iface);
+    auto iface = assocMaps.ifaces.find(assocPath);
+    if (iface == assocMaps.ifaces.end())
+    {
+        return;
+    }
+    auto& endpoints = std::get<endpointsPos>(iface->second);
 
     if (endpoints.size() > endpointsCountTimerThreshold)
     {

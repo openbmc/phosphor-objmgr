@@ -313,9 +313,9 @@ TEST_F(TestAssociations, associationChangedAddNewAssocSameInterface)
     associationChanged(io, *server, associations, defaultSourcePath,
                        defaultDbusSvc, interfaceMap, assocMaps);
 
-    // Should have 3 entries in AssociationInterfaces, one is just missing an
-    // endpoint
-    EXPECT_EQ(assocMaps.ifaces.size(), 3);
+    // Should have 2 entries in AssociationInterfaces
+    // The one missing an endpoint is not added.
+    EXPECT_EQ(assocMaps.ifaces.size(), 2);
 
     // Change to existing interface so it will be removed here
     auto intfEndpoints =
