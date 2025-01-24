@@ -75,8 +75,7 @@ struct InProgressIntrospect
             globalStartTime
 #endif
         ) :
-        systemBus(systemBus),
-        io(io), processName(processName), assocMaps(am)
+        systemBus(systemBus), io(io), processName(processName), assocMaps(am)
 #ifdef MAPPER_ENABLE_DEBUG
         ,
         globalStartTime(std::move(globalStartTime)),
@@ -528,6 +527,17 @@ int main()
         }
 
         removeUnneededParents(objPath.str, sender, interfaceMap);
+
+        size_t len = 0;
+        std::string testPath;
+        for (auto& [path, conn] : interfaceMap)
+        {
+            if (conn.size() > len)
+            {
+                len = conn.size();
+                testPath = path;
+            }
+        }
     };
 
     sdbusplus::bus::match_t interfacesRemoved(
