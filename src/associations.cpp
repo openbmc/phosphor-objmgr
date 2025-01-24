@@ -10,9 +10,13 @@ void updateEndpointsOnDbus(sdbusplus::asio::object_server& objectServer,
                            const std::string& assocPath,
                            AssociationMaps& assocMaps)
 {
-    auto& iface = assocMaps.ifaces[assocPath];
-    auto& i = std::get<ifacePos>(iface);
-    auto& endpoints = std::get<endpointsPos>(iface);
+    auto iface = assocMaps.ifaces.find(assocPath);
+    if (iface == assocMaps.ifaces.end())
+    {
+        return;
+    }
+    auto& i = std::get<ifacePos>(iface->second);
+    auto& endpoints = std::get<endpointsPos>(iface->second);
 
     // If the interface already exists, only need to update
     // the property value, otherwise create it
@@ -22,20 +26,26 @@ void updateEndpointsOnDbus(sdbusplus::asio::object_server& objectServer,
         {
             objectServer.remove_interface(i);
             i = nullptr;
+            assocMaps.ifaces.erase(iface);
+            // std::cerr << "Testing " << assocMaps.ifaces.size()
+            //           << " capacity: " << assocMaps.ifaces.capacity()
+            //           << " owners size: " << assocMaps.owners.size()
+            //           << " owners capacity: " << assocMaps.owners.capacity()
+            //           << " pending size: " << assocMaps.pending.size()
+            //           << " pending capacity: " <<
+            //           assocMaps.pending.max_size()
+            //           << std::endl;
         }
         else
         {
             i->set_property("endpoints", endpoints);
         }
     }
-    else
+    else if (!endpoints.empty())
     {
-        if (!endpoints.empty())
-        {
-            i = objectServer.add_interface(assocPath, xyzAssociationInterface);
-            i->register_property("endpoints", endpoints);
-            i->initialize();
-        }
+        i = objectServer.add_interface(assocPath, xyzAssociationInterface);
+        i->register_property("endpoints", endpoints);
+        i->initialize();
     }
 }
 
@@ -50,8 +60,12 @@ void scheduleUpdateEndpointsOnDbus(
         return;
     }
 
-    auto& iface = assocMaps.ifaces[assocPath];
-    auto& endpoints = std::get<endpointsPos>(iface);
+    auto iface = assocMaps.ifaces.find(assocPath);
+    if (iface == assocMaps.ifaces.end())
+    {
+        return;
+    }
+    auto& endpoints = std::get<endpointsPos>(iface->second);
 
     if (endpoints.size() > endpointsCountTimerThreshold)
     {
@@ -629,6 +643,8 @@ void moveAssociationToPending(
         const auto& reversePath = std::get<reversePathPos>(association);
         const auto& reverseType = std::get<reverseTypePos>(association);
 
+        // Unsure why this is needed, but removing it still doesn't stop the
+        // every growing memory
         addPendingAssociation(forwardPath, forwardType, reversePath,
                               reverseType, owner, assocMaps);
 
