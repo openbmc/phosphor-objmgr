@@ -33,6 +33,24 @@
       "message": "What associations did you notice this on?  maybe the software ones?",
       "revId": "883a8929e3fba37460895d41435b9ae286c5406c",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f08c26f6_5d09e8f5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 13
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000233
+      },
+      "writtenOn": "2025-01-29T22:24:10Z",
+      "side": 1,
+      "message": "It was originally found on a downstream daemon that creates thousands of associations, but the issue would also occur with any upstream daemons that create and remove associations",
+      "parentUuid": "04966939_d977cda9",
+      "revId": "883a8929e3fba37460895d41435b9ae286c5406c",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
