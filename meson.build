@@ -149,7 +149,7 @@ install_data(
     'src/dbus/xyz.openbmc_project.ObjectMapper.conf',
     install_dir: get_option('datadir') / 'dbus-1' / 'system.d')
 
-if not get_option('unit-failure-monitor').disabled()
+if get_option('unit-failure-monitor').allowed()
     executable(
         'phosphor-unit-failure-monitor',
         [
