@@ -21,8 +21,8 @@ AssociationOwnersType createDefaultOwnerAssociation()
 }
 
 // Create a default AssociationInterfaces object
-AssociationInterfaces
-    createDefaultInterfaceAssociation(sdbusplus::asio::object_server* server)
+AssociationInterfaces createDefaultInterfaceAssociation(
+    sdbusplus::asio::object_server* server)
 {
     AssociationInterfaces interfaceAssoc;
 

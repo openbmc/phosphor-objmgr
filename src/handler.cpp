@@ -36,9 +36,9 @@ void addObjectMapResult(std::vector<InterfaceMapType::value_type>& objectMap,
     }
 }
 
-std::vector<InterfaceMapType::value_type>
-    getAncestors(const InterfaceMapType& interfaceMap, std::string reqPath,
-                 std::vector<std::string>& interfaces)
+std::vector<InterfaceMapType::value_type> getAncestors(
+    const InterfaceMapType& interfaceMap, std::string reqPath,
+    std::vector<std::string>& interfaces)
 {
     // Interfaces need to be sorted for intersect to function
     std::sort(interfaces.begin(), interfaces.end());
@@ -135,9 +135,9 @@ ConnectionNames getObject(const InterfaceMapType& interfaceMap,
     return results;
 }
 
-std::vector<InterfaceMapType::value_type>
-    getSubTree(const InterfaceMapType& interfaceMap, std::string reqPath,
-               int32_t depth, std::vector<std::string>& interfaces)
+std::vector<InterfaceMapType::value_type> getSubTree(
+    const InterfaceMapType& interfaceMap, std::string reqPath, int32_t depth,
+    std::vector<std::string>& interfaces)
 {
     if (depth <= 0)
     {
@@ -203,9 +203,9 @@ std::vector<InterfaceMapType::value_type>
     return ret;
 }
 
-std::vector<std::string>
-    getSubTreePaths(const InterfaceMapType& interfaceMap, std::string reqPath,
-                    int32_t depth, std::vector<std::string>& interfaces)
+std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
+                                         std::string reqPath, int32_t depth,
+                                         std::vector<std::string>& interfaces)
 {
     if (depth <= 0)
     {
