@@ -1,13 +1,8 @@
-option(
-    'tests',
-    type: 'feature',
-    value: 'enabled',
-    description: 'Build tests'
-)
+option('tests', type: 'feature', value: 'enabled', description: 'Build tests')
 
 option(
     'unit-failure-monitor',
     type: 'feature',
     value: 'enabled',
-    description: 'Build phosphor-unit-failure-monitor'
+    description: 'Build phosphor-unit-failure-monitor',
 )
