@@ -640,7 +640,7 @@ int main()
 
     iface->initialize();
 
-    io.post([&]() {
+    boost::asio::post(io, [&]() {
         doListNames(io, interfaceMap, systemBus.get(), nameOwners,
                     associationMaps, server);
     });

@@ -29,6 +29,13 @@ if not boost.found()
   boost  = declare_dependency(include_directories : boost_inc)
   boost = boost.as_system('system')
 endif
+add_project_arguments(
+    [
+        '-DBOOST_ASIO_DISABLE_THREADS',
+        '-DBOOST_ASIO_NO_DEPRECATED',
+    ],
+    language: 'cpp',
+)
 
 if get_option('buildtype').startswith('debug')
     add_project_arguments('-DMAPPER_ENABLE_DEBUG', language : 'cpp')
