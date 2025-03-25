@@ -449,10 +449,11 @@ TEST_F(TestHandler, getAssociatedSubTreeByIdBad)
     std::vector<std::string> endpointvalidInterfaces = {"test_interface_1",
                                                         "test_interface_2"};
     // invalid id
-    ASSERT_TRUE(getAssociatedSubTreeById(interfaceMap, associationMap, "childx",
-                                         path, subtreeInterfaces, "descendent",
-                                         endpointvalidInterfaces)
-                    .empty());
+    EXPECT_THROW(
+        getAssociatedSubTreeById(interfaceMap, associationMap, "childx", path,
+                                 subtreeInterfaces, "descendent",
+                                 endpointvalidInterfaces),
+        sdbusplus::xyz::openbmc_project::Common::Error::ResourceNotFound);
 
     // invalid subtreeInterfaces
     ASSERT_TRUE(getAssociatedSubTreeById(interfaceMap, associationMap, "child",
@@ -521,10 +522,11 @@ TEST_F(TestHandler, getAssociatedSubTreePathsByIdBad)
     std::vector<std::string> endpointvalidInterfaces = {"test_interface_1",
                                                         "test_interface_2"};
     // invalid id
-    ASSERT_TRUE(getAssociatedSubTreePathsById(
-                    interfaceMap, associationMap, "childx", path,
-                    subtreeInterfaces, "descendent", endpointvalidInterfaces)
-                    .empty());
+    EXPECT_THROW(
+        getAssociatedSubTreePathsById(interfaceMap, associationMap, "childx",
+                                      path, subtreeInterfaces, "descendent",
+                                      endpointvalidInterfaces),
+        sdbusplus::xyz::openbmc_project::Common::Error::ResourceNotFound);
 
     // invalid subtreeInterfaces
     ASSERT_TRUE(getAssociatedSubTreePathsById(
