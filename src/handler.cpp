@@ -361,18 +361,26 @@ std::vector<std::string> getSubTreePathsById(
             ResourceNotFound();
     }
 
+    bool validId = false;
     std::vector<std::string> output;
     for (const auto& path : interfaceMap)
     {
         const auto& thisPath = path.first;
 
-        // Skip exact match on stripped search term or
-        // the path does not end with the id
-        if (thisPath == objectPathStripped || !thisPath.ends_with("/" + id))
+        // Skip the path does not end with the id
+        if (!thisPath.ends_with("/" + id))
         {
             continue;
         }
 
+        // Valid if id is matching
+        validId = true;
+
+        // Skip exact match on stripped search term
+        if (thisPath == objectPathStripped)
+        {
+            continue;
+        }
         if (thisPath.starts_with(objectPath))
         {
             for (const auto& interfaceMap : path.second)
@@ -389,6 +397,11 @@ std::vector<std::string> getSubTreePathsById(
                 }
             }
         }
+    }
+    if (!validId)
+    {
+        throw sdbusplus::xyz::openbmc_project::Common::Error::
+            ResourceNotFound();
     }
     return output;
 }
