@@ -33,6 +33,24 @@
       "message": "Looks good to me.\n\nIs this a sure thing and can be merged now, or does the bmcweb change need to be reviewed first?",
       "revId": "1e3f7810c7e19008283937ab12a69fdce0d2df8c",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4ee12e3d_f717e55e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001604
+      },
+      "writtenOn": "2025-04-01T16:09:55Z",
+      "side": 1,
+      "message": "I\u0027m confident that this can be merged now -- independently from bmcweb.\n(bmcweb\u0027s change https://gerrit.openbmc.org/c/openbmc/bmcweb/+/79328 is an output enhancement).",
+      "parentUuid": "09e39d71_6b793e23",
+      "revId": "1e3f7810c7e19008283937ab12a69fdce0d2df8c",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
