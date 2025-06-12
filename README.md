@@ -1,7 +1,7 @@
 # The Mapper
 
 This repository contains the mapper, which assists in finding things on D-Bus.
-There is documentation about it [here][1].
+There is documentation about it in the [docs repository][architecture].
 
 ## Prerequisites
 
@@ -25,4 +25,5 @@ Non-OpenBMC build dependencies are:
 
 `rm -rf build`
 
-[1]: https://github.com/openbmc/docs/blob/master/architecture/object-mapper.md
+[architecture]:
+  https://github.com/openbmc/docs/blob/master/architecture/object-mapper.md
