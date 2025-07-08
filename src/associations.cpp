@@ -467,7 +467,7 @@ void checkIfPendingAssociation(
             addSingleAssociation(io, server, assocPath, endpointPath, owner,
                                  ownerPath, assocMaps);
         }
-        catch (const sdbusplus::exception_t& e)
+        catch (const sdbusplus::exception_t& ex)
         {
             // In some case the interface could not be created on DBus and an
             // exception is thrown. mapper has no control of the interface/path
@@ -475,7 +475,7 @@ void checkIfPendingAssociation(
             // association request.
             std::cerr << "Error adding association: assocPath " << assocPath
                       << ", endpointPath " << endpointPath
-                      << ", what: " << e.what() << "\n";
+                      << ", what: " << ex.what() << "\n";
         }
 
         // Not pending anymore
@@ -515,10 +515,11 @@ void findAssociations(const std::string& endpointPath,
                     auto a = std::find_if(
                         assocs.begin(), assocs.end(),
                         [&endpointPath, &otherPath](const auto& ap) {
-                            const auto& endpoints = ap.second;
-                            auto endpoint = std::find(
-                                endpoints.begin(), endpoints.end(), otherPath);
-                            if (endpoint != endpoints.end())
+                            const auto& otherEndpoints = ap.second;
+                            auto endpoint =
+                                std::find(otherEndpoints.begin(),
+                                          otherEndpoints.end(), otherPath);
+                            if (endpoint != otherEndpoints.end())
                             {
                                 return ap.first.starts_with(endpointPath + '/');
                             }

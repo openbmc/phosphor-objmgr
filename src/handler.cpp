@@ -72,19 +72,19 @@ std::vector<InterfaceMapType::value_type> getAncestors(
             }
             else
             {
-                for (const auto& interfaceMap : objectPath.second)
+                for (const auto& connectionInterfaces : objectPath.second)
                 {
                     std::vector<std::string> output(std::min(
-                        interfaces.size(), interfaceMap.second.size()));
+                        interfaces.size(), connectionInterfaces.second.size()));
                     // Return iterator points at the first output elemtn,
                     // meaning that there are no intersections.
                     if (std::set_intersection(
                             interfaces.begin(), interfaces.end(),
-                            interfaceMap.second.begin(),
-                            interfaceMap.second.end(), output.begin()) !=
-                        output.begin())
+                            connectionInterfaces.second.begin(),
+                            connectionInterfaces.second.end(),
+                            output.begin()) != output.begin())
                     {
-                        addObjectMapResult(ret, thisPath, interfaceMap);
+                        addObjectMapResult(ret, thisPath, connectionInterfaces);
                     }
                 }
             }
@@ -112,18 +112,19 @@ ConnectionNames getObject(const InterfaceMapType& interfaceMap,
     {
         return pathRef->second;
     }
-    for (const auto& interfaceMap : pathRef->second)
+    for (const auto& connectionInterfaces : pathRef->second)
     {
         std::vector<std::string> output(
-            std::min(interfaces.size(), interfaceMap.second.size()));
+            std::min(interfaces.size(), connectionInterfaces.second.size()));
         // Return iterator points at the first output elemtn,
         // meaning that there are no intersections.
         if (std::set_intersection(interfaces.begin(), interfaces.end(),
-                                  interfaceMap.second.begin(),
-                                  interfaceMap.second.end(), output.begin()) !=
-            output.begin())
+                                  connectionInterfaces.second.begin(),
+                                  connectionInterfaces.second.end(),
+                                  output.begin()) != output.begin())
         {
-            results.emplace(interfaceMap.first, interfaceMap.second);
+            results.emplace(connectionInterfaces.first,
+                            connectionInterfaces.second);
         }
     }
 
@@ -183,20 +184,20 @@ std::vector<InterfaceMapType::value_type> getSubTree(
                 thisPath.end(), '/');
             if (thisDepth <= depth)
             {
-                for (const auto& interfaceMap : objectPath.second)
+                for (const auto& connectionInterfaces : objectPath.second)
                 {
                     std::vector<std::string> output(std::min(
-                        interfaces.size(), interfaceMap.second.size()));
+                        interfaces.size(), connectionInterfaces.second.size()));
                     // Return iterator points at the first output elemtn,
                     // meaning that there are no intersections.
                     if (std::set_intersection(
                             interfaces.begin(), interfaces.end(),
-                            interfaceMap.second.begin(),
-                            interfaceMap.second.end(),
+                            connectionInterfaces.second.begin(),
+                            connectionInterfaces.second.end(),
                             output.begin()) != output.begin() ||
                         interfaces.empty())
                     {
-                        addObjectMapResult(ret, thisPath, interfaceMap);
+                        addObjectMapResult(ret, thisPath, connectionInterfaces);
                     }
                 }
             }
@@ -254,17 +255,17 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
             if (thisDepth <= depth)
             {
                 bool add = interfaces.empty();
-                for (const auto& interfaceMap : objectPath.second)
+                for (const auto& connectionInterfaces : objectPath.second)
                 {
                     std::vector<std::string> output(std::min(
-                        interfaces.size(), interfaceMap.second.size()));
+                        interfaces.size(), connectionInterfaces.second.size()));
                     // Return iterator points at the first output elemtn,
                     // meaning that there are no intersections.
                     if (std::set_intersection(
                             interfaces.begin(), interfaces.end(),
-                            interfaceMap.second.begin(),
-                            interfaceMap.second.end(), output.begin()) !=
-                        output.begin())
+                            connectionInterfaces.second.begin(),
+                            connectionInterfaces.second.end(),
+                            output.begin()) != output.begin())
                     {
                         add = true;
                         break;
@@ -388,14 +389,15 @@ std::vector<std::string> getSubTreePathsById(
         }
         if (thisPath.starts_with(objectPath))
         {
-            for (const auto& interfaceMap : path.second)
+            for (const auto& connectionInterfaces : path.second)
             {
-                std::vector<std::string> tempoutput(
-                    std::min(interfaces.size(), interfaceMap.second.size()));
-                if (std::set_intersection(
-                        interfaces.begin(), interfaces.end(),
-                        interfaceMap.second.begin(), interfaceMap.second.end(),
-                        tempoutput.begin()) != tempoutput.begin())
+                std::vector<std::string> tempoutput(std::min(
+                    interfaces.size(), connectionInterfaces.second.size()));
+                if (std::set_intersection(interfaces.begin(), interfaces.end(),
+                                          connectionInterfaces.second.begin(),
+                                          connectionInterfaces.second.end(),
+                                          tempoutput.begin()) !=
+                    tempoutput.begin())
                 {
                     output.emplace_back(thisPath);
                     break;

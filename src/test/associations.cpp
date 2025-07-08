@@ -499,23 +499,23 @@ TEST_F(TestAssociations, findAssociations)
     ASSERT_EQ(associationData.size(), 2);
 
     {
-        auto ad = std::find_if(
+        auto it = std::find_if(
             associationData.begin(), associationData.end(),
             [](const auto& ad) { return std::get<0>(ad) == "ownerA"; });
-        ASSERT_NE(ad, associationData.end());
+        ASSERT_NE(it, associationData.end());
 
-        auto& a = std::get<1>(*ad);
+        auto& a = std::get<1>(*it);
         ASSERT_EQ(std::get<0>(a), "type0");
         ASSERT_EQ(std::get<1>(a), "typeA");
         ASSERT_EQ(std::get<2>(a), "pathA");
     }
     {
-        auto ad = std::find_if(
+        auto it = std::find_if(
             associationData.begin(), associationData.end(),
             [](const auto& ad) { return std::get<0>(ad) == "ownerB"; });
-        ASSERT_NE(ad, associationData.end());
+        ASSERT_NE(it, associationData.end());
 
-        auto& a = std::get<1>(*ad);
+        auto& a = std::get<1>(*it);
         ASSERT_EQ(std::get<0>(a), "type1");
         ASSERT_EQ(std::get<1>(a), "typeB");
         ASSERT_EQ(std::get<2>(a), "pathX");
