@@ -45,12 +45,12 @@ class Monitor
      *
      * @param[in] sourceUnit - the source unit
      * @param[in] targetUnit - the target unit
-     * @param[in] action - the action to run on the target
+     * @param[in] targetAction - the action to run on the target
      */
     Monitor(const std::string& sourceUnit, const std::string& targetUnit,
-            Action action) :
+            Action targetAction) :
         bus(sdbusplus::bus::new_default()), source(sourceUnit),
-        target(targetUnit), action(action)
+        target(targetUnit), action(targetAction)
     {}
 
     /**

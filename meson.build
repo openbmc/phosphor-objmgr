@@ -32,6 +32,7 @@ if (cxx.get_id() == 'gcc')
         '-Wlogical-op',
         '-Wunused-parameter',
         '-Wdouble-promotion',
+        '-Wshadow',
         language: 'cpp',
     )
 endif

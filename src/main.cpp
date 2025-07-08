@@ -67,18 +67,20 @@ struct InProgressIntrospect
     InProgressIntrospect& operator=(const InProgressIntrospect&) = delete;
     InProgressIntrospect& operator=(InProgressIntrospect&&) = delete;
     InProgressIntrospect(
-        sdbusplus::asio::connection* systemBus, boost::asio::io_context& io,
-        const std::string& processName, AssociationMaps& am
+        sdbusplus::asio::connection* systemBusConnection,
+        boost::asio::io_context& ioContext,
+        const std::string& introspectProcessName, AssociationMaps& am
 #ifdef MAPPER_ENABLE_DEBUG
         ,
         std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
-            globalStartTime
+            globalIntrospectStartTime
 #endif
         ) :
-        systemBus(systemBus), io(io), processName(processName), assocMaps(am)
+        systemBus(systemBusConnection), io(ioContext),
+        processName(introspectProcessName), assocMaps(am)
 #ifdef MAPPER_ENABLE_DEBUG
         ,
-        globalStartTime(std::move(globalStartTime)),
+        globalStartTime(std::move(globalIntrospectStartTime)),
         processStartTime(std::chrono::steady_clock::now())
 #endif
     {}
