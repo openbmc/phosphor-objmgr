@@ -1,5 +1,7 @@
 #include "associations.hpp"
 
+#include "path.hpp"
+
 #include <boost/asio/steady_timer.hpp>
 #include <sdbusplus/exception.hpp>
 
@@ -268,11 +270,11 @@ void associationChanged(
 
         if (!forward.empty())
         {
-            objects[path + "/" + forward].emplace(objectPath);
+            objects[appendPathSegment(path, forward)].emplace(objectPath);
         }
         if (!reverse.empty())
         {
-            objects[objectPath + "/" + reverse].emplace(path);
+            objects[appendPathSegment(objectPath, reverse)].emplace(path);
         }
     }
     for (const auto& object : objects)
@@ -644,15 +646,19 @@ void moveAssociationToPending(
                               reverseType, owner, assocMaps);
 
         // Remove both sides of the association from assocMaps.ifaces
-        removeAssociationIfacesEntry(io, forwardPath + '/' + forwardType,
-                                     reversePath, assocMaps, server);
-        removeAssociationIfacesEntry(io, reversePath + '/' + reverseType,
-                                     forwardPath, assocMaps, server);
+        removeAssociationIfacesEntry(
+            io, appendPathSegment(forwardPath, forwardType), reversePath,
+            assocMaps, server);
+        removeAssociationIfacesEntry(
+            io, appendPathSegment(reversePath, reverseType), forwardPath,
+            assocMaps, server);
 
         // Remove both sides of the association from assocMaps.owners
-        removeAssociationOwnersEntry(forwardPath + '/' + forwardType,
-                                     reversePath, owner, assocMaps);
-        removeAssociationOwnersEntry(reversePath + '/' + reverseType,
-                                     forwardPath, owner, assocMaps);
+        removeAssociationOwnersEntry(
+            appendPathSegment(forwardPath, forwardType), reversePath, owner,
+            assocMaps);
+        removeAssociationOwnersEntry(
+            appendPathSegment(reversePath, reverseType), forwardPath, owner,
+            assocMaps);
     }
 }

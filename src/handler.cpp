@@ -1,5 +1,6 @@
 #include "handler.hpp"
 
+#include "path.hpp"
 #include "types.hpp"
 
 #include <xyz/openbmc_project/Common/error.hpp>
@@ -427,7 +428,8 @@ std::vector<InterfaceMapType::value_type> getAssociatedSubTreeById(
     for (const auto& subtreePath : subtreePaths)
     {
         // Form the association path
-        std::string associationPathStr = subtreePath + "/" + association;
+        std::string associationPathStr =
+            appendPathSegment(subtreePath, association);
         sdbusplus::message::object_path associationPath(associationPathStr);
 
         auto associatedSubTree =
@@ -453,7 +455,8 @@ std::vector<std::string> getAssociatedSubTreePathsById(
     for (const auto& subtreePath : subtreePaths)
     {
         // Form the association path
-        std::string associationPathStr = subtreePath + "/" + association;
+        std::string associationPathStr =
+            appendPathSegment(subtreePath, association);
         sdbusplus::message::object_path associationPath(associationPathStr);
 
         auto associatedSubTree = getAssociatedSubTreePaths(
