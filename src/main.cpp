@@ -14,6 +14,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <cstdlib>
 #include <exception>
 #include <iomanip>
 #include <iostream>
@@ -284,19 +285,21 @@ void startNewIntrospect(
 }
 
 void doListNames(
-    boost::asio::io_context& io, InterfaceMapType& interfaceMap,
+    bool& error, boost::asio::io_context& io, InterfaceMapType& interfaceMap,
     sdbusplus::asio::connection* systemBus,
     boost::container::flat_map<std::string, std::string>& nameOwners,
     AssociationMaps& assocMaps, sdbusplus::asio::object_server& objectServer)
 {
     systemBus->async_method_call(
-        [&io, &interfaceMap, &nameOwners, &objectServer, systemBus,
+        [&error, &io, &interfaceMap, &nameOwners, &objectServer, systemBus,
          &assocMaps](const boost::system::error_code ec,
                      std::vector<std::string> processNames) {
             if (ec)
             {
                 std::cerr << "Error getting names: " << ec << "\n";
-                std::exit(EXIT_FAILURE);
+                // we can't be useful without connection names
+                error = true;
+                io.stop();
                 return;
             }
             // Try to make startup consistent
@@ -390,6 +393,7 @@ void removeUnneededParents(const std::string& objectPath,
 int main()
 {
     boost::asio::io_context io;
+    bool errorExit = false;
     std::shared_ptr<sdbusplus::asio::connection> systemBus =
         std::make_shared<sdbusplus::asio::connection>(io);
 
@@ -645,11 +649,13 @@ int main()
     iface->initialize();
 
     boost::asio::post(io, [&]() {
-        doListNames(io, interfaceMap, systemBus.get(), nameOwners,
+        doListNames(errorExit, io, interfaceMap, systemBus.get(), nameOwners,
                     associationMaps, server);
     });
 
     systemBus->request_name("xyz.openbmc_project.ObjectMapper");
 
     io.run();
+
+    return errorExit ? EXIT_FAILURE : EXIT_SUCCESS;
 }
