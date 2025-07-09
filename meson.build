@@ -45,26 +45,13 @@ if get_option('buildtype').startswith('debug')
 endif
 
 if get_option('tests').allowed()
-    gtest = dependency('gtest', main: true, disabler: true, required: false)
-    gmock = dependency('gmock', disabler: true, required: false)
-    if not gtest.found() or not gmock.found()
-        gtest_proj = import('cmake').subproject('gtest', required: false)
-        if gtest_proj.found()
-            gtest = declare_dependency(
-                dependencies: [
-                    dependency('threads'),
-                    gtest_proj.dependency('gtest'),
-                    gtest_proj.dependency('gtest_main'),
-                ],
-            )
-            gmock = gtest_proj.dependency('gmock')
-        else
-            assert(
-                not get_option('tests').allowed(),
-                'Googletest is required if tests are enabled',
-            )
-        endif
-    endif
+    gtest = dependency(
+        'gtest_main',
+        main: true,
+        version: '>=1.15.2',
+        required: true,
+    )
+    gmock = dependency('gmock', required: true)
     subdir('src/test')
     subdir('libmapper/test')
 endif
