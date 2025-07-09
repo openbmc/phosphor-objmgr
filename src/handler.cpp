@@ -5,6 +5,7 @@
 #include <xyz/openbmc_project/Common/error.hpp>
 
 #include <algorithm>
+#include <iterator>
 #include <string>
 #include <unordered_set>
 #include <utility>
@@ -176,8 +177,10 @@ std::vector<InterfaceMapType::value_type> getSubTree(
         if (thisPath.starts_with(reqPath))
         {
             // count the number of slashes past the stripped search term
-            int32_t thisDepth = std::count(
-                thisPath.begin() + reqPathStripped.size(), thisPath.end(), '/');
+            auto thisDepth = std::count(
+                thisPath.begin() + std::distance(reqPathStripped.begin(),
+                                                 reqPathStripped.end()),
+                thisPath.end(), '/');
             if (thisDepth <= depth)
             {
                 for (const auto& interfaceMap : objectPath.second)
@@ -244,8 +247,10 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
         if (thisPath.starts_with(reqPath))
         {
             // count the number of slashes past the stripped search term
-            int thisDepth = std::count(
-                thisPath.begin() + reqPathStripped.size(), thisPath.end(), '/');
+            auto thisDepth = std::count(
+                thisPath.begin() + std::distance(reqPathStripped.begin(),
+                                                 reqPathStripped.end()),
+                thisPath.end(), '/');
             if (thisDepth <= depth)
             {
                 bool add = interfaces.empty();
