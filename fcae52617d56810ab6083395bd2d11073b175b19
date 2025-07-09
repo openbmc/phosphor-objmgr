@@ -1,0 +1,7 @@
+Verified+1: OpenBMC CI <openbmcbump-ci@yahoo.com>
+Code-Review+2: Brad Bishop <bradleyb@fuzziesquirrel.com>
+Submitted-by: Brad Bishop <bradleyb@fuzziesquirrel.com>
+Submitted-at: Wed, 09 Jul 2025 17:07:33 +0000
+Reviewed-on: https://gerrit.openbmc.org/c/openbmc/phosphor-objmgr/+/81797
+Project: openbmc/phosphor-objmgr
+Branch: refs/heads/master
