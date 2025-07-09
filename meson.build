@@ -48,7 +48,7 @@ if get_option('tests').allowed()
     gtest = dependency('gtest', main: true, disabler: true, required: false)
     gmock = dependency('gmock', disabler: true, required: false)
     if not gtest.found() or not gmock.found()
-        gtest_proj = import('cmake').subproject('googletest', required: false)
+        gtest_proj = import('cmake').subproject('gtest', required: false)
         if gtest_proj.found()
             gtest = declare_dependency(
                 dependencies: [
