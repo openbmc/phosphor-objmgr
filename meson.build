@@ -128,7 +128,7 @@ mapperx = executable(
 meson.override_find_program('mapperx', mapperx)
 
 systemd_system_unit_dir = dependency('systemd').get_variable(
-    'systemdsystemunitdir',
+    'systemd_system_unit_dir',
 )
 
 conf = configuration_data()
