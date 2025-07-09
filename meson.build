@@ -23,7 +23,9 @@ if (cxx.get_id() == 'gcc')
     add_project_arguments(
         '-Wformat=2',
         '-Wcast-align',
+        '-Wconversion',
         '-Woverloaded-virtual',
+        '-Wsign-conversion',
         '-Wunused',
         '-Wduplicated-cond',
         '-Wduplicated-branches',
