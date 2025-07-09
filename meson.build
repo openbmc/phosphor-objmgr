@@ -13,13 +13,13 @@ project(
     version: '1.0',
 )
 
-cxx = meson.get_compiler('cpp')
-
-if cxx.has_header('CLI/CLI.hpp')
-    cli11_dep = declare_dependency()
-else
-    cli11_dep = dependency('cli11')
+cli11 = dependency('CLI11', required: false, include_type: 'system')
+if not cli11.found()
+    cli11_proj = subproject('cli11', required: true)
+    cli11 = cli11_proj.get_variable('CLI11_dep')
+    cli11 = cli11.as_system('system')
 endif
+
 phosphor_logging = dependency('phosphor-logging')
 phosphor_dbus_interfaces = dependency('phosphor-dbus-interfaces')
 sdbusplus = dependency('sdbusplus')
@@ -160,7 +160,7 @@ if not get_option('unit-failure-monitor').disabled()
     executable(
         'phosphor-unit-failure-monitor',
         ['fail-monitor/main.cpp', 'fail-monitor/monitor.cpp'],
-        dependencies: [cli11_dep, phosphor_logging],
+        dependencies: [cli11, phosphor_logging],
         install: true,
     )
 endif
