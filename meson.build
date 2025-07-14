@@ -104,6 +104,7 @@ mapperx = executable(
         dependency('threads'),
         dependency('tinyxml2', default_options: ['tests=false']),
     ],
+    implicit_include_directories: false,
     install: true,
     install_dir: join_paths(
         get_option('prefix'),
@@ -160,6 +161,7 @@ if not get_option('unit-failure-monitor').disabled()
         'phosphor-unit-failure-monitor',
         ['fail-monitor/main.cpp', 'fail-monitor/monitor.cpp'],
         dependencies: [cli11, phosphor_logging, sdbusplus],
+        implicit_include_directories: false,
         install: true,
     )
 endif
