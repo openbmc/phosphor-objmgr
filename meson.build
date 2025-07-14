@@ -159,7 +159,7 @@ if not get_option('unit-failure-monitor').disabled()
     executable(
         'phosphor-unit-failure-monitor',
         ['fail-monitor/main.cpp', 'fail-monitor/monitor.cpp'],
-        dependencies: [cli11, phosphor_logging],
+        dependencies: [cli11, phosphor_logging, sdbusplus],
         install: true,
     )
 endif
