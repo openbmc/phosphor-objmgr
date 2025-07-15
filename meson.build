@@ -13,6 +13,14 @@ project(
     version: '1.0',
 )
 
+cxx = meson.get_compiler('cpp')
+
+if (cxx.get_id() == 'gcc')
+    if (cxx.version().version_compare('<13.0'))
+        error('This project requires gcc-13 or higher')
+    endif
+endif
+
 # Enable debugging for debug builds
 if get_option('buildtype').startswith('debug')
     add_project_arguments('-DMAPPER_ENABLE_DEBUG', language: 'cpp')
