@@ -19,6 +19,19 @@ if (cxx.get_id() == 'gcc')
     if (cxx.version().version_compare('<13.0'))
         error('This project requires gcc-13 or higher')
     endif
+
+    add_project_arguments(
+        '-Wformat=2',
+        '-Wcast-align',
+        '-Woverloaded-virtual',
+        '-Wunused',
+        '-Wduplicated-cond',
+        '-Wduplicated-branches',
+        '-Wlogical-op',
+        '-Wunused-parameter',
+        '-Wdouble-promotion',
+        language: 'cpp',
+    )
 endif
 
 # Enable debugging for debug builds
