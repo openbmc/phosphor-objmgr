@@ -47,7 +47,6 @@ if (cxx.get_id() == 'clang')
         '-Wno-missing-prototypes',
         '-Wno-missing-variable-declarations',
         '-Wno-unreachable-code-return',
-        '-Wno-unsafe-buffer-usage',
         language: 'cpp',
     )
     boost_flags += ['-Wno-strict-prototypes']

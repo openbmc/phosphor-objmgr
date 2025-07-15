@@ -15,7 +15,14 @@ TEST(TestSarray, Dup)
 
     for (i = 0; i < 4; i++)
     {
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+#endif
         EXPECT_STREQ(a[i], b[i]);
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
     }
     sarrayfree(a);
     sarrayfree(b);

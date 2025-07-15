@@ -219,7 +219,9 @@ void doIntrospect(boost::asio::io_context& io,
 
                 thisPathMap[transaction->processName].emplace(ifaceName);
 
-                if (std::strcmp(ifaceName, assocDefsInterface) == 0)
+                static constexpr auto assocDefsInterfaceView =
+                    std::string_view(assocDefsInterface);
+                if (ifaceName == assocDefsInterfaceView)
                 {
                     doAssociations(io, systemBus, interfaceMap, objectServer,
                                    transaction->processName, path);
