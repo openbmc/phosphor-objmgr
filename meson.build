@@ -47,7 +47,6 @@ if (cxx.get_id() == 'clang')
         '-Wno-missing-prototypes',
         '-Wno-missing-variable-declarations',
         '-Wno-unreachable-code-return',
-        '-Wno-suggest-override',
         '-Wno-unsafe-buffer-usage',
         '-Wno-extra-semi-stmt',
         language: 'cpp',
