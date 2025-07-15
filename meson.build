@@ -13,6 +13,17 @@ project(
     version: '1.0',
 )
 
+# Enable debugging for debug builds
+if get_option('buildtype').startswith('debug')
+    add_project_arguments('-DMAPPER_ENABLE_DEBUG', language: 'cpp')
+endif
+
+# Boost configuration
+add_project_arguments(
+    ['-DBOOST_ASIO_DISABLE_THREADS', '-DBOOST_ASIO_NO_DEPRECATED'],
+    language: 'cpp',
+)
+
 cli11 = dependency('CLI11', required: false, include_type: 'system')
 if not cli11.found()
     cli11_proj = subproject('cli11', required: true)
@@ -49,14 +60,6 @@ if not boost.found()
         boost_deps += [boost_lib_instance]
     endforeach
     boost = declare_dependency(dependencies: boost_deps)
-endif
-add_project_arguments(
-    ['-DBOOST_ASIO_DISABLE_THREADS', '-DBOOST_ASIO_NO_DEPRECATED'],
-    language: 'cpp',
-)
-
-if get_option('buildtype').startswith('debug')
-    add_project_arguments('-DMAPPER_ENABLE_DEBUG', language: 'cpp')
 endif
 
 if get_option('tests').allowed()
