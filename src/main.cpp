@@ -20,7 +20,7 @@
 #include <string_view>
 #include <utility>
 
-AssociationMaps associationMaps;
+static AssociationMaps associationMaps;
 
 void updateOwners(sdbusplus::asio::connection* conn,
                   boost::container::flat_map<std::string, std::string>& owners,

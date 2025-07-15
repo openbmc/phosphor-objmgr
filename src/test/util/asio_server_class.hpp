@@ -4,7 +4,7 @@
 #include <sdbusplus/asio/object_server.hpp>
 
 /* @brief Will contain path and name of test application */
-const char* appname = program_invocation_name;
+inline const char* appname = program_invocation_name;
 
 #include <gtest/gtest.h>
 /** @class AsioServerClassTest
