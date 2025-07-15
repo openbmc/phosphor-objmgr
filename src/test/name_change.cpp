@@ -8,7 +8,7 @@ class TestNameChange : public AsioServerClassTest
 {
   public:
     boost::asio::io_context io;
-    void SetUp() override
+    virtual void SetUp() override
     {
         io.run();
     }
