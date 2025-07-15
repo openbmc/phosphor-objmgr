@@ -15,6 +15,19 @@ project(
 
 cxx = meson.get_compiler('cpp')
 
+boost_flags = []
+if (cxx.get_id() == 'clang')
+    if (cxx.version().version_compare('<18.0'))
+        error('This project requires clang-18 or higher')
+    endif
+    add_project_arguments(
+# https://github.com/llvm/llvm-project/issues/101614
+        '-fno-builtin-std-forward_like',
+        language: 'cpp',
+    )
+    boost_flags += ['-Wno-strict-prototypes']
+endif
+
 if (cxx.get_id() == 'gcc')
     if (cxx.version().version_compare('<13.0'))
         error('This project requires gcc-13 or higher')
@@ -68,7 +81,13 @@ if not boost.found()
     cmake = import('cmake')
     opt = cmake.subproject_options()
     boost_libs = ['asio', 'callable_traits']
-    opt.add_cmake_defines({'BOOST_INCLUDE_LIBRARIES': ';'.join(boost_libs)})
+    opt.add_cmake_defines(
+        {
+            'CMAKE_CXX_FLAGS': ' '.join(boost_flags),
+            'CMAKE_C_FLAGS': ' '.join(boost_flags),
+            'BOOST_INCLUDE_LIBRARIES': ';'.join(boost_libs),
+        },
+    )
 
     boost_deps = []
     boost_proj = cmake.subproject('boost', required: true, options: opt)
