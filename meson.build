@@ -25,15 +25,30 @@ phosphor_dbus_interfaces = dependency('phosphor-dbus-interfaces')
 sdbusplus = dependency('sdbusplus')
 boost = dependency(
     'boost',
-    version: '>=1.79.0',
+    version: '>=1.87.0',
     required: false,
     include_type: 'system',
 )
 if not boost.found()
-    subproject('boost', required: false)
-    boost_inc = include_directories('subprojects/boost_1_79_0/', is_system: true)
-    boost = declare_dependency(include_directories: boost_inc)
-    boost = boost.as_system('system')
+    cmake = import('cmake')
+    opt = cmake.subproject_options()
+    boost_libs = [
+        'asio',
+        'callable_traits',
+    ]
+    opt.add_cmake_defines(
+        {
+            'BOOST_INCLUDE_LIBRARIES': ';'.join(boost_libs),
+        },
+    )
+
+    boost_deps = []
+    boost_proj = cmake.subproject('boost', required: true, options: opt)
+    foreach boost_lib : boost_libs
+        boost_lib_instance = boost_proj.dependency('boost_' + boost_lib).as_system()
+        boost_deps += [boost_lib_instance]
+    endforeach
+    boost = declare_dependency(dependencies: boost_deps)
 endif
 add_project_arguments(
     ['-DBOOST_ASIO_DISABLE_THREADS', '-DBOOST_ASIO_NO_DEPRECATED'],
