@@ -34,7 +34,14 @@ int main(int argc, char** argv)
         ->required()
         ->transform(CLI::CheckedTransformer(actions, CLI::ignore_space));
 
-    CLI11_PARSE(app, argc, argv);
+    try
+    {
+        app.parse(argc, argv);
+    }
+    catch (const CLI::ParseError& e)
+    {
+        return (app).exit(e);
+    }
     Monitor monitor{source, target, action};
 
     monitor.analyze();
