@@ -21,8 +21,35 @@ if (cxx.get_id() == 'clang')
         error('This project requires clang-18 or higher')
     endif
     add_project_arguments(
-# https://github.com/llvm/llvm-project/issues/101614
+        '-Weverything',
+        '-Wformat=2',
+        # https://github.com/llvm/llvm-project/issues/101614
         '-fno-builtin-std-forward_like',
+        '-Wno-c++20-extensions',
+        '-Wno-c++23-extensions',
+        '-Wno-c++26-extensions',
+        '-Wno-c++98-compat',
+        '-Wno-c++98-compat-pedantic',
+        '-Wno-covered-switch-default',
+        '-Wno-disabled-macro-expansion',
+        '-Wno-documentation',
+        '-Wno-documentation-unknown-command',
+        '-Wno-exit-time-destructors',
+        '-Wno-global-constructors',
+        '-Wno-missing-include-dirs',
+        '-Wno-newline-eof',
+        '-Wno-padded',
+        '-Wno-switch-enum',
+        '-Wno-unneeded-internal-declaration',
+        '-Wno-unused-macros',
+        '-Wno-used-but-marked-unused',
+        '-Wno-weak-vtables',
+        '-Wno-missing-prototypes',
+        '-Wno-missing-variable-declarations',
+        '-Wno-unreachable-code-return',
+        '-Wno-suggest-override',
+        '-Wno-unsafe-buffer-usage',
+        '-Wno-extra-semi-stmt',
         language: 'cpp',
     )
     boost_flags += ['-Wno-strict-prototypes']
