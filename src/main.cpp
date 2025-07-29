@@ -24,9 +24,10 @@
 
 static AssociationMaps associationMaps;
 
-void updateOwners(sdbusplus::asio::connection* conn,
-                  boost::container::flat_map<std::string, std::string>& owners,
-                  const std::string& newObject)
+static void updateOwners(
+    sdbusplus::asio::connection* conn,
+    boost::container::flat_map<std::string, std::string>& owners,
+    const std::string& newObject)
 {
     if (newObject.starts_with(":"))
     {
@@ -47,8 +48,8 @@ void updateOwners(sdbusplus::asio::connection* conn,
         newObject);
 }
 
-void sendIntrospectionCompleteSignal(sdbusplus::asio::connection* systemBus,
-                                     const std::string& processName)
+static void sendIntrospectionCompleteSignal(
+    sdbusplus::asio::connection* systemBus, const std::string& processName)
 {
     // TODO(ed) This signal doesn't get exposed properly in the
     // introspect right now.  Find out how to register signals in
@@ -131,12 +132,12 @@ struct InProgressIntrospect
 #endif
 };
 
-void doAssociations(boost::asio::io_context& io,
-                    sdbusplus::asio::connection* systemBus,
-                    InterfaceMapType& interfaceMap,
-                    sdbusplus::asio::object_server& objectServer,
-                    const std::string& processName, const std::string& path,
-                    int timeoutRetries = 0)
+static void doAssociations(
+    boost::asio::io_context& io, sdbusplus::asio::connection* systemBus,
+    InterfaceMapType& interfaceMap,
+    sdbusplus::asio::object_server& objectServer,
+    const std::string& processName, const std::string& path,
+    int timeoutRetries = 0)
 {
     constexpr int maxTimeoutRetries = 3;
     systemBus->async_method_call(
@@ -164,12 +165,12 @@ void doAssociations(boost::asio::io_context& io,
         assocDefsInterface, assocDefsProperty);
 }
 
-void doIntrospect(boost::asio::io_context& io,
-                  sdbusplus::asio::connection* systemBus,
-                  const std::shared_ptr<InProgressIntrospect>& transaction,
-                  InterfaceMapType& interfaceMap,
-                  sdbusplus::asio::object_server& objectServer,
-                  const std::string& path, int timeoutRetries = 0)
+static void doIntrospect(
+    boost::asio::io_context& io, sdbusplus::asio::connection* systemBus,
+    const std::shared_ptr<InProgressIntrospect>& transaction,
+    InterfaceMapType& interfaceMap,
+    sdbusplus::asio::object_server& objectServer, const std::string& path,
+    int timeoutRetries = 0)
 {
     constexpr int maxTimeoutRetries = 3;
     systemBus->async_method_call(
@@ -258,7 +259,7 @@ void doIntrospect(boost::asio::io_context& io,
         "Introspect");
 }
 
-void startNewIntrospect(
+static void startNewIntrospect(
     sdbusplus::asio::connection* systemBus, boost::asio::io_context& io,
     InterfaceMapType& interfaceMap, const std::string& processName,
     AssociationMaps& assocMaps,
@@ -284,7 +285,7 @@ void startNewIntrospect(
     }
 }
 
-void doListNames(
+static void doListNames(
     bool& error, boost::asio::io_context& io, InterfaceMapType& interfaceMap,
     sdbusplus::asio::connection* systemBus,
     boost::container::flat_map<std::string, std::string>& nameOwners,
@@ -333,9 +334,9 @@ void doListNames(
 //    - Means D-Bus created these, not application code,
 //      with the Properties, Introspectable, and Peer ifaces
 // 2) Have no other child for this owner
-void removeUnneededParents(const std::string& objectPath,
-                           const std::string& owner,
-                           InterfaceMapType& interfaceMap)
+static void removeUnneededParents(const std::string& objectPath,
+                                  const std::string& owner,
+                                  InterfaceMapType& interfaceMap)
 {
     auto parent = objectPath;
 

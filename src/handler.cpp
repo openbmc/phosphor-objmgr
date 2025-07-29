@@ -345,7 +345,7 @@ std::vector<std::string> getAssociatedSubTreePaths(
 
 // This function works like getSubTreePaths() but only matching id with
 // the leaf-name instead of full path.
-std::vector<std::string> getSubTreePathsById(
+static std::vector<std::string> getSubTreePathsById(
     const InterfaceMapType& interfaceMap, const std::string& id,
     const std::string& objectPath, std::vector<std::string>& interfaces)
 {

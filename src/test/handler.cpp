@@ -223,7 +223,7 @@ TEST_F(TestHandler, getSubTreeBad)
         sdbusplus::xyz::openbmc_project::Common::Error::ResourceNotFound);
 }
 
-void verifySubtree(std::span<InterfaceMapType::value_type> subtree)
+static void verifySubtree(std::span<InterfaceMapType::value_type> subtree)
 {
     ASSERT_EQ(subtree.size(), 2);
     ConnectionNames connection = subtree[0].second;

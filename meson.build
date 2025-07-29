@@ -44,7 +44,6 @@ if (cxx.get_id() == 'clang')
         '-Wno-unused-macros',
         '-Wno-used-but-marked-unused',
         '-Wno-weak-vtables',
-        '-Wno-missing-prototypes',
         language: 'cpp',
     )
     boost_flags += ['-Wno-strict-prototypes']
