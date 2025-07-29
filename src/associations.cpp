@@ -8,9 +8,9 @@
 #include <iostream>
 #include <string>
 
-void updateEndpointsOnDbus(sdbusplus::asio::object_server& objectServer,
-                           const std::string& assocPath,
-                           AssociationMaps& assocMaps)
+static void updateEndpointsOnDbus(sdbusplus::asio::object_server& objectServer,
+                                  const std::string& assocPath,
+                                  AssociationMaps& assocMaps)
 {
     // Don't create an entry in assocMaps.ifaces if not needed.
     auto iface = assocMaps.ifaces.find(assocPath);
@@ -48,7 +48,7 @@ void updateEndpointsOnDbus(sdbusplus::asio::object_server& objectServer,
     }
 }
 
-void scheduleUpdateEndpointsOnDbus(
+static void scheduleUpdateEndpointsOnDbus(
     boost::asio::io_context& io, sdbusplus::asio::object_server& objectServer,
     const std::string& assocPath, AssociationMaps& assocMaps)
 {
@@ -219,7 +219,7 @@ void checkAssociationEndpointRemoves(
     }
 }
 
-void addEndpointsToAssocIfaces(
+static void addEndpointsToAssocIfaces(
     boost::asio::io_context& io, sdbusplus::asio::object_server& objectServer,
     const std::string& assocPath,
     const boost::container::flat_set<std::string>& endpointPaths,
@@ -554,7 +554,7 @@ void findAssociations(const std::string& endpointPath,
  * @param[in,out] assocMaps - the association maps
  * @param[in,out] server    - sdbus system object
  */
-void removeAssociationIfacesEntry(
+static void removeAssociationIfacesEntry(
     boost::asio::io_context& io, const std::string& assocPath,
     const std::string& endpointPath, AssociationMaps& assocMaps,
     sdbusplus::asio::object_server& server)
@@ -584,7 +584,7 @@ void removeAssociationIfacesEntry(
  * @param[in] owner         - the owner of the association
  * @param[in,out] assocMaps - the association maps
  */
-void removeAssociationOwnersEntry(
+static void removeAssociationOwnersEntry(
     const std::string& assocPath, const std::string& endpointPath,
     const std::string& owner, AssociationMaps& assocMaps)
 {

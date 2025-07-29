@@ -15,8 +15,8 @@ sdbusplus::asio::object_server*
 
 // This is the data structure that comes in via the InterfacesAdded
 // signal
-InterfacesAdded createInterfacesAdded(const std::string& interface,
-                                      const std::string& property)
+static InterfacesAdded createInterfacesAdded(const std::string& interface,
+                                             const std::string& property)
 {
     std::vector<Association> associations = {
         {"inventory", "error",
