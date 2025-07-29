@@ -49,7 +49,7 @@ TEST_F(TestInterfacesAdded, InterfacesAddedGoodPath)
     // dumpInterfaceMapType(interfaceMap);
     EXPECT_EQ(interfaceMap.size(), 5);
 
-    // New association ower created so ensure it now contains a single entry
+    // New association owner created so ensure it now contains a single entry
     // dumpAssociationOwnersType(assocOwners);
     EXPECT_EQ(assocMaps.owners.size(), 1);
 

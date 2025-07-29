@@ -15,7 +15,7 @@ class AsioServerClassTest : public testing::Test
 {
   protected:
     // Make this global to the whole test suite since we want to share
-    // the asio::object_server accross the test cases
+    // the asio::object_server across the test cases
     // NOTE - latest googltest changed to SetUpTestSuite()
     static void SetUpTestCase()
     {

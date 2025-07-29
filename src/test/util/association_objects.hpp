@@ -7,7 +7,7 @@ const std::string defaultFwdPath = {defaultSourcePath + "/" + "inventory"};
 const std::string defaultEndpoint =
     "/xyz/openbmc_project/inventory/system/chassis";
 const std::string defaultRevPath = {defaultEndpoint + "/" + "error"};
-const std::string extraEndpoint = "/xyz/openbmc_project/differnt/endpoint";
+const std::string extraEndpoint = "/xyz/openbmc_project/different/endpoint";
 
 // Create a default AssociationOwnersType object
 inline AssociationOwnersType createDefaultOwnerAssociation()
