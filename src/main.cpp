@@ -22,7 +22,11 @@
 #include <string_view>
 #include <utility>
 
-static AssociationMaps associationMaps;
+static AssociationMaps& associationMaps()
+{
+    static AssociationMaps am;
+    return am;
+}
 
 static void updateOwners(
     sdbusplus::asio::connection* conn,
@@ -159,7 +163,7 @@ static void doAssociations(
             std::vector<Association> associations =
                 std::get<std::vector<Association>>(variantAssociations);
             associationChanged(io, objectServer, associations, path,
-                               processName, interfaceMap, associationMaps);
+                               processName, interfaceMap, associationMaps());
         },
         processName, path, "org.freedesktop.DBus.Properties", "Get",
         assocDefsInterface, assocDefsProperty);
@@ -426,7 +430,7 @@ int main()
         if (!oldOwner.empty())
         {
             processNameChangeDelete(io, nameOwners, name, oldOwner,
-                                    interfaceMap, associationMaps, server);
+                                    interfaceMap, associationMaps(), server);
         }
 
         if (!newOwner.empty())
@@ -441,7 +445,7 @@ int main()
             {
                 nameOwners[newOwner] = name;
                 startNewIntrospect(systemBus.get(), io, interfaceMap, name,
-                                   associationMaps,
+                                   associationMaps(),
 #ifdef MAPPER_ENABLE_DEBUG
                                    transaction,
 #endif
@@ -468,7 +472,7 @@ int main()
         if (needToIntrospect(wellKnown))
         {
             processInterfaceAdded(io, interfaceMap, objPath, interfacesAdded,
-                                  wellKnown, associationMaps, server);
+                                  wellKnown, associationMaps(), server);
         }
     };
 
@@ -504,7 +508,7 @@ int main()
             if (interface == assocDefsInterface)
             {
                 removeAssociation(io, objPath.str, sender, server,
-                                  associationMaps);
+                                  associationMaps());
             }
 
             interfaceSet->second.erase(interface);
@@ -526,7 +530,7 @@ int main()
                 {
                     // Remove the 2 association D-Bus paths and move the
                     // association to pending.
-                    moveAssociationToPending(io, objPath.str, associationMaps,
+                    moveAssociationToPending(io, objPath.str, associationMaps(),
                                              server);
                 }
             }
@@ -565,7 +569,7 @@ int main()
                 return;
             }
             associationChanged(io, server, associations, message.get_path(),
-                               wellKnown, interfaceMap, associationMaps);
+                               wellKnown, interfaceMap, associationMaps());
         }
     };
     sdbusplus::bus::match_t assocChangedMatch(
@@ -610,7 +614,7 @@ int main()
         [&interfaceMap](const sdbusplus::message::object_path& associationPath,
                         const sdbusplus::message::object_path& reqPath,
                         int32_t depth, std::vector<std::string>& interfaces) {
-            return getAssociatedSubTree(interfaceMap, associationMaps,
+            return getAssociatedSubTree(interfaceMap, associationMaps(),
                                         associationPath, reqPath, depth,
                                         interfaces);
         });
@@ -620,7 +624,7 @@ int main()
         [&interfaceMap](const sdbusplus::message::object_path& associationPath,
                         const sdbusplus::message::object_path& reqPath,
                         int32_t depth, std::vector<std::string>& interfaces) {
-            return getAssociatedSubTreePaths(interfaceMap, associationMaps,
+            return getAssociatedSubTreePaths(interfaceMap, associationMaps(),
                                              associationPath, reqPath, depth,
                                              interfaces);
         });
@@ -631,7 +635,7 @@ int main()
                         std::vector<std::string>& subtreeInterfaces,
                         const std::string& association,
                         std::vector<std::string>& endpointInterfaces) {
-            return getAssociatedSubTreeById(interfaceMap, associationMaps, id,
+            return getAssociatedSubTreeById(interfaceMap, associationMaps(), id,
                                             objectPath, subtreeInterfaces,
                                             association, endpointInterfaces);
         });
@@ -643,7 +647,7 @@ int main()
                         const std::string& association,
                         std::vector<std::string>& endpointInterfaces) {
             return getAssociatedSubTreePathsById(
-                interfaceMap, associationMaps, id, objectPath,
+                interfaceMap, associationMaps(), id, objectPath,
                 subtreeInterfaces, association, endpointInterfaces);
         });
 
@@ -651,7 +655,7 @@ int main()
 
     boost::asio::post(io, [&]() {
         doListNames(errorExit, io, interfaceMap, systemBus.get(), nameOwners,
-                    associationMaps, server);
+                    associationMaps(), server);
     });
 
     systemBus->request_name("xyz.openbmc_project.ObjectMapper");
