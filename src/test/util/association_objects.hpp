@@ -10,7 +10,7 @@ const std::string defaultRevPath = {defaultEndpoint + "/" + "error"};
 const std::string extraEndpoint = "/xyz/openbmc_project/differnt/endpoint";
 
 // Create a default AssociationOwnersType object
-AssociationOwnersType createDefaultOwnerAssociation()
+inline AssociationOwnersType createDefaultOwnerAssociation()
 {
     AssociationPaths assocPathMap = {{defaultFwdPath, {defaultEndpoint}},
                                      {defaultRevPath, {defaultSourcePath}}};
@@ -21,7 +21,7 @@ AssociationOwnersType createDefaultOwnerAssociation()
 }
 
 // Create a default AssociationInterfaces object
-AssociationInterfaces createDefaultInterfaceAssociation(
+inline AssociationInterfaces createDefaultInterfaceAssociation(
     sdbusplus::asio::object_server* server)
 {
     AssociationInterfaces interfaceAssoc;
@@ -40,7 +40,8 @@ AssociationInterfaces createDefaultInterfaceAssociation(
 }
 
 // Just add an extra endpoint to the first association
-void addEndpointToInterfaceAssociation(AssociationInterfaces& interfaceAssoc)
+inline void addEndpointToInterfaceAssociation(
+    AssociationInterfaces& interfaceAssoc)
 {
     auto iface = interfaceAssoc[defaultFwdPath];
     auto endpoints = std::get<endpointsPos>(iface);
@@ -48,9 +49,9 @@ void addEndpointToInterfaceAssociation(AssociationInterfaces& interfaceAssoc)
 }
 
 // Create a default interfaceMapType with input values
-InterfaceMapType createInterfaceMap(const std::string& path,
-                                    const std::string& connectionName,
-                                    const InterfaceNames& interfaceNames)
+inline InterfaceMapType createInterfaceMap(const std::string& path,
+                                           const std::string& connectionName,
+                                           const InterfaceNames& interfaceNames)
 {
     ConnectionNames connectionMap{{connectionName, interfaceNames}};
     InterfaceMapType interfaceMap{{path, connectionMap}};
@@ -60,7 +61,7 @@ InterfaceMapType createInterfaceMap(const std::string& path,
 
 // Create a default interfaceMapType with 2 entries with the same
 // owner.
-InterfaceMapType createDefaultInterfaceMap()
+inline InterfaceMapType createDefaultInterfaceMap()
 {
     InterfaceMapType interfaceMap = {
         {defaultSourcePath, {{defaultDbusSvc, {"a"}}}},
