@@ -12,7 +12,6 @@
 #include <sdbusplus/asio/object_server.hpp>
 #include <xyz/openbmc_project/Common/error.hpp>
 
-#include <atomic>
 #include <chrono>
 #include <exception>
 #include <iomanip>
