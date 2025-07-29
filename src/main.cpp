@@ -263,7 +263,7 @@ void startNewIntrospect(
     InterfaceMapType& interfaceMap, const std::string& processName,
     AssociationMaps& assocMaps,
 #ifdef MAPPER_ENABLE_DEBUG
-    std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
+    const std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>&
         globalStartTime,
 #endif
     sdbusplus::asio::object_server& objectServer)
