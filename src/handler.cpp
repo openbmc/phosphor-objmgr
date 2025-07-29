@@ -48,7 +48,7 @@ std::vector<InterfaceMapType::value_type> getAncestors(
     {
         reqPath.pop_back();
     }
-    if (!reqPath.empty() && interfaceMap.find(reqPath) == interfaceMap.end())
+    if (!reqPath.empty() && !interfaceMap.contains(reqPath))
     {
         throw sdbusplus::xyz::openbmc_project::Common::Error::
             ResourceNotFound();

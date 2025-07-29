@@ -259,7 +259,7 @@ void associationChanged(
         }
 
         // Can't create this association if the endpoint isn't on D-Bus.
-        if (interfaceMap.find(objectPath) == interfaceMap.end())
+        if (!interfaceMap.contains(objectPath))
         {
             addPendingAssociation(objectPath, reverse, path, forward, owner,
                                   assocMaps);
@@ -425,7 +425,7 @@ void checkIfPendingAssociation(
         return;
     }
 
-    if (interfaceMap.find(objectPath) == interfaceMap.end())
+    if (!interfaceMap.contains(objectPath))
     {
         return;
     }
@@ -437,8 +437,7 @@ void checkIfPendingAssociation(
         const auto& e = std::get<assocPos>(*endpoint);
 
         // Ensure the other side of the association still exists
-        if (interfaceMap.find(std::get<reversePathPos>(e)) ==
-            interfaceMap.end())
+        if (!interfaceMap.contains(std::get<reversePathPos>(e)))
         {
             endpoint++;
             continue;
