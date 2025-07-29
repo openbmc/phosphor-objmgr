@@ -228,8 +228,6 @@ TEST_F(TestAssociations, associationChangedAddNewAssoc)
 // Add a new association to empty objects
 TEST_F(TestAssociations, associationChangedAddNewAssocEmptyObj)
 {
-    std::string sourcePath = "/logging/entry/1";
-    std::string owner = "xyz.openbmc_project.Test";
     std::vector<Association> associations = {
         {"inventory_canaeo", "error_canaeo",
          "/xyz/openbmc_project/inventory/system/chassis"}};
