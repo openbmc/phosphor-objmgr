@@ -1,5 +1,7 @@
 #include "processing.hpp"
 
+#include "associations.hpp"
+
 #include <algorithm>
 #include <array>
 #include <iostream>
