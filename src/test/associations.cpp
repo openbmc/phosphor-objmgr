@@ -13,7 +13,7 @@ class TestAssociations : public AsioServerClassTest
 {
   public:
     boost::asio::io_context io;
-    virtual void SetUp() override
+    void SetUp() override
     {
         io.run();
     }
