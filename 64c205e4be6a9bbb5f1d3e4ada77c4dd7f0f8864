@@ -16,6 +16,24 @@
       "message": "So just remove this from the original commit?",
       "revId": "64c205e4be6a9bbb5f1d3e4ada77c4dd7f0f8864",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fd18b941_ea3d42f8",
+        "filename": "meson.build",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2025-08-04T18:28:26Z",
+      "side": 0,
+      "message": "I can\u0027t, without the change in the previous patch.  I can squash them if you like...that\u0027s what I did with some of the others but the CLI11_PARSE thing felt like it needed its own commit message/explanation.",
+      "parentUuid": "9b36f45c_1ada1974",
+      "revId": "64c205e4be6a9bbb5f1d3e4ada77c4dd7f0f8864",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
