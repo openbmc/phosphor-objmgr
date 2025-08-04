@@ -52,6 +52,24 @@
       "parentUuid": "fd18b941_ea3d42f8",
       "revId": "64c205e4be6a9bbb5f1d3e4ada77c4dd7f0f8864",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4f0629d9_c1a7be51",
+        "filename": "meson.build",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2025-08-04T18:41:59Z",
+      "side": 0,
+      "message": "Right, I understand but that won\u0027t work.  If I do that, 2ae1d24169f6f6f70fd92eceb3a91e621d9d1ea3 will not build, because  64c205e4be6a9bbb5f1d3e4ada77c4dd7f0f8864 comes after it.  I can squash this patch (fa80cc103632f9f1a414a2e6290c26644d06b467) and 64c205e4be6a9bbb5f1d3e4ada77c4dd7f0f8864 if that makes it more clear.",
+      "parentUuid": "e4588d51_5f518121",
+      "revId": "64c205e4be6a9bbb5f1d3e4ada77c4dd7f0f8864",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
