@@ -70,6 +70,24 @@
       "parentUuid": "e4588d51_5f518121",
       "revId": "64c205e4be6a9bbb5f1d3e4ada77c4dd7f0f8864",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4837c485_d9aae62d",
+        "filename": "meson.build",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2025-08-05T16:29:01Z",
+      "side": 0,
+      "message": "Heh, apparently my brain needed that spelled out in the commit message of the CLI11 commit about which compiler warning you were fixing.  I probably would have just put those into 1, or fixed it before turning on that warning in the first place, but it\u0027s fine as it is.",
+      "parentUuid": "4f0629d9_c1a7be51",
+      "revId": "64c205e4be6a9bbb5f1d3e4ada77c4dd7f0f8864",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
