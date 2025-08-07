@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "837732fc_ed98fce0",
+        "filename": "src/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2025-08-07T13:06:05Z",
+      "side": 1,
+      "message": "What was the error here?",
+      "revId": "6e50009dde87d7a1fbacba64286f4566599c1e9a",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
