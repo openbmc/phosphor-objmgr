@@ -16,6 +16,24 @@
       "message": "What was the error here?",
       "revId": "6e50009dde87d7a1fbacba64286f4566599c1e9a",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8046a503_75be000d",
+        "filename": "src/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2025-08-07T16:41:25Z",
+      "side": 1,
+      "message": "It is Wmissing-variable-declarations:\n\n```\nThis warning is issued for non-static global variables that are defined without a previous extern declaration\n\nThe warning is intended to catch cases where a global variable is defined directly without an accompanying extern declaration, which can lead to issues with linkage and code organization.\n```",
+      "parentUuid": "837732fc_ed98fce0",
+      "revId": "6e50009dde87d7a1fbacba64286f4566599c1e9a",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
