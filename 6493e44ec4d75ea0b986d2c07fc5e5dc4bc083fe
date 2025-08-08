@@ -34,6 +34,24 @@
       "parentUuid": "bbf5cd59_ab513a68",
       "revId": "6493e44ec4d75ea0b986d2c07fc5e5dc4bc083fe",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f845303a_735ee535",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2025-08-08T20:01:19Z",
+      "side": 1,
+      "message": "```\n❯ git diff src/main.cpp\ndiff --git a/src/main.cpp b/src/main.cpp\nindex 49107d5..db06ad8 100644\n--- a/src/main.cpp\n+++ b/src/main.cpp\n@@ -329,7 +329,7 @@ static void doListNames(\n             }\n         },\n         \"org.freedesktop.DBus\", \"/org/freedesktop/DBus\", \"org.freedesktop.DBus\",\n-        \"ListNames\");\n+        \"ListNmes\");\n }\n\n // Remove parents of the passed in path that:\n❯ ./build/mapperx\nError getting names: generic:53\n❯ echo $status\n1\n```\n\nHow do you feel about this test?  I couldn\u0027t think of a way to make ListNames fail directly.  I confirmed the behavior is unchanged.",
+      "parentUuid": "5d3edf4b_64f2c6c5",
+      "revId": "6493e44ec4d75ea0b986d2c07fc5e5dc4bc083fe",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
