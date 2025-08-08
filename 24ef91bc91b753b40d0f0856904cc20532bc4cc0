@@ -34,6 +34,24 @@
       "parentUuid": "32f5e592_de644c12",
       "revId": "24ef91bc91b753b40d0f0856904cc20532bc4cc0",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "701f9edd_574c912e",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2025-08-08T19:34:14Z",
+      "side": 1,
+      "message": "It builds the same with it disabled.  Is there something I can put in the commit message to help here?",
+      "parentUuid": "555bbc86_f781d942",
+      "revId": "24ef91bc91b753b40d0f0856904cc20532bc4cc0",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
