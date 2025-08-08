@@ -16,6 +16,24 @@
       "message": "What if you compiled with MAPPER_ENABLE_DEBUG enabled.  Any change?",
       "revId": "24ef91bc91b753b40d0f0856904cc20532bc4cc0",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "555bbc86_f781d942",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2025-08-08T12:41:53Z",
+      "side": 1,
+      "message": "It is enabled by default:\n\n```\n    default_options: [\n        \u0027buildtype\u003ddebugoptimized\u0027,\n```\n\nand then later:\n\n```\n# Enable debugging for debug builds\nif get_option(\u0027buildtype\u0027).startswith(\u0027debug\u0027)\n    add_project_arguments(\u0027-DMAPPER_ENABLE_DEBUG\u0027, language: \u0027cpp\u0027)\nendif\n```\n\nI can try building with it disabled?",
+      "parentUuid": "32f5e592_de644c12",
+      "revId": "24ef91bc91b753b40d0f0856904cc20532bc4cc0",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
