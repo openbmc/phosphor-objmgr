@@ -16,6 +16,24 @@
       "message": "This just seems like a workaround that doesn\u0027t really help",
       "revId": "426d02baf5fda600a4543114b9f5b6a59997d739",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "20cf55c2_415ac282",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2025-08-08T12:51:29Z",
+      "side": 1,
+      "message": "Yeah that\u0027s fair.  And the static initialization guards the compiler adds add some unnecessary overhead since this isn\u0027t used outside of this translation unit.  I\u0027ll add a pragma so tidy ignores it.",
+      "parentUuid": "f914e1a1_1d8543c9",
+      "revId": "426d02baf5fda600a4543114b9f5b6a59997d739",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
