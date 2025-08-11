@@ -111,6 +111,30 @@
       },
       "revId": "2ae1d24169f6f6f70fd92eceb3a91e621d9d1ea3",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b1121837_1f30d2f2",
+        "filename": "meson.build",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2025-08-11T22:38:42Z",
+      "side": 1,
+      "message": "\u003e of which only 5 are discussed in the commit message.\n\nThey are all discussed in the commit message - they are either in the group of not helpful or the group of one of the five listed that are helpful but don\u0027t pass the code as is.\n\n\u003e Why do we need to disable warnings for C++23 extensions when we\u0027re using C++23?\n\nThat\u0027s not how these options work.  -Wc++26-extensions means \u0027complain about use of c++26\u0027 so I\u0027m turning that off so we can use c++26.\n\n\u003e You mentioned 5 flags that are \"especially valuable\". Why not enable those rather than -Weverything?\n\nI mentioned 5 that are helpful that don\u0027t pass.  There are more that are helpful that do pass.\n\n\u003e We\u0027ve spent way too much time unraveling compiler flags and boost #defines that snuck their way into meson.build files already. I\u0027m tired of it.\n\nWho spent time doing what exactly?  I don\u0027t anticipate causing work for anyone other that myself or maybe Matt.",
+      "parentUuid": "902d2f56_09b9db7e",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 31
+      },
+      "revId": "2ae1d24169f6f6f70fd92eceb3a91e621d9d1ea3",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
