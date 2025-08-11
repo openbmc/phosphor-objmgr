@@ -22,6 +22,30 @@
       },
       "revId": "2ae1d24169f6f6f70fd92eceb3a91e621d9d1ea3",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2f70abfc_31ed1f19",
+        "filename": "meson.build",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2025-08-11T17:53:33Z",
+      "side": 1,
+      "message": "\u003e Why are we enabling random compiler flags \n\nI\u0027m not sure what makes flags random, so I don\u0027t know how to respond.\n\n\u003e in random repositories\n\nReading between the lines a little here, but I assume there is a desire for all the projects to have the exact same clang-tidy configuration?\n\n\u003e shouldn\u0027t we do this in the CI scripts?\n\nIn general I will always support more static analysis but I don\u0027t think a one-size-fits-all approach is important.",
+      "parentUuid": "0d462926_75886c21",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 31
+      },
+      "revId": "2ae1d24169f6f6f70fd92eceb3a91e621d9d1ea3",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
