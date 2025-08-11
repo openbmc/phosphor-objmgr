@@ -46,6 +46,30 @@
       },
       "revId": "2ae1d24169f6f6f70fd92eceb3a91e621d9d1ea3",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "902d2f56_09b9db7e",
+        "filename": "meson.build",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2025-08-11T19:03:01Z",
+      "side": 1,
+      "message": "\u003e I\u0027m not sure what makes flags random, so I don\u0027t know how to respond.\n\nThere are a huge set of compile flags here, of which only 5 are discussed in the commit message.  They just seem like a random collection to anyone else.  For example:\n\n        \u0027-Wno-c++20-extensions\u0027,\n        \u0027-Wno-c++23-extensions\u0027,\n\nWhy do we need to disable warnings for C++23 extensions when we\u0027re using C++23?\n\nIf we have to specify this many things to make something work, I see it as being low value.  You mentioned 5 flags that are \"especially valuable\".  Why not enable those rather than `-Weverything`?\n\n\u003e Reading between the lines a little here, but I assume there is a desire for all the projects to have the exact same clang-tidy configuration?\n\nYes, 100%.  We\u0027ve spent way too much time unraveling compiler flags and boost #defines that snuck their way into meson.build files already.  I\u0027m tired of it.  In my opinion, if a repository has to specify compile flags in a meson.build in order for their repository to work like everyone else\u0027s, something is wrong.\n\n\u003e In general I will always support more static analysis but I don\u0027t think a one-size-fits-all approach is important.\n\nI think we should treat this just like clang-tidy flags: no repository should be a special snowflake.  If you think there is a valuable flag, let\u0027s get it enabled a project level (with potentially a way to turn it off for repositories that aren\u0027t \"ready\") so we can have the debate there.  Having one repository do one thing and another repository do another is more technical debt than technical benefit, in my mind.",
+      "parentUuid": "2f70abfc_31ed1f19",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 31
+      },
+      "revId": "2ae1d24169f6f6f70fd92eceb3a91e621d9d1ea3",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
