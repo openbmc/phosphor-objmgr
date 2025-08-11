@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "687d48be_6c32a145",
+        "filename": "libmapper/test/mapper.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2025-08-11T22:41:58Z",
+      "side": 1,
+      "message": "This is actually unsafe, right?  We don\u0027t check any of the return values for nullptr or length.  Should we just fix the warning instead of ignoring it?  I suspect the gtest EXPECT_THAT, ElementsAre, and Pointee calls can just index these for us.",
+      "revId": "374ad94c365704e756c023a825148dc50132c289",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "538ad443_3f43273f",
+        "filename": "src/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2025-08-11T22:41:58Z",
+      "side": 1,
+      "message": "Can we just make this a constexpr string_view\n\nhttps://github.com/openbmc/phosphor-objmgr/blob/11c0cc3cacc6fd0bf194e65435e4b1e4a88f6a96/src/processing.hpp#L12\n\nSeems easier than statically constructing one initially.",
+      "range": {
+        "startLine": 223,
+        "startChar": 37,
+        "endLine": 223,
+        "endChar": 55
+      },
+      "revId": "374ad94c365704e756c023a825148dc50132c289",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
