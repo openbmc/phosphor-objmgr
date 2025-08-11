@@ -3,6 +3,23 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "cb0eaf0c_120d6835",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2025-08-11T22:31:53Z",
+      "side": 1,
+      "message": "clang builds only only runs",
+      "revId": "2ae1d24169f6f6f70fd92eceb3a91e621d9d1ea3",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "0d462926_75886c21",
         "filename": "meson.build",
         "patchSetId": 1
@@ -62,6 +79,30 @@
       "side": 1,
       "message": "\u003e I\u0027m not sure what makes flags random, so I don\u0027t know how to respond.\n\nThere are a huge set of compile flags here, of which only 5 are discussed in the commit message.  They just seem like a random collection to anyone else.  For example:\n\n        \u0027-Wno-c++20-extensions\u0027,\n        \u0027-Wno-c++23-extensions\u0027,\n\nWhy do we need to disable warnings for C++23 extensions when we\u0027re using C++23?\n\nIf we have to specify this many things to make something work, I see it as being low value.  You mentioned 5 flags that are \"especially valuable\".  Why not enable those rather than `-Weverything`?\n\n\u003e Reading between the lines a little here, but I assume there is a desire for all the projects to have the exact same clang-tidy configuration?\n\nYes, 100%.  We\u0027ve spent way too much time unraveling compiler flags and boost #defines that snuck their way into meson.build files already.  I\u0027m tired of it.  In my opinion, if a repository has to specify compile flags in a meson.build in order for their repository to work like everyone else\u0027s, something is wrong.\n\n\u003e In general I will always support more static analysis but I don\u0027t think a one-size-fits-all approach is important.\n\nI think we should treat this just like clang-tidy flags: no repository should be a special snowflake.  If you think there is a valuable flag, let\u0027s get it enabled a project level (with potentially a way to turn it off for repositories that aren\u0027t \"ready\") so we can have the debate there.  Having one repository do one thing and another repository do another is more technical debt than technical benefit, in my mind.",
       "parentUuid": "2f70abfc_31ed1f19",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 31
+      },
+      "revId": "2ae1d24169f6f6f70fd92eceb3a91e621d9d1ea3",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f0d1a3fd_ee16b04a",
+        "filename": "meson.build",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1000153
+      },
+      "writtenOn": "2025-08-11T22:31:53Z",
+      "side": 1,
+      "message": "Lets start by documenting where these came from.  Unless we happened to pick the exact same option order to ignore, i\u0027m assuming these came from bmcweb, which has run -Weverything for a while.\n\nhttps://github.com/openbmc/bmcweb/blob/1060065e881844d3adbd23d0e6c14b855bee4726/meson.build#L79\n\nFWIW, the clang maintainers don\u0027t recommend running -Weverything because it causes new-issues with -Werror every release.  Within a day or two of the clang release I have to run a build and put up a commit like:\nhttps://gerrit.openbmc.org/c/openbmc/bmcweb/+/80867\n\nOr a commit to go clean up all the warnings for -Werror ahead of clang getting enabled.  Do you guys as maintainers know that\u0027s what this entails?\n\nFWIW, when I did this in bmcweb 23a21a1cbed23ace4174664950e595df961e9e69 (5 years ago), I intended this to be temporary, and I wanted to make up an explicit list of warnings to enable and propose in openbmc-build-scripts as things every repo should pass.  Of course... I never got there, but that was the goal.  Every clang release I\u0027ve toyed with removing -Weverything.  I\u0027ve ended up working around it thusfar, but it\u0027s a non-trivial amount of work.  object mapper is probably less work due to it being a lot less code, but it\u0027s still work that happens on a deadline.\n\n\u003e Why do we need to disable warnings for C++23 extensions when we\u0027re using C++23?\n\nBecause bmcweb was on c++20 when I enabled these.  https://github.com/openbmc/bmcweb/commit/27f5ecf750efa7ef437d3a078e766a84265adf67\n\nWe\u0027re wrong to still have that in the list, so might as well clean that up:\nhttps://gerrit.openbmc.org/c/openbmc/bmcweb/+/82703\n\n\u003e in order for their repository to work like everyone else\u0027s,\n\nThis isn\u0027t really true.  Most of the build tree still won\u0027t compile with clang as-is.  In this case of clang, I would like to see us consolidate the warnings (likely with the exception of -Weverything) but I don\u0027t think taking this patch as it stands is outright wrong.\n\n\u003e I think we should treat this just like clang-tidy flags: no repository should be a special snowflake.\n\nWhile I agree with this position in general, it forgets the reality that we have lots of maintainers that don\u0027t integrate new checks and changes over time, and we have a lot of code written against a lot of different quality standards.  The majority of the repos still aren\u0027t tidy enabled, so these checks are largely moot.  I would much rather have the checks enabled in the places that we do work in because as a maintainer it saves me time to, for example, not have to point out that people check before they dereferenced their optional (bugprone-unchecked-optional-access).  In almost every case where the code had that in bmcweb, that was a crash we avoided on untrusted user data, but the check would be difficult to turn on for the whole project.  There are plenty of examples where we\u0027ve also enabled warnings that are counter productive, and we fix just to keep from needing to update the list of warnings.  That subtlety makes it hard to come up with a one size fits all approach to this.\n\nOveral:\nEnabling phosphor-object manager to build with clang, I\u0027m in support, and I suspect the rest of this series is only making improvements on things that clang found to be wrong.\n\nEnabling -Weverything..... I\u0027d be good to have a discussion on how that\u0027s maintained, and if there\u0027s a better option there (fixed clang-specific warning list in openbmc-build-scripts) that doesn\u0027t cause a bunch of distributed work for everyone now that people besides me care about -Weverything.  I would really like to synchronize with others on it, and if copy/paste is the only way to do that, so be it, but I suspect something like openbmc-build-scripts would end up being better.",
+      "parentUuid": "902d2f56_09b9db7e",
       "range": {
         "startLine": 28,
         "startChar": 0,
