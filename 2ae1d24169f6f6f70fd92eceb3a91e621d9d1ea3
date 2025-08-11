@@ -135,6 +135,30 @@
       },
       "revId": "2ae1d24169f6f6f70fd92eceb3a91e621d9d1ea3",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8f162cc4_81007378",
+        "filename": "meson.build",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2025-08-11T22:42:55Z",
+      "side": 1,
+      "message": "\u003e Lets start by documenting where these came from\n\nYes, they came from bmcweb.\n\n\u003e Do you guys as maintainers know that\u0027s what this entails?\n\nYes, I was aware I was taking that on (or we can work on it together).",
+      "parentUuid": "b1121837_1f30d2f2",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 31
+      },
+      "revId": "2ae1d24169f6f6f70fd92eceb3a91e621d9d1ea3",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
