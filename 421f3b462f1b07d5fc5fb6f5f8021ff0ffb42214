@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "13e00d4f_d2d8c8a1",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2025-08-11T15:44:42Z",
+      "side": 1,
+      "message": "We had a whole discussion on how to enable clang-tidy across the organization.  This is deviating from that.\n\nPlease add proposals for checks you like to the reference in docs and then use the `openbmc-build-scripts/tools/config-clang-tidy` to apply this to all the repos.",
+      "revId": "421f3b462f1b07d5fc5fb6f5f8021ff0ffb42214",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
