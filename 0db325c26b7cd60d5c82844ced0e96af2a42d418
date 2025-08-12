@@ -94,6 +94,30 @@
       },
       "revId": "0db325c26b7cd60d5c82844ced0e96af2a42d418",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "677abe89_d17a4297",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2025-08-12T19:29:28Z",
+      "side": 1,
+      "message": "Have you seen cases where this has actually been a problem for you?  Can you please point to commits that happened in CLI11 that broke your development?\n\nWe have seen many cases where repositories use some specific version in their wrap file and the maintainer doesn\u0027t update it for 3 years.  This is what I don\u0027t want to see.",
+      "parentUuid": "397a84e7_02743103",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 11
+      },
+      "revId": "0db325c26b7cd60d5c82844ced0e96af2a42d418",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ],
   "submitRequirementResults": []
