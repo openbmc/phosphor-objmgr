@@ -22,6 +22,30 @@
       },
       "revId": "91862b36204d01f170dcda2589cb553fe527b763",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7df045dc_dc5ca2d7",
+        "filename": "meson.build",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2025-08-12T01:09:16Z",
+      "side": 1,
+      "message": "I can tell you it isn\u0027t fixed as of 1.87.",
+      "parentUuid": "21711221_f5f9e222",
+      "range": {
+        "startLine": 28,
+        "startChar": 23,
+        "endLine": 28,
+        "endChar": 43
+      },
+      "revId": "91862b36204d01f170dcda2589cb553fe527b763",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
