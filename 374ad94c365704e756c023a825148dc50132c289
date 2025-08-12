@@ -39,6 +39,30 @@
       },
       "revId": "374ad94c365704e756c023a825148dc50132c289",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "afc95b02_be084b62",
+        "filename": "src/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2025-08-12T01:13:41Z",
+      "side": 1,
+      "message": "I had the same thought and tried that initially but if I remember it required several fix-ups in a bunch of other places.  I can try it again.",
+      "parentUuid": "538ad443_3f43273f",
+      "range": {
+        "startLine": 223,
+        "startChar": 37,
+        "endLine": 223,
+        "endChar": 55
+      },
+      "revId": "374ad94c365704e756c023a825148dc50132c289",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
