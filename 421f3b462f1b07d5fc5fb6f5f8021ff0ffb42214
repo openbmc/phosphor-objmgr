@@ -88,6 +88,24 @@
       "parentUuid": "1067d4da_e25f5a3a",
       "revId": "421f3b462f1b07d5fc5fb6f5f8021ff0ffb42214",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "de6ae3e5_868e5567",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2025-08-12T18:11:46Z",
+      "side": 1,
+      "message": "Ok cool.  If I submit fixes for problems that aren\u0027t in that list will those be rejected?",
+      "parentUuid": "c12c2d48_cf345420",
+      "revId": "421f3b462f1b07d5fc5fb6f5f8021ff0ffb42214",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
