@@ -50,7 +50,7 @@ add_project_arguments(
 
 cli11 = dependency('CLI11', required: false, include_type: 'system')
 if not cli11.found()
-    cli11_proj = subproject('cli11', required: true)
+    cli11_proj = subproject('CLI11', required: true)
     cli11 = cli11_proj.get_variable('CLI11_dep')
     cli11 = cli11.as_system('system')
 endif
