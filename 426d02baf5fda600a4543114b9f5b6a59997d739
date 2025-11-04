@@ -34,6 +34,24 @@
       "parentUuid": "f914e1a1_1d8543c9",
       "revId": "426d02baf5fda600a4543114b9f5b6a59997d739",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dedd448c_57ebd4cc",
+        "filename": "src/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2025-11-04T12:27:57Z",
+      "side": 1,
+      "message": "I\u0027m going to abandon this for now, given the push-back on adding our own tidy checks.",
+      "parentUuid": "20cf55c2_415ac282",
+      "revId": "426d02baf5fda600a4543114b9f5b6a59997d739",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
