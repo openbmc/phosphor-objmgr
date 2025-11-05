@@ -41,16 +41,18 @@ bool Monitor::inFailedState(const std::string& path)
 
     method.append(systemdUnitInterface, "ActiveState");
 
-    auto reply = bus.call(method);
-    if (reply.is_method_error())
+    try
+    {
+        auto reply = bus.call(method);
+
+        reply.read(property);
+    }
+    catch (const sdbusplus::exception_t& e)
     {
         log<level::ERR>("Failed reading ActiveState DBus property",
                         entry("UNIT=%s", source.c_str()));
-        // TODO openbmc/openbmc#851 - Once available, throw returned error
-        throw std::runtime_error("Failed reading ActiveState DBus property");
+        throw e;
     }
-
-    reply.read(property);
 
     auto value = std::get<std::string>(property);
     return (value == failedState);
@@ -63,17 +65,18 @@ std::string Monitor::getSourceUnitPath()
     auto method = bus.new_method_call(systemdService, systemdObjPath,
                                       systemdInterface, "GetUnit");
     method.append(source);
-    auto reply = bus.call(method);
 
-    if (reply.is_method_error())
+    try
+    {
+        auto reply = bus.call(method);
+        reply.read(path);
+    }
+    catch (const sdbusplus::exception_t& e)
     {
         log<level::ERR>("Failed GetUnit DBus method call",
                         entry("UNIT=%s", source.c_str()));
-        // TODO openbmc/openbmc#851 - Once available, throw returned error
-        throw std::runtime_error("Failed GetUnit DBus method call");
+        throw e;
     }
-
-    reply.read(path);
 
     return static_cast<std::string>(path);
 }
@@ -95,14 +98,15 @@ void Monitor::runTargetAction()
     method.append(target);
     method.append("replace");
 
-    auto reply = bus.call(method);
-
-    if (reply.is_method_error())
+    try
+    {
+        auto reply = bus.call(method);
+    }
+    catch (const sdbusplus::exception_t& e)
     {
         log<level::ERR>("Failed to run action on the target unit",
                         entry("UNIT=%s", target.c_str()));
-        // TODO openbmc/openbmc#851 - Once available, throw returned error
-        throw std::runtime_error("Failed to run action on the target unit");
+        throw e;
     }
 }
 } // namespace failure
