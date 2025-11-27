@@ -160,7 +160,8 @@ static void doAssociations(
                                processName, interfaceMap, associationMaps);
         },
         processName, path, "org.freedesktop.DBus.Properties", "Get",
-        assocDefsInterface, assocDefsProperty);
+        AssociationDefinitions::interface,
+        AssociationDefinitions::property_names::associations);
 }
 
 static void doIntrospect(
@@ -219,7 +220,8 @@ static void doIntrospect(
 
                 thisPathMap[transaction->processName].emplace(ifaceName);
 
-                if (std::strcmp(ifaceName, assocDefsInterface) == 0)
+                if (std::strcmp(ifaceName, AssociationDefinitions::interface) ==
+                    0)
                 {
                     doAssociations(io, systemBus, interfaceMap, objectServer,
                                    transaction->processName, path);
@@ -494,7 +496,7 @@ int main()
                 continue;
             }
 
-            if (interface == assocDefsInterface)
+            if (interface == AssociationDefinitions::interface)
             {
                 removeAssociation(io, objPath.str, sender, server,
                                   associationMaps);
@@ -546,7 +548,8 @@ int main()
                                    std::variant<std::vector<Association>>>
             values;
         message.read(objectName, values);
-        auto prop = values.find(assocDefsProperty);
+        auto prop =
+            values.find(AssociationDefinitions::property_names::associations);
         if (prop != values.end())
         {
             std::vector<Association> associations =
@@ -566,7 +569,8 @@ int main()
         sdbusplus::bus::match::rules::interface(
             "org.freedesktop.DBus.Properties") +
             sdbusplus::bus::match::rules::member("PropertiesChanged") +
-            sdbusplus::bus::match::rules::argN(0, assocDefsInterface),
+            sdbusplus::bus::match::rules::argN(
+                0, AssociationDefinitions::interface),
         std::move(associationChangedHandler));
 
     std::shared_ptr<sdbusplus::asio::dbus_interface> iface =

@@ -3,16 +3,13 @@
 #include "types.hpp"
 
 #include <boost/container/flat_map.hpp>
+#include <xyz/openbmc_project/Association/Definitions/common.hpp>
 
 #include <cassert>
 #include <string>
 
-/** @brief The associations definitions interface */
-constexpr const char* assocDefsInterface =
-    "xyz.openbmc_project.Association.Definitions";
-
-/** @brief The associations definitions property name */
-constexpr const char* assocDefsProperty = "Associations";
+using AssociationDefinitions =
+    sdbusplus::common::xyz::openbmc_project::association::Definitions;
 
 /** @brief InterfacesAdded represents the dbus data from the signal
  *

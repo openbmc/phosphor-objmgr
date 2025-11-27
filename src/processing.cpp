@@ -67,7 +67,7 @@ void processNameChangeDelete(
         if (ifaces != pathIt->second.end())
         {
             auto assoc = std::find(ifaces->second.begin(), ifaces->second.end(),
-                                   assocDefsInterface);
+                                   AssociationDefinitions::interface);
             if (assoc != ifaces->second.end())
             {
                 removeAssociation(io, pathIt->first, wellKnown, server,
@@ -111,13 +111,14 @@ void processInterfaceAdded(
     {
         ifaceList[wellKnown].emplace(interfacePair.first);
 
-        if (interfacePair.first == assocDefsInterface)
+        if (interfacePair.first == AssociationDefinitions::interface)
         {
             const std::variant<std::vector<Association>>* variantAssociations =
                 nullptr;
             for (const auto& interface : interfacePair.second)
             {
-                if (interface.first == assocDefsProperty)
+                if (interface.first ==
+                    AssociationDefinitions::property_names::associations)
                 {
                     variantAssociations = &(interface.second);
                 }

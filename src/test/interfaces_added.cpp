@@ -34,8 +34,9 @@ TEST_F(TestInterfacesAdded, InterfacesAddedGoodPath)
     auto interfaceMap = createDefaultInterfaceMap();
     AssociationMaps assocMaps;
 
-    auto intfAdded =
-        createInterfacesAdded(assocDefsInterface, assocDefsProperty);
+    auto intfAdded = createInterfacesAdded(
+        AssociationDefinitions::interface,
+        AssociationDefinitions::property_names::associations);
 
     boost::asio::io_context io;
 
