@@ -2,11 +2,15 @@
 
 #include "associations.hpp"
 
+#include <xyz/openbmc_project/ObjectMapper/common.hpp>
+
 #include <algorithm>
 #include <array>
 #include <iostream>
 #include <string>
 #include <string_view>
+
+using ObjectMapper = sdbusplus::common::xyz::openbmc_project::ObjectMapper;
 
 bool getWellKnown(
     const boost::container::flat_map<std::string, std::string>& owners,
@@ -79,7 +83,7 @@ void processNameChangeDelete(
             // we own this path as well, which would be because of an
             // association.
             if ((pathIt->second.size() == 2) &&
-                (pathIt->second.find("xyz.openbmc_project.ObjectMapper") !=
+                (pathIt->second.find(ObjectMapper::default_service) !=
                  pathIt->second.end()))
             {
                 // Remove the 2 association D-Bus paths and move the

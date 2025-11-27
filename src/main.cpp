@@ -11,6 +11,7 @@
 #include <sdbusplus/asio/connection.hpp>
 #include <sdbusplus/asio/object_server.hpp>
 #include <xyz/openbmc_project/Common/error.hpp>
+#include <xyz/openbmc_project/ObjectMapper/common.hpp>
 
 #include <chrono>
 #include <exception>
@@ -19,6 +20,8 @@
 #include <string>
 #include <string_view>
 #include <utility>
+
+using ObjectMapper = sdbusplus::common::xyz::openbmc_project::ObjectMapper;
 
 static AssociationMaps associationMaps;
 
@@ -53,8 +56,8 @@ static void sendIntrospectionCompleteSignal(
     // introspect right now.  Find out how to register signals in
     // sdbusplus
     sdbusplus::message_t m = systemBus->new_signal(
-        "/xyz/openbmc_project/object_mapper",
-        "xyz.openbmc_project.ObjectMapper.Private", "IntrospectionComplete");
+        ObjectMapper::instance_path, "xyz.openbmc_project.ObjectMapper.Private",
+        "IntrospectionComplete");
     m.append(processName);
     m.signal_send();
 }
@@ -517,7 +520,7 @@ int main()
                 // association path.
                 if ((connectionMap->second.size() == 1) &&
                     (connectionMap->second.begin()->first ==
-                     "xyz.openbmc_project.ObjectMapper"))
+                     ObjectMapper::default_service))
                 {
                     // Remove the 2 association D-Bus paths and move the
                     // association to pending.
@@ -574,36 +577,39 @@ int main()
         std::move(associationChangedHandler));
 
     std::shared_ptr<sdbusplus::asio::dbus_interface> iface =
-        server.add_interface("/xyz/openbmc_project/object_mapper",
-                             "xyz.openbmc_project.ObjectMapper");
+        server.add_interface(ObjectMapper::instance_path,
+                             ObjectMapper::interface);
 
     iface->register_method(
-        "GetAncestors", [&interfaceMap](std::string& reqPath,
-                                        std::vector<std::string>& interfaces) {
+        ObjectMapper::method_names::get_ancestors,
+        [&interfaceMap](std::string& reqPath,
+                        std::vector<std::string>& interfaces) {
             return getAncestors(interfaceMap, reqPath, interfaces);
         });
 
     iface->register_method(
-        "GetObject", [&interfaceMap](const std::string& path,
-                                     std::vector<std::string>& interfaces) {
+        ObjectMapper::method_names::get_object,
+        [&interfaceMap](const std::string& path,
+                        std::vector<std::string>& interfaces) {
             return getObject(interfaceMap, path, interfaces);
         });
 
     iface->register_method(
-        "GetSubTree", [&interfaceMap](std::string& reqPath, int32_t depth,
-                                      std::vector<std::string>& interfaces) {
+        ObjectMapper::method_names::get_sub_tree,
+        [&interfaceMap](std::string& reqPath, int32_t depth,
+                        std::vector<std::string>& interfaces) {
             return getSubTree(interfaceMap, reqPath, depth, interfaces);
         });
 
     iface->register_method(
-        "GetSubTreePaths",
+        ObjectMapper::method_names::get_sub_tree_paths,
         [&interfaceMap](std::string& reqPath, int32_t depth,
                         std::vector<std::string>& interfaces) {
             return getSubTreePaths(interfaceMap, reqPath, depth, interfaces);
         });
 
     iface->register_method(
-        "GetAssociatedSubTree",
+        ObjectMapper::method_names::get_associated_sub_tree,
         [&interfaceMap](const sdbusplus::message::object_path& associationPath,
                         const sdbusplus::message::object_path& reqPath,
                         int32_t depth, std::vector<std::string>& interfaces) {
@@ -613,7 +619,7 @@ int main()
         });
 
     iface->register_method(
-        "GetAssociatedSubTreePaths",
+        ObjectMapper::method_names::get_associated_sub_tree_paths,
         [&interfaceMap](const sdbusplus::message::object_path& associationPath,
                         const sdbusplus::message::object_path& reqPath,
                         int32_t depth, std::vector<std::string>& interfaces) {
@@ -623,7 +629,7 @@ int main()
         });
 
     iface->register_method(
-        "GetAssociatedSubTreeById",
+        ObjectMapper::method_names::get_associated_sub_tree_by_id,
         [&interfaceMap](const std::string& id, const std::string& objectPath,
                         std::vector<std::string>& subtreeInterfaces,
                         const std::string& association,
@@ -634,7 +640,7 @@ int main()
         });
 
     iface->register_method(
-        "GetAssociatedSubTreePathsById",
+        ObjectMapper::method_names::get_associated_sub_tree_paths_by_id,
         [&interfaceMap](const std::string& id, const std::string& objectPath,
                         std::vector<std::string>& subtreeInterfaces,
                         const std::string& association,
@@ -651,7 +657,7 @@ int main()
                     associationMaps, server);
     });
 
-    systemBus->request_name("xyz.openbmc_project.ObjectMapper");
+    systemBus->request_name(ObjectMapper::default_service);
 
     io.run();
 }
