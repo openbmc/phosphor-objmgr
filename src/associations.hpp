@@ -2,9 +2,6 @@
 
 #include "types.hpp"
 
-constexpr const char* xyzAssociationInterface =
-    "xyz.openbmc_project.Association";
-
 constexpr size_t endpointsCountTimerThreshold = 100;
 constexpr int endpointUpdateDelaySeconds = 1;
 

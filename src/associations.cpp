@@ -4,9 +4,12 @@
 
 #include <boost/asio/steady_timer.hpp>
 #include <sdbusplus/exception.hpp>
+#include <xyz/openbmc_project/Association/common.hpp>
 
 #include <iostream>
 #include <string>
+
+using AssociationIntf = sdbusplus::common::xyz::openbmc_project::Association;
 
 static void updateEndpointsOnDbus(sdbusplus::asio::object_server& objectServer,
                                   const std::string& assocPath,
@@ -37,7 +40,7 @@ static void updateEndpointsOnDbus(sdbusplus::asio::object_server& objectServer,
     }
     else if (!endpoints.empty())
     {
-        i = objectServer.add_interface(assocPath, xyzAssociationInterface);
+        i = objectServer.add_interface(assocPath, AssociationIntf::interface);
         i->register_property("endpoints", endpoints);
         i->initialize();
     }
