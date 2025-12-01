@@ -74,6 +74,24 @@
       "message": "Something on my todo list has actually been to remove the pdi dependency from the mapper.",
       "revId": "08e3456a559ae9e5e329e72186adb3b6bfa8a231",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5e73e101_486acb9b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2025-12-01T23:54:13Z",
+      "side": 1,
+      "message": "\u003e Something on my todo list has actually been to remove the pdi dependency from the mapper.\n\nElaborating...I sort of understand the desire in other OpenBMC projects.  But the mapper follows the conventions of typical dbus application programming where the service schema is defined and discovered by the well known service name.  It will never make dbus calls to other openbmc services and thus the whole \u0027check the api at build time\u0027 is not applicable.",
+      "parentUuid": "aa5bcb92_2d6bd359",
+      "revId": "08e3456a559ae9e5e329e72186adb3b6bfa8a231",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
