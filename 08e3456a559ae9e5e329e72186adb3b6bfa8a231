@@ -1,6 +1,29 @@
 {
   "comments": [
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "0f23bc9b_f121ce6f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2025-12-01T23:50:31Z",
+      "side": 1,
+      "message": "This much is obvious from the code.  Please explain -why- we should prefer the approach with additional indirection and dependencies for a string constant.",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 12
+      },
+      "revId": "08e3456a559ae9e5e329e72186adb3b6bfa8a231",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "de80d05c_0057d843",
@@ -32,6 +55,23 @@
       "side": 1,
       "message": "\u003e I don\u0027t have a problem with these constants.\n\nDo you think they make the code better?  This isn\u0027t enabling some feature for the submitter...its just a refactor so there should be some benefit.  What is it?",
       "parentUuid": "de80d05c_0057d843",
+      "revId": "08e3456a559ae9e5e329e72186adb3b6bfa8a231",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "aa5bcb92_2d6bd359",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2025-12-01T23:50:31Z",
+      "side": 1,
+      "message": "Something on my todo list has actually been to remove the pdi dependency from the mapper.",
       "revId": "08e3456a559ae9e5e329e72186adb3b6bfa8a231",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
