@@ -16,6 +16,24 @@
       "message": "I don\u0027t have a problem with these constants.",
       "revId": "08e3456a559ae9e5e329e72186adb3b6bfa8a231",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "df484c05_8006780f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2025-12-01T23:46:19Z",
+      "side": 1,
+      "message": "\u003e I don\u0027t have a problem with these constants.\n\nDo you think they make the code better?  This isn\u0027t enabling some feature for the submitter...its just a refactor so there should be some benefit.  What is it?",
+      "parentUuid": "de80d05c_0057d843",
+      "revId": "08e3456a559ae9e5e329e72186adb3b6bfa8a231",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
