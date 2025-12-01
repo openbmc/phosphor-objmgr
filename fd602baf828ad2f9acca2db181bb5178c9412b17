@@ -22,6 +22,30 @@
       },
       "revId": "fd602baf828ad2f9acca2db181bb5178c9412b17",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "547c8077_85996c98",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2025-12-01T22:13:44Z",
+      "side": 1,
+      "message": "Thanks for the quick turnaround Matt.  Mostly because our Yocto is on 1.88 and I think 1.89 may be more effort.  Regardless, this is an improvement over 1.87 I think?",
+      "parentUuid": "360b3a0f_3ea94617",
+      "range": {
+        "startLine": 7,
+        "startChar": 22,
+        "endLine": 7,
+        "endChar": 29
+      },
+      "revId": "fd602baf828ad2f9acca2db181bb5178c9412b17",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
