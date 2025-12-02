@@ -43,6 +43,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "f518a596_ea2683de",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001712
+      },
+      "writtenOn": "2025-12-02T10:39:31Z",
+      "side": 1,
+      "message": "\u003e To be honest I don\u0027t understand what I\u0027m getting in return for the additional indirection and reduction in clarity.\n\nBased on your concern i can go into detail here 😊\n\nLet me know your thoughts on my response and we can go into detail on individual points 👍\n\nWhat you get:\n\n### no more typo or manual comparing\n\nIt\u0027s impossible to have a typo when using object paths, interface names and bus names  from the generated header.\n\n### easier to review\n\nWhen reviewing both new and old code there is less need to look at the PDI documentation for a given interface. Since we are using the symbol from the generated header.\n\nIt can lead to reduced number of iterations for development of new code.\n\nFor example consider someone creating an `xyz.openbmc_project.Sensor.Value` interface on `/xyz/openbmc_project/sensor/temperature/`.\n\nIs it not `/xyz/openbmc_project/sensors/temperature/` ?\nOr just plain `/xyz/openbmc_project/sensors/` ?\n\nOne would have to check back with the PDI yaml to see what the namespaces are.\nWhen using the generated header it\u0027s easier to confirm \u0027at a glance\u0027 that the code is as expected.\n\n### improved failure mode\n\nWhen PDI interfaces are refactored or default bus names, object paths and interface names change, code using the generated header will get a compilation error.\n\nCode using hardcoded string literals for bus names, interfaces, ... will simply fail at runtime.\n\nThis failure mode thing has special relevance for the error path which may be run infrequently. It may also be hard to test or changed without testing, or simply forgotten about code.\n\n### improved refactoring capability\n\nWhen PDI is implemented throughout, bus names, object path namespaces and interface names can be changed in a single patch on the PDI. When hardcoding approach is used, such changes result in lots of patches and needs gerrit topics and synchronized SRCREV bumping which can be tedious.\n\n### on the indirection (in bus names)\n\nUsually i don\u0027t care much about the specific bus name which is used.\nIf i want to debug using busctl, easy enough to look that up in the PDI.\n\nIt\u0027s a small step to look that up for a developer.\nDepending on your IDE/Editor you could probably just go-to-definition on a given symbol.\n\n### on the indirection (in interface names)\n\nSimilarly i don\u0027t care as much about the specific interface name. If it\u0027s \n`xyz.openbmc_project.Item.Cpu` or `xyz.openbmc_project.Item.CPU`\nor `xyz.Item.Cpu`.\n\n- the prefix is redundant for the understanding, it\u0027s just namespacing and not super valuable for the reader\n- for the suffix e.g. `Item.Cpu` i usually want to know if it actually exists.\n\nI did have a small number of encounters with properties and interfaces that did not actually exist in the PDI.\n\nWhen using generated headers there is no such worry since these things come from the header and we can be sure that the interface / property actually exists and is not some forgotten relic.\n\n### improved code search for properties and method names\n\nWhen using-directivo `using SensorValue \u003d ...`\nis applied then we can look for \n`SensorValue::property_names::value` instead of `\"Value\"`.\n\nOtherwise, property `Value` is part of following other interfaces also\n- Metric.Value\n- Common.Threshold\n- State.Boot.Raw\n\nSince the PDI is properly namespaced, we can use the namespaces for a better code search.",
+      "parentUuid": "8c77bf43_ae88876c",
+      "revId": "f7fa4ab986b2430d63d0e7c51bfc83eb134d0eae",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "1e14d9db_72fd4320",
         "filename": "src/main.cpp",
         "patchSetId": 1
