@@ -16,6 +16,24 @@
       "message": "@aladyshev22@gmail.com you seemed to want this tinyxml2 wrap file.  Going forward can you please keep it updated?  Thanks!",
       "revId": "d775f462046f6fefbb013cd2a51142a6960771de",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "992e21c0_9cc6e7cc",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000926
+      },
+      "writtenOn": "2025-12-05T14:44:32Z",
+      "side": 1,
+      "message": "I was doing it as a part of https://github.com/openbmc/openbmc/issues/3993\n\nBut unfortunately I don\u0027t think I have the resources to maintain local meson build for all of the openbmc projects on a regular basis",
+      "parentUuid": "92b91517_9161c2ed",
+      "revId": "d775f462046f6fefbb013cd2a51142a6960771de",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
