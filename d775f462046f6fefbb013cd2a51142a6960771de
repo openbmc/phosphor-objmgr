@@ -87,6 +87,42 @@
       "parentUuid": "9f4ef07b_944814d4",
       "revId": "d775f462046f6fefbb013cd2a51142a6960771de",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "317203bc_ace1ce52",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2025-12-09T18:11:55Z",
+      "side": 1,
+      "message": "\u003e I don\u0027t think it really matters that much if people aren\u0027t jumping on pushing up commits as soon as new versions are released.\n\nIt isn\u0027t really the latency or that the release is older that concerns me here.  I pushed back on this when it was initially proposed because it is an unusual use-case...most people just install tinyxml2 development headers in their container or on their development host.  What does concern me is setting a precedent that we\u0027ll accept code in support of unusual use cases and maintain it forever for free.\n\n\u003e If people really don\u0027t want this file\n\nI\u0027m not in any hurry.  I thought I\u0027d just ask a question to get a sense of how well this is going to be maintained.",
+      "parentUuid": "584310cb_e1a2eab7",
+      "revId": "d775f462046f6fefbb013cd2a51142a6960771de",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1270dccc_be4538af",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2025-12-09T18:11:55Z",
+      "side": 1,
+      "message": "Thanks Matt.",
+      "parentUuid": "aeba9443_80728393",
+      "revId": "d775f462046f6fefbb013cd2a51142a6960771de",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
