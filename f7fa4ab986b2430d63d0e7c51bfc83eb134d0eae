@@ -61,6 +61,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "20178f19_8405edf5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001712
+      },
+      "writtenOn": "2026-01-07T14:45:09Z",
+      "side": 1,
+      "message": "@bradleyb@fuzziesquirrel.com sorry to bother you, do you agree/disagree with my above points?\n\nMaybe i should have sent a shorter response. I can see how it may be tedious to read through all that.",
+      "parentUuid": "f518a596_ea2683de",
+      "revId": "f7fa4ab986b2430d63d0e7c51bfc83eb134d0eae",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "1e14d9db_72fd4320",
         "filename": "src/main.cpp",
         "patchSetId": 1
@@ -72,6 +90,30 @@
       "writtenOn": "2025-12-01T23:44:15Z",
       "side": 1,
       "message": "I find this to be worse from \u0027at a glance comprehension of what I\u0027m looking at\u0027 than what we had before...",
+      "range": {
+        "startLine": 523,
+        "startChar": 21,
+        "endLine": 523,
+        "endChar": 50
+      },
+      "revId": "f7fa4ab986b2430d63d0e7c51bfc83eb134d0eae",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "27546e68_2b563780",
+        "filename": "src/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 523,
+      "author": {
+        "id": 1001712
+      },
+      "writtenOn": "2026-01-07T14:45:09Z",
+      "side": 1,
+      "message": "Thanks for your feedback here, but in this instance (with -10/+10 lines of context)\ni would prefer the right side.\n\n`xyz.openbmc_project.ObjectMapper` is a service name as well as a DBus interface name and using the qualified symbol name clarifies that the key in \u0027connectionMap\u0027 is a `service name`.\n\nIt is not typed any better than before but the symbol name (and its namespace) provide additional context which can help with understanding.\n\nMaybe you are looking at this from the perspective of someone new to openbmc.\n\nIn which case i would recommend them to use the LSP support of their editor to go-to-definition to see the value behind that symbol.\n\nBecause you already know what\u0027s the default service name for object mapper, i do not see how it would be worse for you personally?",
+      "parentUuid": "1e14d9db_72fd4320",
       "range": {
         "startLine": 523,
         "startChar": 21,
