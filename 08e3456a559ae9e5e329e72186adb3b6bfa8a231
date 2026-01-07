@@ -24,6 +24,30 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "56e66dd1_0799ea62",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1001712
+      },
+      "writtenOn": "2026-01-07T15:05:08Z",
+      "side": 1,
+      "message": "I don\u0027t see the value in repeating a rather extensive reasoning and justification in 20+ patches and bloating the git log of various repositories.\n\nSince the complete reasoning has already been provided in multiple places. If there is a disagreement with said reasoning i am happy to discuss.\n\nhttps://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#es45-avoid-magic-constants-use-symbolic-constants\n\n\u003e with additional indirection\n\nI don\u0027t see indirection as the problem here.\nThere was already indirection before as `assocDefsInterface` was defined and the string literal was not inlined.\n\nThe conventional using-declaration provides consistency since it is the same for a given interface, even across different repositories.\n\nEven if we have one more level of indirection due to the using-declaration, IMO the result is easier to understand than before.\n\n\u003e and dependencies\n\nEven if you do not declare PDI as a compile-time dependency directly, the dependency still exists.\n\nSimilarly, if we write a linux userspace application, we have a compile-time dependency on the linux syscall interface.\n\nIf the mapper interfaces experience breaking changes in PDI, then the code here should fail to compile.",
+      "parentUuid": "0f23bc9b_f121ce6f",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 12
+      },
+      "revId": "08e3456a559ae9e5e329e72186adb3b6bfa8a231",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "de80d05c_0057d843",
