@@ -77,6 +77,41 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f4f6d272_49eda85d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2026-01-09T18:33:36Z",
+      "side": 1,
+      "message": "Sorry I didn\u0027t respond.  I have the same opposing opinions that have been voiced elsewhere by others previously in places like entity-manager and dbus-sensors.  I don\u0027t see any point in rehashing them yet again.",
+      "parentUuid": "20178f19_8405edf5",
+      "revId": "f7fa4ab986b2430d63d0e7c51bfc83eb134d0eae",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b8a60f86_2119f90c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2026-01-09T18:33:36Z",
+      "side": 1,
+      "message": "I think I know what it is but I\u0027d be keen to get my co-maintainers opinion here @spinler@us.ibm.com.",
+      "revId": "f7fa4ab986b2430d63d0e7c51bfc83eb134d0eae",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1e14d9db_72fd4320",
@@ -114,6 +149,30 @@
       "side": 1,
       "message": "Thanks for your feedback here, but in this instance (with -10/+10 lines of context)\ni would prefer the right side.\n\n`xyz.openbmc_project.ObjectMapper` is a service name as well as a DBus interface name and using the qualified symbol name clarifies that the key in \u0027connectionMap\u0027 is a `service name`.\n\nIt is not typed any better than before but the symbol name (and its namespace) provide additional context which can help with understanding.\n\nMaybe you are looking at this from the perspective of someone new to openbmc.\n\nIn which case i would recommend them to use the LSP support of their editor to go-to-definition to see the value behind that symbol.\n\nBecause you already know what\u0027s the default service name for object mapper, i do not see how it would be worse for you personally?",
       "parentUuid": "1e14d9db_72fd4320",
+      "range": {
+        "startLine": 523,
+        "startChar": 21,
+        "endLine": 523,
+        "endChar": 50
+      },
+      "revId": "f7fa4ab986b2430d63d0e7c51bfc83eb134d0eae",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4271d3b6_968cb913",
+        "filename": "src/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 523,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2026-01-09T18:33:36Z",
+      "side": 1,
+      "message": "From a D-Bus programming point of view, the words \u0027default service name\u0027 are nonsensical.  Service names define what interfaces exist.  The mapper interface is always implemented by the mapper service, regardless of the implementation in use.  I don\u0027t particularly care to see non-sensical symbol names in the code.\n\nIn general I would like to see OpenBMC evolve towards more traditional D-Bus programming semantics.",
+      "parentUuid": "27546e68_2b563780",
       "range": {
         "startLine": 523,
         "startChar": 21,
