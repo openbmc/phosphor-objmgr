@@ -50,6 +50,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "5fbe41bc_6ef51150",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2026-01-09T18:54:47Z",
+      "side": 1,
+      "message": "\u003e I don\u0027t see the value\n\nThe request for why was somewhat tongue-in-cheek.",
+      "parentUuid": "56e66dd1_0799ea62",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 12
+      },
+      "revId": "08e3456a559ae9e5e329e72186adb3b6bfa8a231",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "de80d05c_0057d843",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 1
@@ -132,6 +156,24 @@
       "side": 1,
       "message": "\u003e Something on my todo list has actually been to remove the pdi dependency from the mapper.\n\nTo what end? Does it meaningfully improve the build time?\n\nIf the PDI headers introduce too much overhead then that\u0027s something we can try to improve. Let me know if there is an issue there.\n\nOr are you more concerned with reducing the amount of dependencies?\n\n\u003e It will never make dbus calls to other openbmc services and thus the whole \u0027check the api at build time\u0027 is not applicable.\n\nMapper depends on the `xyz.openbmc_project.Association.Definitions` interface, which is defined in PDI. So we have a dependency on that definition.\n\nWe can manually copy-paste the information about the interface into the application or simply use the generated header. Using the generated header is more convenient IMO.\n\nMapper also has a dependency on the `xyz.openbmc_project.Association` interface which it must create. Which is also defined in the PDI. So there is also a dependency there.",
       "parentUuid": "5e73e101_486acb9b",
+      "revId": "08e3456a559ae9e5e329e72186adb3b6bfa8a231",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f34b582d_92daf3de",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2026-01-09T18:54:47Z",
+      "side": 1,
+      "message": "No, the one time cost of building PDI when hacking on the mapper is not really a big deal (although it isn\u0027t nothing).\n\nI don\u0027t like how PDI effectively destroys incremental builds.  The more applications we add it to the worse it gets.",
+      "parentUuid": "569a686e_716f01de",
       "revId": "08e3456a559ae9e5e329e72186adb3b6bfa8a231",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
