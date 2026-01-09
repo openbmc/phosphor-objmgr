@@ -112,6 +112,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ad99e3a9_2bfea9ef",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2026-01-09T20:14:58Z",
+      "side": 1,
+      "message": "The issue here I suppose is that this repo uses the async functions and so there is no need for PDI other than these constants.\n\nI can live with that rule, I know people feel strongly about this stuff.\n\nThe true downside I see is that it comes from generated code and so you can\u0027t find it browsing github and you have to compile first.",
+      "parentUuid": "b8a60f86_2119f90c",
+      "revId": "f7fa4ab986b2430d63d0e7c51bfc83eb134d0eae",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1e14d9db_72fd4320",
@@ -173,6 +191,30 @@
       "side": 1,
       "message": "From a D-Bus programming point of view, the words \u0027default service name\u0027 are nonsensical.  Service names define what interfaces exist.  The mapper interface is always implemented by the mapper service, regardless of the implementation in use.  I don\u0027t particularly care to see non-sensical symbol names in the code.\n\nIn general I would like to see OpenBMC evolve towards more traditional D-Bus programming semantics.",
       "parentUuid": "27546e68_2b563780",
+      "range": {
+        "startLine": 523,
+        "startChar": 21,
+        "endLine": 523,
+        "endChar": 50
+      },
+      "revId": "f7fa4ab986b2430d63d0e7c51bfc83eb134d0eae",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1b210b14_0b81276b",
+        "filename": "src/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 523,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2026-01-09T20:14:58Z",
+      "side": 1,
+      "message": "Using the same constant from the same header in both the client and the server seems like a good thing to me, so that they are guaranteed to match.  That\u0027s the point of this.  You can\u0027t use \u0027default_service\u0027 on just any interface, just a case like here where you can\u0027t look it up in the mapper. (I think also logging uses it).\n\nI already mentioned above though why I can understand not wanting it in this repo.",
+      "parentUuid": "4271d3b6_968cb913",
       "range": {
         "startLine": 523,
         "startChar": 21,
