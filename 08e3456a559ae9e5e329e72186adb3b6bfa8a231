@@ -176,6 +176,24 @@
       "parentUuid": "569a686e_716f01de",
       "revId": "08e3456a559ae9e5e329e72186adb3b6bfa8a231",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "eaeb8717_ee6ccb79",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001712
+      },
+      "writtenOn": "2026-01-11T23:17:34Z",
+      "side": 1,
+      "message": "\u003e I don\u0027t like how PDI effectively destroys incremental builds.  The more applications we add it to the worse it gets.\n\nFor full image builds, yes, a small bump in PDI can trigger lots of recipes to be rebuilt. Even if the interface definitions which were updated are unrelated to the recipe.\n\nEssentially a tooling limitation, maybe some yocto expert can tell how to fix it?\n\nBut IMO that\u0027s just the spirit of C++. Even for small improvements to the code, people are willing to take on a large build time hit and resource consumption.\n\n\nConsider a few minutes of extra build time against the possibility that 2 weeks into an image being deployed, in some rarely used code path there is a hardcoded usage of some interface, with property name typo or data type mixup, which just crashes the whole reactor.",
+      "parentUuid": "f34b582d_92daf3de",
+      "revId": "08e3456a559ae9e5e329e72186adb3b6bfa8a231",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
