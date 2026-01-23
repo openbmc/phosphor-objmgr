@@ -21,7 +21,7 @@ if (cxx.get_id() == 'clang')
         error('This project requires clang-18 or higher')
     endif
     add_project_arguments(
-# https://github.com/llvm/llvm-project/issues/101614
+        # https://github.com/llvm/llvm-project/issues/101614
         '-fno-builtin-std-forward_like',
         language: 'cpp',
     )
