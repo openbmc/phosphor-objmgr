@@ -123,9 +123,11 @@ void addPendingAssociation(
  * If the last endpoint is removed, removes the whole entry
  *
  * @param[in] endpointPath  - the endpoint path to remove
+ * @param[in] owner         - The service name that owns the association
  * @param[in,out] assocMaps - The association maps
  */
 void removeFromPendingAssociations(const std::string& endpointPath,
+                                   const std::string& owner,
                                    AssociationMaps& assocMaps);
 
 /** @brief Adds a single association D-Bus object (<path>/<type>)
