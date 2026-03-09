@@ -431,7 +431,8 @@ TEST_F(TestAssociations, testRemoveFromPendingAssociations)
 
     EXPECT_EQ(assocMaps.pending.size(), 1);
 
-    removeFromPendingAssociations("some/other/endpoint", assocMaps);
+    removeFromPendingAssociations("some/other/endpoint", defaultDbusSvc,
+                                  assocMaps);
 
     // Still 1 pending entry, but down to 1 endpoint
     EXPECT_EQ(assocMaps.pending.size(), 1);
@@ -442,8 +443,32 @@ TEST_F(TestAssociations, testRemoveFromPendingAssociations)
     EXPECT_EQ(endpoints.size(), 1);
 
     // Now nothing pending
-    removeFromPendingAssociations(defaultEndpoint, assocMaps);
+    removeFromPendingAssociations(defaultEndpoint, defaultDbusSvc, assocMaps);
     EXPECT_EQ(assocMaps.pending.size(), 0);
+}
+
+// Test removing pending associations by multiple owners
+TEST_F(TestAssociations, testRemoveFromPendingAssociationsMultipleOwners)
+{
+    AssociationMaps assocMaps;
+
+    addPendingAssociation(defaultSourcePath, "inventory", defaultEndpoint,
+                          "error", "serviceA", assocMaps);
+
+    addPendingAssociation(defaultSourcePath, "inventory", defaultEndpoint,
+                          "error", "serviceB", assocMaps);
+
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+
+    removeFromPendingAssociations(defaultEndpoint, "serviceB", assocMaps);
+
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+
+    auto assoc = assocMaps.pending.find(defaultSourcePath);
+    EXPECT_NE(assoc, assocMaps.pending.end());
+    auto& endpoints = assoc->second;
+    EXPECT_EQ(endpoints.size(), 1);
+    EXPECT_EQ(std::get<ownerPos>(endpoints[0]), "serviceA");
 }
 
 // Test moving a pending association to a real one
