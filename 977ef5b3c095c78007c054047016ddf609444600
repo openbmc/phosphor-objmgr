@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e48e82f4_d0fff3fc",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2026-03-09T14:15:50Z",
+      "side": 1,
+      "message": "It doesn\u0027t look like you\u0027re on a CLA?",
+      "revId": "977ef5b3c095c78007c054047016ddf609444600",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
