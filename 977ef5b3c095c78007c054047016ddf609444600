@@ -16,6 +16,24 @@
       "message": "It doesn\u0027t look like you\u0027re on a CLA?",
       "revId": "977ef5b3c095c78007c054047016ddf609444600",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ae6a3848_62a1ff08",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001636
+      },
+      "writtenOn": "2026-03-10T03:53:16Z",
+      "side": 1,
+      "message": "Thanks, now I am on the CLA.",
+      "parentUuid": "e48e82f4_d0fff3fc",
+      "revId": "977ef5b3c095c78007c054047016ddf609444600",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
