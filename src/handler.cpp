@@ -469,3 +469,73 @@ std::vector<std::string> getAssociatedSubTreePathsById(
 
     return output;
 }
+
+std::vector<ServicePathAssocServicePath> getPathsByAssociation(
+    const InterfaceMapType& interfaceMap, AssociationMaps& associationMaps,
+    sdbusplus::object_path& reqPath1, std::vector<std::string>& interfaces1,
+    std::vector<std::string>& associations, sdbusplus::object_path& reqPath2,
+    std::vector<std::string>& interfaces2, int32_t depth)
+{
+    std::vector<ServicePathAssocServicePath> res;
+
+    std::vector<std::string> paths1;
+    std::vector<std::string> paths2;
+
+    try
+    {
+        paths1 = getSubTreePaths(interfaceMap, reqPath1, depth, interfaces1);
+        paths2 = getSubTreePaths(interfaceMap, reqPath2, depth, interfaces2);
+    }
+    catch (const std::exception& e)
+    {
+        return res;
+    }
+
+    const std::unordered_set<std::string> paths2Set(paths2.begin(),
+                                                    paths2.end());
+
+    for (const auto& path : paths1)
+    {
+        for (const auto& assocName : associations)
+        {
+            auto associationPath = sdbusplus::object_path(path) / assocName;
+
+            auto findEndpoint =
+                associationMaps.ifaces.find(associationPath.string());
+            if (findEndpoint == associationMaps.ifaces.end())
+            {
+                continue;
+            }
+
+            const auto& endpoints =
+                std::get<endpointsPos>(findEndpoint->second);
+
+            for (const auto& endpoint : endpoints)
+            {
+                if (!paths2Set.contains(endpoint))
+                {
+                    continue;
+                }
+
+                if (!associationMaps.owners.contains(path) ||
+                    !associationMaps.owners.contains(endpoint))
+                {
+                    continue;
+                }
+
+                for (const auto& [service1, _] :
+                     associationMaps.owners.at(path))
+                {
+                    for (const auto& [service2, _] :
+                         associationMaps.owners.at(endpoint))
+                    {
+                        res.emplace_back(service1, path, assocName, service2,
+                                         endpoint);
+                    }
+                }
+            }
+        }
+    }
+
+    return res;
+}

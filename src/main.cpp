@@ -634,6 +634,18 @@ int main()
                 subtreeInterfaces, association, endpointInterfaces);
         });
 
+    iface->register_method(
+        "GetPathsByAssociation",
+        [&interfaceMap](sdbusplus::object_path& reqPath1,
+                        std::vector<std::string>& interfaces1,
+                        std::vector<std::string>& associations,
+                        sdbusplus::object_path& reqPath2,
+                        std::vector<std::string>& interfaces2, int32_t depth) {
+            return getPathsByAssociation(interfaceMap, associationMaps,
+                                         reqPath1, interfaces1, associations,
+                                         reqPath2, interfaces2, depth);
+        });
+
     iface->initialize();
 
     boost::asio::post(io, [&]() {
