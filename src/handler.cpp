@@ -469,3 +469,52 @@ std::vector<std::string> getAssociatedSubTreePathsById(
 
     return output;
 }
+
+using PathAssocPath =
+    std::tuple<sdbusplus::object_path, std::string, sdbusplus::object_path>;
+
+std::vector<PathAssocPath> getPathsByAssociation(
+    const InterfaceMapType& interfaceMap, AssociationMaps& associationMaps,
+    sdbusplus::object_path& reqPath1, std::vector<std::string>& interfaces1,
+    std::vector<std::string>& associations, sdbusplus::object_path& reqPath2,
+    std::vector<std::string>& interfaces2, int32_t depth)
+{
+    std::vector<PathAssocPath> res;
+
+    const std::vector<std::string> paths1 =
+        getSubTreePaths(interfaceMap, reqPath1, depth, interfaces1);
+
+    const std::vector<std::string> paths2 =
+        getSubTreePaths(interfaceMap, reqPath2, depth, interfaces2);
+
+    const std::unordered_set<std::string> paths2Set(paths2.begin(),
+                                                    paths2.end());
+
+    for (const auto& path : paths1)
+    {
+        for (const auto& assocName : associations)
+        {
+            auto associationPath = sdbusplus::object_path(path) / assocName;
+
+            auto findEndpoint =
+                associationMaps.ifaces.find(associationPath.str);
+            if (findEndpoint == associationMaps.ifaces.end())
+            {
+                continue;
+            }
+
+            const auto& endpoints =
+                std::get<endpointsPos>(findEndpoint->second);
+
+            for (const auto& endpoint : endpoints)
+            {
+                if (paths2Set.contains(endpoint))
+                {
+                    res.emplace_back(path, assocName, endpoint);
+                }
+            }
+        }
+    }
+
+    return res;
+}
