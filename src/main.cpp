@@ -20,6 +20,9 @@
 #include <string_view>
 #include <utility>
 
+using StartTime = std::chrono::time_point<std::chrono::steady_clock>;
+using SharedStartTime = std::shared_ptr<StartTime>;
+
 static AssociationMaps associationMaps;
 
 static void updateOwners(
@@ -72,8 +75,7 @@ struct InProgressIntrospect
         const std::string& introspectProcessName, AssociationMaps& am
 #ifdef MAPPER_ENABLE_DEBUG
         ,
-        std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
-            globalIntrospectStartTime
+        SharedStartTime globalIntrospectStartTime
 #endif
         ) :
         systemBus(systemBusConnection), io(ioContext),
@@ -124,9 +126,8 @@ struct InProgressIntrospect
     std::string processName;
     AssociationMaps& assocMaps;
 #ifdef MAPPER_ENABLE_DEBUG
-    std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
-        globalStartTime;
-    std::chrono::time_point<std::chrono::steady_clock> processStartTime;
+    SharedStartTime globalStartTime;
+    StartTime processStartTime;
 #endif
 };
 
@@ -260,8 +261,7 @@ static void startNewIntrospect(
     InterfaceMapType& interfaceMap, const std::string& processName,
     AssociationMaps& assocMaps,
 #ifdef MAPPER_ENABLE_DEBUG
-    const std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>&
-        globalStartTime,
+    const SharedStartTime& globalStartTime,
 #endif
     sdbusplus::asio::object_server& objectServer)
 {
@@ -300,10 +300,8 @@ static void doListNames(
             // Try to make startup consistent
             std::sort(processNames.begin(), processNames.end());
 #ifdef MAPPER_ENABLE_DEBUG
-            std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
-                globalStartTime = std::make_shared<
-                    std::chrono::time_point<std::chrono::steady_clock>>(
-                    std::chrono::steady_clock::now());
+            SharedStartTime globalStartTime =
+                std::make_shared<StartTime>(std::chrono::steady_clock::now());
 #endif
             for (const std::string& processName : processNames)
             {
@@ -425,9 +423,8 @@ int main()
         if (!newOwner.empty())
         {
 #ifdef MAPPER_ENABLE_DEBUG
-            auto transaction = std::make_shared<
-                std::chrono::time_point<std::chrono::steady_clock>>(
-                std::chrono::steady_clock::now());
+            auto transaction =
+                std::make_shared<StartTime>(std::chrono::steady_clock::now());
 #endif
             // New daemon added
             if (needToIntrospect(name))
