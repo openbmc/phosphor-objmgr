@@ -62,50 +62,78 @@ static void sendIntrospectionCompleteSignal(
     m.signal_send();
 }
 
-struct InProgressIntrospect
+template <bool DEBUG>
+struct DebugBase
 {
-    InProgressIntrospect() = delete;
-    InProgressIntrospect(const InProgressIntrospect&) = delete;
-    InProgressIntrospect(InProgressIntrospect&&) = delete;
-    InProgressIntrospect& operator=(const InProgressIntrospect&) = delete;
-    InProgressIntrospect& operator=(InProgressIntrospect&&) = delete;
-    InProgressIntrospect(
-        sdbusplus::asio::connection* systemBusConnection,
-        boost::asio::io_context& ioContext,
-        const std::string& introspectProcessName, AssociationMaps& am
-#ifdef MAPPER_ENABLE_DEBUG
-        ,
-        SharedStartTime globalIntrospectStartTime
-#endif
-        ) :
-        systemBus(systemBusConnection), io(ioContext),
-        processName(introspectProcessName), assocMaps(am)
-#ifdef MAPPER_ENABLE_DEBUG
-        ,
+  protected:
+    DebugBase(const SharedStartTime& globalIntrospectStartTime);
+    void logOnDestruct(const std::string& processName);
+};
+
+template <>
+struct DebugBase<true>
+{
+  protected:
+    DebugBase(const SharedStartTime& globalIntrospectStartTime) :
         globalStartTime(std::move(globalIntrospectStartTime)),
         processStartTime(std::chrono::steady_clock::now())
-#endif
     {}
-    ~InProgressIntrospect()
+
+    void logOnDestruct(const std::string& processName)
+    {
+        std::chrono::duration<float> diff =
+            std::chrono::steady_clock::now() - processStartTime;
+        std::cout << std::setw(50) << processName << " scan took "
+                  << diff.count() << " seconds\n";
+
+        // If we're the last outstanding caller globally, calculate the
+        // time it took
+        if (globalStartTime != nullptr && globalStartTime.use_count() == 1)
+        {
+            diff = std::chrono::steady_clock::now() - *globalStartTime;
+            std::cout << "Total scan took " << diff.count()
+                      << " seconds to complete\n";
+        }
+    }
+    SharedStartTime globalStartTime;
+    StartTime processStartTime;
+};
+
+template <>
+struct DebugBase<false>
+{
+  protected:
+    DebugBase(const SharedStartTime& /*unused*/) {}
+    void logOnDestruct(const std::string& /*unused*/) {}
+};
+
+template <bool DEBUG>
+struct InProgressIntrospectT : DebugBase<DEBUG>
+{
+    InProgressIntrospectT() = delete;
+    InProgressIntrospectT(const InProgressIntrospectT&) = delete;
+    InProgressIntrospectT(InProgressIntrospectT&&) = delete;
+    InProgressIntrospectT& operator=(const InProgressIntrospectT&) = delete;
+    InProgressIntrospectT& operator=(InProgressIntrospectT&&) = delete;
+    InProgressIntrospectT(sdbusplus::asio::connection* systemBusConnection,
+                          boost::asio::io_context& ioContext,
+                          const std::string& introspectProcessName,
+                          AssociationMaps& am,
+                          const SharedStartTime& globalIntrospectStartTime) :
+        DebugBase<DEBUG>(globalIntrospectStartTime),
+        systemBus(systemBusConnection), io(ioContext),
+        processName(introspectProcessName), assocMaps(am)
+
+    {}
+
+  private:
+  public:
+    ~InProgressIntrospectT()
     {
         try
         {
             sendIntrospectionCompleteSignal(systemBus, processName);
-#ifdef MAPPER_ENABLE_DEBUG
-            std::chrono::duration<float> diff =
-                std::chrono::steady_clock::now() - processStartTime;
-            std::cout << std::setw(50) << processName << " scan took "
-                      << diff.count() << " seconds\n";
-
-            // If we're the last outstanding caller globally, calculate the
-            // time it took
-            if (globalStartTime != nullptr && globalStartTime.use_count() == 1)
-            {
-                diff = std::chrono::steady_clock::now() - *globalStartTime;
-                std::cout << "Total scan took " << diff.count()
-                          << " seconds to complete\n";
-            }
-#endif
+            DebugBase<DEBUG>::logOnDestruct(processName);
         }
         catch (const std::exception& e)
         {
@@ -125,11 +153,9 @@ struct InProgressIntrospect
     boost::asio::io_context& io;
     std::string processName;
     AssociationMaps& assocMaps;
-#ifdef MAPPER_ENABLE_DEBUG
-    SharedStartTime globalStartTime;
-    StartTime processStartTime;
-#endif
 };
+
+using InProgressIntrospect = struct InProgressIntrospectT<MAPPER_ENABLE_DEBUG>;
 
 static void doAssociations(
     boost::asio::io_context& io, sdbusplus::asio::connection* systemBus,
@@ -259,22 +285,15 @@ static void doIntrospect(
 static void startNewIntrospect(
     sdbusplus::asio::connection* systemBus, boost::asio::io_context& io,
     InterfaceMapType& interfaceMap, const std::string& processName,
-    AssociationMaps& assocMaps,
-#ifdef MAPPER_ENABLE_DEBUG
-    const SharedStartTime& globalStartTime,
-#endif
-    sdbusplus::asio::object_server& objectServer)
+    AssociationMaps& assocMaps, sdbusplus::asio::object_server& objectServer,
+    const SharedStartTime& globalStartTime)
+
 {
     if (needToIntrospect(processName))
     {
         std::shared_ptr<InProgressIntrospect> transaction =
-            std::make_shared<InProgressIntrospect>(
-                systemBus, io, processName, assocMaps
-#ifdef MAPPER_ENABLE_DEBUG
-                ,
-                globalStartTime
-#endif
-            );
+            std::make_shared<InProgressIntrospect>(systemBus, io, processName,
+                                                   assocMaps, globalStartTime);
 
         doIntrospect(io, systemBus, transaction, interfaceMap, objectServer,
                      "/");
@@ -299,20 +318,20 @@ static void doListNames(
             }
             // Try to make startup consistent
             std::sort(processNames.begin(), processNames.end());
-#ifdef MAPPER_ENABLE_DEBUG
-            SharedStartTime globalStartTime =
-                std::make_shared<StartTime>(std::chrono::steady_clock::now());
-#endif
+            SharedStartTime globalStartTime = nullptr;
+
+            if constexpr (MAPPER_ENABLE_DEBUG)
+            {
+                globalStartTime = std::make_shared<StartTime>(
+                    std::chrono::steady_clock::now());
+            }
             for (const std::string& processName : processNames)
             {
                 if (needToIntrospect(processName))
                 {
                     startNewIntrospect(systemBus, io, interfaceMap, processName,
-                                       assocMaps,
-#ifdef MAPPER_ENABLE_DEBUG
-                                       globalStartTime,
-#endif
-                                       objectServer);
+                                       assocMaps, objectServer,
+                                       globalStartTime);
                     updateOwners(systemBus, nameOwners, processName);
                 }
             }
@@ -422,20 +441,20 @@ int main()
 
         if (!newOwner.empty())
         {
-#ifdef MAPPER_ENABLE_DEBUG
-            auto transaction =
-                std::make_shared<StartTime>(std::chrono::steady_clock::now());
-#endif
+            SharedStartTime transaction = nullptr;
+
+            if constexpr (MAPPER_ENABLE_DEBUG)
+            {
+                transaction = std::make_shared<StartTime>(
+                    std::chrono::steady_clock::now());
+            }
+
             // New daemon added
             if (needToIntrospect(name))
             {
                 nameOwners[newOwner] = name;
                 startNewIntrospect(systemBus.get(), io, interfaceMap, name,
-                                   associationMaps,
-#ifdef MAPPER_ENABLE_DEBUG
-                                   transaction,
-#endif
-                                   server);
+                                   associationMaps, server, transaction);
             }
         }
     };
