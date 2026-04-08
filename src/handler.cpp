@@ -469,3 +469,143 @@ std::vector<std::string> getAssociatedSubTreePathsById(
 
     return output;
 }
+
+using PathAssocPath = std::tuple<std::string, std::string, std::string>;
+/*
+struct AssociationMaps
+{
+    AssociationInterfaces ifaces;
+    AssociationOwnersType owners;
+    PendingAssociations pending;
+};
+
+// map[interface path: tuple[dbus_interface,vector[endpoint paths]]]
+using AssociationInterfaces = boost::container::flat_map<
+    std::string,
+    std::tuple<std::shared_ptr<sdbusplus::asio::dbus_interface>, Endpoints>>;
+
+using AssociationPaths =
+    boost::container::flat_map<std::string,
+                               boost::container::flat_set<std::string>>;
+
+using AssociationOwnersType = boost::container::flat_map<
+    std::string, boost::container::flat_map<std::string, AssociationPaths>>;
+*/
+std::vector<PathAssocPath> getPathsByAssociation(
+    const InterfaceMapType& interfaceMap, AssociationMaps& associationMaps,
+    std::string& reqPath1, std::vector<std::string>& interfaces1,
+    std::vector<std::string>& associations, std::string& reqPath2,
+    std::vector<std::string>& interfaces2, int32_t depth)
+{
+    std::vector<PathAssocPath> res;
+
+    const std::vector<std::string> paths1 =
+        getSubTreePaths(interfaceMap, reqPath1, depth, interfaces1);
+
+    const std::vector<std::string> paths2 =
+        getSubTreePaths(interfaceMap, reqPath2, depth, interfaces2);
+
+    /*
+    for(const auto& [objPath, v] : associationMaps.ifaces){
+        const auto& endpoints = std::get<endpointsPos>(v);
+    }
+    */
+
+    for (const auto& path : paths1)
+    {
+        // solution 1
+        for (const auto& assocName : associations)
+        {
+            auto associationPath =
+                sdbusplus::message::object_path(path) / assocName;
+
+            auto findEndpoint =
+                associationMaps.ifaces.find(associationPath.str);
+            if (findEndpoint == associationMaps.ifaces.end())
+            {
+                continue;
+            }
+
+            const auto& endpoints =
+                std::get<endpointsPos>(findEndpoint->second);
+
+            for (const auto& endpoint : endpoints)
+            {
+                if (std::find(paths2.begin(), paths2.end(), endpoint) !=
+                    paths2.end())
+                {
+                    res.emplace_back(path, assocName, endpoint);
+                }
+            }
+        }
+
+        // solution 2
+        /*
+            auto found = associationMaps.owners.find(path);
+
+            if (found == associationMaps.owners.end())
+            {
+                continue;
+            }
+
+            const auto& map1 = found->second;
+
+        // key is 'service' but we do not need it
+            for (const auto& [_, map2] : map1)
+            {
+                for (const auto& [assocPath, endpoints] : map2)
+                {
+                    // assocPath has the association as filename
+                    const auto p = sdbusplus::message::object_path(assocPath);
+                    const auto assoc = p.filename();
+                    if (std::find(associations.begin(), associations.end(),
+                                  assoc) == associations.end())
+                    {
+                        continue;
+                    }
+
+                    for (const auto& endpoint : endpoints)
+                    {
+                        // discard if the other path does not have one of the
+                        // required interfdaces
+                        if (std::find(paths2.begin(), paths2.end(), endpoint) ==
+                            paths2.end())
+                        {
+                            continue;
+                        }
+
+                        res.emplace_back(path, assoc, endpoint);
+                    }
+                }
+            }
+        */
+
+        // Solution 3
+        /*
+            for (const auto& [_, association] : associationData)
+            {
+                const std::string& assocName = std::get<0>(association);
+                const std::string& otherPath = std::get<2>(association);
+
+                // discard if the association is not what's been queried
+                if (std::find(associations.begin(), associations.end(),
+                              assocName) == associations.end())
+                {
+                    continue;
+                }
+
+                // discard if the other path does not have one of the required
+                // interfdaces
+                if (std::find(paths2.begin(), paths2.end(), otherPath) ==
+                    paths2.end())
+                {
+                    continue;
+                }
+
+                res.emplace_back(path, assocName, otherPath);
+            }
+        */
+    }
+
+    return res;
+}
