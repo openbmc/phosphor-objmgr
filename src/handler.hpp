@@ -116,3 +116,24 @@ std::vector<std::string> getAssociatedSubTreePathsById(
     const std::string& objectPath, std::vector<std::string>& subtreeInterfaces,
     const std::string& association,
     std::vector<std::string>& endpointInterfaces);
+
+/**
+ * @brief Get the paths of associated objects with specific interfaces
+ *
+ * @param interfaceMap       Mapper Structure storing all associations
+ * @param associationMaps    Map of association between objects
+ * @param reqPath1           Base path to search for interfaces from 1st list
+ * @param reqPath2           Base path to search for interfaces from 2nd list
+ * @param interfaces1        Interface filter list 1
+ * @param interfaces2        Interface filter list 2
+ * @param associations       The associations to query
+ * @param depth              The depth of query on both base paths
+ *
+ * @return  vector<tuple<object path, association name, object path>>
+ */
+std::vector<std::tuple<std::string, std::string, std::string>>
+    getPathsByAssociation(
+        const InterfaceMapType& interfaceMap, AssociationMaps& associationMaps,
+        std::string& reqPath1, std::vector<std::string>& interfaces1,
+        std::vector<std::string>& associations, std::string& reqPath2,
+        std::vector<std::string>& interfaces2, int32_t depth);
