@@ -41,6 +41,26 @@ class TestHandler : public testing::Test
             "/test/object_path_0/grandchild/child1",
             {{"test_object_connection_5", {"test_interface_5"}}},
         },
+        {
+            "/test/inventory",
+            {{"com.example.BusName", {"com.example.interface"}}},
+        },
+        {
+            "/test/inventory/item0",
+            {{"com.example.BusName", {"com.example.interface"}}},
+        },
+        {
+            "/test/inventory/item0/containing",
+            {{"com.example.BusName", {"com.example.interface"}}},
+        },
+        {
+            "/test/inventory/item1",
+            {{"com.example.BusName", {"com.example.interface"}}},
+        },
+        {
+            "/test/inventory/item1/contained_by",
+            {{"com.example.BusName", {"com.example.interface"}}},
+        },
     };
 
     AssociationMaps associationMap = {
@@ -84,8 +104,39 @@ class TestHandler : public testing::Test
                         },
                     },
                 },
+                {
+                    "/test/inventory/item0/containing",
+                    {
+                        std::shared_ptr<sdbusplus::asio::dbus_interface>(),
+                        {
+                            "/test/inventory/item1",
+                        },
+                    },
+                },
+                {
+                    "/test/inventory/item1/contained_by",
+                    {
+                        std::shared_ptr<sdbusplus::asio::dbus_interface>(),
+                        {
+                            "/test/inventory/item0",
+                        },
+                    },
+                },
             },
-        .owners = {},
+        .owners = {{"/test/inventory/item0",
+                    {{"com.example.BusName",
+                      {{"/test/inventory/item/0/containing",
+                        {"/test/inventory/item1"}},
+                       {"/test/inventory/item1/contained_by",
+                        {"/test/inventory/item0"}}}}}},
+                   {"/test/inventory/item1",
+                    {{"com.example.BusName",
+                      {
+                          {"/test/inventory/item1/contained_by",
+                           {"/test/inventory/item0"}},
+                          {"/test/inventory/item0/containing",
+                           {"/test/intventory/item1"}},
+                      }}}}},
         .pending = {},
     };
 };
@@ -581,4 +632,110 @@ TEST_F(TestHandler, getAssociatedSubTreePathsByIdGood)
         "descendent", interfaces1);
     ASSERT_THAT(subtreePath, ElementsAre("/test/object_path_0/child1",
                                          "/test/object_path_0/child"));
+}
+
+static std::vector<std::string> interfaces = {"com.example.interface"};
+
+static std::vector<std::string> associations = {"containing"};
+
+static sdbusplus::object_path subtreePath("/test/inventory");
+
+TEST_F(TestHandler, GetPathsByAssociationForwardGood)
+{
+    const auto res = getPathsByAssociation(
+        interfaceMap, associationMap, subtreePath, interfaces, associations,
+        subtreePath, interfaces, 0);
+
+    ServicePathAssocServicePath expected = {
+        "com.example.BusName", sdbusplus::object_path("/test/inventory/item0"),
+        "containing", "com.example.BusName",
+        sdbusplus::object_path("/test/inventory/item1")};
+
+    ASSERT_THAT(res, ElementsAre(expected));
+}
+
+TEST_F(TestHandler, GetPathsByAssociationReverseGood)
+{
+    std::vector<std::string> associationsReverse = {"contained_by"};
+
+    const auto res = getPathsByAssociation(
+        interfaceMap, associationMap, subtreePath, interfaces,
+        associationsReverse, subtreePath, interfaces, 0);
+
+    ServicePathAssocServicePath expected = {
+        "com.example.BusName", sdbusplus::object_path("/test/inventory/item1"),
+        "contained_by", "com.example.BusName",
+        sdbusplus::object_path("/test/inventory/item0")};
+
+    ASSERT_THAT(res, ElementsAre(expected));
+}
+
+TEST_F(TestHandler, GetPathsByAssociationEmptyNonexistentAssociation)
+{
+    std::vector<std::string> associationsNE = {"not_exist"};
+
+    const auto res = getPathsByAssociation(
+        interfaceMap, associationMap, subtreePath, interfaces, associationsNE,
+        subtreePath, interfaces, 0);
+
+    ASSERT_EQ(res.size(), 0);
+}
+
+TEST_F(TestHandler, GetPathsByAssociationEmptyNonexistentInterface)
+{
+    std::vector<std::string> interfacesNE = {"com.example.interface.not.exist"};
+
+    const auto res = getPathsByAssociation(
+        interfaceMap, associationMap, subtreePath, interfacesNE, associations,
+        subtreePath, interfacesNE, 0);
+
+    ASSERT_EQ(res.size(), 0);
+}
+
+TEST_F(TestHandler,
+       GetPathsByAssociationEmptyNonexistentSubtreePathLeftSideways)
+{
+    sdbusplus::object_path subtreePath1("/test/inventory/nested");
+
+    const auto res = getPathsByAssociation(
+        interfaceMap, associationMap, subtreePath1, interfaces, associations,
+        subtreePath, interfaces, 0);
+
+    ASSERT_EQ(res.size(), 0);
+}
+
+TEST_F(TestHandler,
+       GetPathsByAssociationEmptyNonexistentSubtreePathLeftExactMatch)
+{
+    sdbusplus::object_path subtreePath1("/test/inventory/item0");
+
+    const auto res = getPathsByAssociation(
+        interfaceMap, associationMap, subtreePath1, interfaces, associations,
+        subtreePath, interfaces, 0);
+
+    ASSERT_EQ(res.size(), 0);
+}
+
+TEST_F(TestHandler,
+       GetPathsByAssociationEmptyNonexistentSubtreePathRightSideways)
+{
+    sdbusplus::object_path subtreePath2("/test/inventory/nested");
+
+    const auto res = getPathsByAssociation(
+        interfaceMap, associationMap, subtreePath, interfaces, associations,
+        subtreePath2, interfaces, 0);
+
+    ASSERT_EQ(res.size(), 0);
+}
+
+TEST_F(TestHandler,
+       GetPathsByAssociationEmptyNonexistentSubtreePathRightExactMatch)
+{
+    sdbusplus::object_path subtreePath2("/test/inventory/item1");
+
+    const auto res = getPathsByAssociation(
+        interfaceMap, associationMap, subtreePath, interfaces, associations,
+        subtreePath2, interfaces, 0);
+
+    ASSERT_EQ(res.size(), 0);
 }

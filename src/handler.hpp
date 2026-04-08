@@ -116,3 +116,28 @@ std::vector<std::string> getAssociatedSubTreePathsById(
     const std::string& objectPath, std::vector<std::string>& subtreeInterfaces,
     const std::string& association,
     std::vector<std::string>& endpointInterfaces);
+
+using ServicePathAssocServicePath =
+    std::tuple<std::string, sdbusplus::object_path, std::string, std::string,
+               sdbusplus::object_path>;
+/**
+ * @brief Get the paths of associated objects with specific interfaces
+ *
+ * @param interfaceMap       Mapper Structure storing all associations
+ * @param associationMaps    Map of association between objects
+ * @param subtreePath1       Base path to search for interfaces from 1st list
+ * @param subtreePath2       Base path to search for interfaces from 2nd list
+ * @param interfaces1        Interface filter list 1
+ * @param interfaces2        Interface filter list 2
+ * @param associations       The associations to query
+ * @param depth              The depth of query on both base paths
+ *
+ * @return  vector<tuple<service name, object path, association name, service
+ * name, object path>>
+ */
+std::vector<ServicePathAssocServicePath> getPathsByAssociation(
+    const InterfaceMapType& interfaceMap, AssociationMaps& associationMaps,
+    sdbusplus::object_path& subtreePath1, std::vector<std::string>& interfaces1,
+    std::vector<std::string>& associations,
+    sdbusplus::object_path& subtreePath2, std::vector<std::string>& interfaces2,
+    int32_t depth);
