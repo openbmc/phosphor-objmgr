@@ -52,7 +52,9 @@ endif
 
 # Enable debugging for debug builds
 if get_option('buildtype').startswith('debug')
-    add_project_arguments('-DMAPPER_ENABLE_DEBUG', language: 'cpp')
+    add_project_arguments('-DMAPPER_ENABLE_DEBUG=1', language: 'cpp')
+else
+    add_project_arguments('-DMAPPER_ENABLE_DEBUG=0', language: 'cpp')
 endif
 
 # Boost configuration
