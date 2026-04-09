@@ -450,7 +450,7 @@ int main()
 
     auto interfacesAddedHandler = [&io, &interfaceMap, &nameOwners,
                                    &server](sdbusplus::message_t& message) {
-        sdbusplus::message::object_path objPath;
+        sdbusplus::object_path objPath;
         InterfacesAdded interfacesAdded;
         message.read(objPath, interfacesAdded);
         std::string wellKnown;
@@ -472,7 +472,7 @@ int main()
 
     auto interfacesRemovedHandler = [&io, &interfaceMap, &nameOwners,
                                      &server](sdbusplus::message_t& message) {
-        sdbusplus::message::object_path objPath;
+        sdbusplus::object_path objPath;
         std::vector<std::string> interfacesRemoved;
         message.read(objPath, interfacesRemoved);
         auto connectionMap = interfaceMap.find(objPath.str);
@@ -600,9 +600,9 @@ int main()
 
     iface->register_method(
         "GetAssociatedSubTree",
-        [&interfaceMap](const sdbusplus::message::object_path& associationPath,
-                        const sdbusplus::message::object_path& reqPath,
-                        int32_t depth, std::vector<std::string>& interfaces) {
+        [&interfaceMap](const sdbusplus::object_path& associationPath,
+                        const sdbusplus::object_path& reqPath, int32_t depth,
+                        std::vector<std::string>& interfaces) {
             return getAssociatedSubTree(interfaceMap, associationMaps,
                                         associationPath, reqPath, depth,
                                         interfaces);
@@ -610,9 +610,9 @@ int main()
 
     iface->register_method(
         "GetAssociatedSubTreePaths",
-        [&interfaceMap](const sdbusplus::message::object_path& associationPath,
-                        const sdbusplus::message::object_path& reqPath,
-                        int32_t depth, std::vector<std::string>& interfaces) {
+        [&interfaceMap](const sdbusplus::object_path& associationPath,
+                        const sdbusplus::object_path& reqPath, int32_t depth,
+                        std::vector<std::string>& interfaces) {
             return getAssociatedSubTreePaths(interfaceMap, associationMaps,
                                              associationPath, reqPath, depth,
                                              interfaces);

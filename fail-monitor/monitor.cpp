@@ -60,7 +60,7 @@ bool Monitor::inFailedState(const std::string& path)
 
 std::string Monitor::getSourceUnitPath()
 {
-    sdbusplus::message::object_path path;
+    sdbusplus::object_path path;
 
     auto method = bus.new_method_call(systemdService, systemdObjPath,
                                       systemdInterface, "GetUnit");

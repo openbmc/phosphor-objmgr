@@ -314,8 +314,8 @@ TEST_F(TestHandler, getSubTreePathsGood)
 
 TEST_F(TestHandler, getAssociatedSubTreeBad)
 {
-    sdbusplus::message::object_path path("/test/object_path_0");
-    sdbusplus::message::object_path validAssociatedPath = path / "descendent";
+    sdbusplus::object_path path("/test/object_path_0");
+    sdbusplus::object_path validAssociatedPath = path / "descendent";
     std::vector<std::string> invalidInterfaces = {"test_interface_3"};
     std::vector<std::string> validInterfaces = {"test_interface_1",
                                                 "test_interface_2"};
@@ -331,7 +331,7 @@ TEST_F(TestHandler, getAssociatedSubTreeBad)
                     .empty());
 
     // Invalid path, with valid association
-    path = sdbusplus::message::object_path("/invalid_path");
+    path = sdbusplus::object_path("/invalid_path");
     EXPECT_THROW(
         getAssociatedSubTree(interfaceMap, associationMap, validAssociatedPath,
                              path, 0, validInterfaces),
@@ -340,9 +340,9 @@ TEST_F(TestHandler, getAssociatedSubTreeBad)
 
 TEST_F(TestHandler, getAssociatedSubTreeGood)
 {
-    sdbusplus::message::object_path path0("/test/object_path_0");
-    sdbusplus::message::object_path path1("/test/object_path_0/child");
-    sdbusplus::message::object_path associatedPath = path0 / "descendent";
+    sdbusplus::object_path path0("/test/object_path_0");
+    sdbusplus::object_path path1("/test/object_path_0/child");
+    sdbusplus::object_path associatedPath = path0 / "descendent";
     std::vector<std::string> interfaces = {
         "test_interface_1", "test_interface_2",
         // Not associated to path
@@ -383,8 +383,8 @@ TEST_F(TestHandler, getAssociatedSubTreeGood)
 
 TEST_F(TestHandler, getAssociatedSubTreePathsBad)
 {
-    sdbusplus::message::object_path path("/test/object_path_0");
-    sdbusplus::message::object_path validAssociatedPath = path / "descendent";
+    sdbusplus::object_path path("/test/object_path_0");
+    sdbusplus::object_path validAssociatedPath = path / "descendent";
     std::vector<std::string> invalidInterfaces = {"test_interface_3"};
     std::vector<std::string> validInterfaces = {"test_interface_1",
                                                 "test_interface_2"};
@@ -401,7 +401,7 @@ TEST_F(TestHandler, getAssociatedSubTreePathsBad)
             .empty());
 
     // Invalid path, with valid association
-    path = sdbusplus::message::object_path("/invalid_path");
+    path = sdbusplus::object_path("/invalid_path");
     EXPECT_THROW(
         getAssociatedSubTreePaths(interfaceMap, associationMap,
                                   validAssociatedPath, path, 0,
@@ -411,9 +411,9 @@ TEST_F(TestHandler, getAssociatedSubTreePathsBad)
 
 TEST_F(TestHandler, getAssociatedSubTreePathsGood)
 {
-    sdbusplus::message::object_path path0("/test/object_path_0");
-    sdbusplus::message::object_path path1("/test/object_path_0/child");
-    sdbusplus::message::object_path associatedPath = path0 / "descendent";
+    sdbusplus::object_path path0("/test/object_path_0");
+    sdbusplus::object_path path1("/test/object_path_0/child");
+    sdbusplus::object_path associatedPath = path0 / "descendent";
     std::vector<std::string> interfaces = {
         "test_interface_1", "test_interface_2",
         // Not associated to path
@@ -441,7 +441,7 @@ TEST_F(TestHandler, getAssociatedSubTreePathsGood)
 
 TEST_F(TestHandler, getAssociatedSubTreeByIdBad)
 {
-    sdbusplus::message::object_path path("/test/object_path_0");
+    sdbusplus::object_path path("/test/object_path_0");
     std::vector<std::string> subtreeInterfaces = {"test_interface_1",
                                                   "test_interface_3"};
     std::vector<std::string> badsubtreeInterfaces = {"bad_interface"};
@@ -479,7 +479,7 @@ TEST_F(TestHandler, getAssociatedSubTreeByIdBad)
                     .empty());
 
     // Invalid path
-    path = sdbusplus::message::object_path("/invalid_path");
+    path = sdbusplus::object_path("/invalid_path");
     EXPECT_THROW(
         getAssociatedSubTreeById(interfaceMap, associationMap, "child", path,
                                  subtreeInterfaces, "descendent",
@@ -489,7 +489,7 @@ TEST_F(TestHandler, getAssociatedSubTreeByIdBad)
 
 TEST_F(TestHandler, getAssociatedSubTreeByIdGood)
 {
-    sdbusplus::message::object_path path0("/test/object_path_0");
+    sdbusplus::object_path path0("/test/object_path_0");
     std::vector<std::string> interfaces = {
         "test_interface_1", "test_interface_2", "test_interface_3"};
 
@@ -514,7 +514,7 @@ TEST_F(TestHandler, getAssociatedSubTreeByIdGood)
 
 TEST_F(TestHandler, getAssociatedSubTreePathsByIdBad)
 {
-    sdbusplus::message::object_path path("/test/object_path_0");
+    sdbusplus::object_path path("/test/object_path_0");
     std::vector<std::string> subtreeInterfaces = {"test_interface_1",
                                                   "test_interface_3"};
     std::vector<std::string> badsubtreeInterfaces = {"bad_interface"};
@@ -552,7 +552,7 @@ TEST_F(TestHandler, getAssociatedSubTreePathsByIdBad)
                     .empty());
 
     // Invalid path
-    path = sdbusplus::message::object_path("/invalid_path");
+    path = sdbusplus::object_path("/invalid_path");
     EXPECT_THROW(
         getAssociatedSubTreePathsById(interfaceMap, associationMap, "child",
                                       path, subtreeInterfaces, "descendent",
@@ -562,7 +562,7 @@ TEST_F(TestHandler, getAssociatedSubTreePathsByIdBad)
 
 TEST_F(TestHandler, getAssociatedSubTreePathsByIdGood)
 {
-    sdbusplus::message::object_path path0("/test/object_path_0");
+    sdbusplus::object_path path0("/test/object_path_0");
     std::vector<std::string> interfaces = {
         "test_interface_1", "test_interface_2", "test_interface_3"};
 

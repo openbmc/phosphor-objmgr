@@ -287,8 +287,8 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
 std::vector<InterfaceMapType::value_type> getAssociatedSubTree(
     const InterfaceMapType& interfaceMap,
     const AssociationMaps& associationMaps,
-    const sdbusplus::message::object_path& associationPath,
-    const sdbusplus::message::object_path& reqPath, int32_t depth,
+    const sdbusplus::object_path& associationPath,
+    const sdbusplus::object_path& reqPath, int32_t depth,
     std::vector<std::string>& interfaces)
 {
     auto findEndpoint = associationMaps.ifaces.find(associationPath.str);
@@ -317,8 +317,8 @@ std::vector<InterfaceMapType::value_type> getAssociatedSubTree(
 std::vector<std::string> getAssociatedSubTreePaths(
     const InterfaceMapType& interfaceMap,
     const AssociationMaps& associationMaps,
-    const sdbusplus::message::object_path& associationPath,
-    const sdbusplus::message::object_path& reqPath, int32_t depth,
+    const sdbusplus::object_path& associationPath,
+    const sdbusplus::object_path& reqPath, int32_t depth,
     std::vector<std::string>& interfaces)
 {
     auto findEndpoint = associationMaps.ifaces.find(associationPath.str);
@@ -430,7 +430,7 @@ std::vector<InterfaceMapType::value_type> getAssociatedSubTreeById(
         // Form the association path
         std::string associationPathStr =
             appendPathSegment(subtreePath, association);
-        sdbusplus::message::object_path associationPath(associationPathStr);
+        sdbusplus::object_path associationPath(associationPathStr);
 
         auto associatedSubTree =
             getAssociatedSubTree(interfaceMap, associationMaps, associationPath,
@@ -457,7 +457,7 @@ std::vector<std::string> getAssociatedSubTreePathsById(
         // Form the association path
         std::string associationPathStr =
             appendPathSegment(subtreePath, association);
-        sdbusplus::message::object_path associationPath(associationPathStr);
+        sdbusplus::object_path associationPath(associationPathStr);
 
         auto associatedSubTree = getAssociatedSubTreePaths(
             interfaceMap, associationMaps, associationPath, objectPath, 0,
