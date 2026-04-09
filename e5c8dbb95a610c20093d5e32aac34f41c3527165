@@ -16,6 +16,23 @@
       "message": "I\u0027m currently not looking to get this merged currently, only reviewed.\n\nSince it\u0027s only needed for the bmcweb change in the topic.",
       "revId": "e5c8dbb95a610c20093d5e32aac34f41c3527165",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ab5c23fc_844f74a8",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2026-04-09T20:47:08Z",
+      "side": 1,
+      "message": "If the bmcweb maintainers find this is good for simplifying bmcweb code it seems reasonable, but I\u0027d like to get their take first.",
+      "revId": "e5c8dbb95a610c20093d5e32aac34f41c3527165",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
