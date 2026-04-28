@@ -61,12 +61,7 @@ add_project_arguments(
     language: 'cpp',
 )
 
-cli11 = dependency('CLI11', required: false, include_type: 'system')
-if not cli11.found()
-    cli11_proj = subproject('cli11', required: true)
-    cli11 = cli11_proj.get_variable('CLI11_dep')
-    cli11 = cli11.as_system('system')
-endif
+cli11 = dependency('CLI11', include_type: 'system')
 
 phosphor_logging = dependency('phosphor-logging')
 phosphor_dbus_interfaces = dependency('phosphor-dbus-interfaces')
