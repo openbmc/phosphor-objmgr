@@ -16,6 +16,23 @@
       "message": "friendly ping for review, do we want to consider this patch or should i abandon it instead..",
       "revId": "f0574fec7aeeccd7fefe37c25c5fa98398f69e99",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "083c7ae9_6d3a73b2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2026-05-12T20:14:10Z",
+      "side": 1,
+      "message": "Thanks for the patch Alexander.\n\nWhen I run into these I often find myself wondering/needing to know what the unaliased type is.  I navigate to the alias and hit \u0027k\u0027 in my editor and the lsp server shows the unaliased type.  Not a big deal, but I guess for me that added step isn\u0027t really worth what we are getting here.\n\nI know this practice is common elsewhere in OpenBMC and I don\u0027t have a strong opinion on this.  Maybe we need some guidance in the c++ style guide?  @patrick@stwcx.xyz as the style guide owner, do you have any opinions here?",
+      "revId": "f0574fec7aeeccd7fefe37c25c5fa98398f69e99",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
