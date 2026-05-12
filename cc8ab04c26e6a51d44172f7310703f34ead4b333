@@ -16,6 +16,23 @@
       "message": "friendly ping for review, do we want to consider this patch or should i abandon it instead..",
       "revId": "cc8ab04c26e6a51d44172f7310703f34ead4b333",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "af3c271b_923fe441",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2026-05-12T19:57:18Z",
+      "side": 1,
+      "message": "I appreciate the effort here to improve the code coverage.  I support using constexpr over cpp macros.\n\nAnother approach that might not be as abstract and avoid the extra reference would be to just enable MAPPER_ENABLE_DEBUG by default for any build, not just debug builds (and disabling it by default in the recipe).\n\nAnother thought is changing the name from DEBUG to PROFILE since that is what is actually going on here, and removing the linkage to debug builds.",
+      "revId": "cc8ab04c26e6a51d44172f7310703f34ead4b333",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
