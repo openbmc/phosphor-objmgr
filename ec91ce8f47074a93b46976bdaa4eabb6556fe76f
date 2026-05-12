@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c87e066c_0f865750",
+        "filename": "src/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2026-05-12T20:27:12Z",
+      "side": 0,
+      "message": "we could probably make things much more succinct here another way:\n\n1 - why is a shared_ptr or a pointer at all even needed for a global variable?\n2 - we could make use of \u0027auto\u0027 here when declaring the variable type.\n3 - we could add \u0027using namespace std::chrono\u0027",
+      "revId": "ec91ce8f47074a93b46976bdaa4eabb6556fe76f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
