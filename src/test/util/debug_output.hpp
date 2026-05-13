@@ -1,5 +1,6 @@
 #include "src/associations.hpp"
 
+#include <iomanip>
 #include <iostream>
 
 // Some debug functions for dumping out the main data structures in objmgr
