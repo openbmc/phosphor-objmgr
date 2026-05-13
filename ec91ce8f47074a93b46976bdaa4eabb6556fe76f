@@ -16,6 +16,24 @@
       "message": "we could probably make things much more succinct here another way:\n\n1 - why is a shared_ptr or a pointer at all even needed for a global variable?\n2 - we could make use of \u0027auto\u0027 here when declaring the variable type.\n3 - we could add \u0027using namespace std::chrono\u0027",
       "revId": "ec91ce8f47074a93b46976bdaa4eabb6556fe76f",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1eb6f087_ccb23a77",
+        "filename": "src/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 1001712
+      },
+      "writtenOn": "2026-05-13T13:42:38Z",
+      "side": 0,
+      "message": "\u003e 1 - why is a shared_ptr or a pointer at all even needed for a global variable?\n\nIt is being used for `shared_ptr` specific functions, for example:\n\n`globalStartTime !\u003d nullptr \u0026\u0026 globalStartTime.use_count() \u003d\u003d 1`",
+      "parentUuid": "c87e066c_0f865750",
+      "revId": "ec91ce8f47074a93b46976bdaa4eabb6556fe76f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }

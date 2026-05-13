@@ -51,6 +51,24 @@
       "parentUuid": "083c7ae9_6d3a73b2",
       "revId": "f0574fec7aeeccd7fefe37c25c5fa98398f69e99",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f405d27a_001a9bc5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001712
+      },
+      "writtenOn": "2026-05-13T13:42:38Z",
+      "side": 1,
+      "message": "\u003e Not a big deal, but I guess for me that added step isn\u0027t really worth what we are getting here.\n\nSure, i can abandon the patch based on that reasoning. Thanks for the feedback 👍",
+      "parentUuid": "e1a45009_30ea2523",
+      "revId": "f0574fec7aeeccd7fefe37c25c5fa98398f69e99",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
