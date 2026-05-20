@@ -69,6 +69,24 @@
       "parentUuid": "e333e4b0_6e18b6b0",
       "revId": "cc8ab04c26e6a51d44172f7310703f34ead4b333",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1a5e64d1_f1082998",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001712
+      },
+      "writtenOn": "2026-05-20T18:05:44Z",
+      "side": 1,
+      "message": "\u003e We enable meson options by default for static analysis and CI purposes and then turn them off by default in the recipe in many places in OpenBMC. I\u0027m not sure why this is any different.\n\nIt makes sense to enable feature options for CI to get the best coverage for build testing and tidy.\n\nWith debug options i am not sure if it should be enabled in CI, it can depend on the option and whats behind it. Overall the code section which is enabled will get the better coverage from tidy.\n\nIn below example there is a debug code path which counts the number of calls. The production code path has a bug and would not compile but the compiler cannot see that because its a template.\n\n```\n\n#include \u003ctype_traits\u003e\n\n#define DEBUG 1\ntemplate \u003ctypename T\u003e\nvoid f(T value)\n{\n\tif constexpr (DEBUG)\n\t{\n\t\tvalue +\u003d 1;\n\t}\n\telse\n\t{\n\t\tvalue.this_does_not_exist();\n\t}\n}\n\nint main(){\n\n\tf(3);\n\treturn 0;\n}\n```\n\nIn that example it would be best to build the production code path in CI, and the bug would be found.\n\nFor this patch, i would have to agree with you, the debug code path is mostly additional code and we would probably not lose much coverage of the production code path. But for me its not a clear choice but a tradeoff which depends on code details which may change over time.\n\nWorst case if we build production code path in CI is that the debug code path gets bricked. Worst case of building the debug code path in CI is that tidy misses a bug in the production code path.",
+      "parentUuid": "a13a90eb_8ed9d32e",
+      "revId": "cc8ab04c26e6a51d44172f7310703f34ead4b333",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
