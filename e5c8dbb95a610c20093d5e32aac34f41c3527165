@@ -121,6 +121,29 @@
       "message": "Changes look fine to me. I can\u0027t answer whether the use in bmcweb is acceptable to the maintainers.",
       "revId": "e5c8dbb95a610c20093d5e32aac34f41c3527165",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d30cac19_4f905043",
+        "filename": "src/handler.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002065
+      },
+      "writtenOn": "2026-05-28T10:20:14Z",
+      "side": 1,
+      "message": "```suggestion\n * @param reqPath1           Base path to search for interfaces from 1st list\n * @param reqPath2           Base path to search for interfaces from 2nd list\n * @param interfaces1        Interface filter list 1\n * @param interfaces2        Interface filter list 2\n\n```\nnit: I assume interfaces1/2 are the lists you describe for reqPath1/2?",
+      "range": {
+        "startLine": 125,
+        "startChar": 3,
+        "endLine": 128,
+        "endChar": 56
+      },
+      "revId": "e5c8dbb95a610c20093d5e32aac34f41c3527165",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
