@@ -325,7 +325,7 @@ static void doListNames(
 //    - Means D-Bus created these, not application code,
 //      with the Properties, Introspectable, and Peer ifaces
 // 2) Have no other child for this owner
-static void removeUnneededParents(const std::string& objectPath,
+static void removeUnneededParents(const sdbusplus::object_path& objectPath,
                                   const std::string& owner,
                                   InterfaceMapType& interfaceMap)
 {
@@ -333,12 +333,12 @@ static void removeUnneededParents(const std::string& objectPath,
 
     while (true)
     {
-        auto pos = parent.find_last_of('/');
-        if ((pos == std::string::npos) || (pos == 0))
+        if (parent == "/")
         {
             break;
         }
-        parent = parent.substr(0, pos);
+
+        parent = parent.parent_path();
 
         auto parentIt = interfaceMap.find(parent);
         if (parentIt == interfaceMap.end())
@@ -357,7 +357,7 @@ static void removeUnneededParents(const std::string& objectPath,
             break;
         }
 
-        auto childPath = parent + '/';
+        auto childPath = parent.string() + '/';
 
         // Remove this parent if there isn't a remaining child on this owner
         auto child = std::find_if(
@@ -470,7 +470,7 @@ int main()
         sdbusplus::object_path objPath;
         std::vector<std::string> interfacesRemoved;
         message.read(objPath, interfacesRemoved);
-        auto connectionMap = interfaceMap.find(objPath.str);
+        auto connectionMap = interfaceMap.find(objPath);
         if (connectionMap == interfaceMap.end())
         {
             return;
@@ -491,8 +491,7 @@ int main()
 
             if (interface == assocDefsInterface)
             {
-                removeAssociation(io, objPath.str, sender, server,
-                                  associationMaps);
+                removeAssociation(io, objPath, sender, server, associationMaps);
             }
 
             interfaceSet->second.erase(interface);
@@ -514,7 +513,7 @@ int main()
                 {
                     // Remove the 2 association D-Bus paths and move the
                     // association to pending.
-                    moveAssociationToPending(io, objPath.str, associationMaps,
+                    moveAssociationToPending(io, objPath, associationMaps,
                                              server);
                 }
             }
@@ -526,7 +525,7 @@ int main()
             interfaceMap.erase(connectionMap);
         }
 
-        removeUnneededParents(objPath.str, sender, interfaceMap);
+        removeUnneededParents(objPath, sender, interfaceMap);
     };
 
     sdbusplus::match interfacesRemoved(
@@ -552,7 +551,8 @@ int main()
             {
                 return;
             }
-            associationChanged(io, server, associations, message.get_path(),
+            associationChanged(io, server, associations,
+                               sdbusplus::object_path(message.get_path()),
                                wellKnown, interfaceMap, associationMaps);
         }
     };

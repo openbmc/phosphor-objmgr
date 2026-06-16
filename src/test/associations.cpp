@@ -207,7 +207,8 @@ TEST_F(TestAssociations, associationChangedAddNewAssoc)
         {"/new/source/path", {{defaultDbusSvc, {"a"}}}},
         {"/xyz/openbmc_project/new/endpoint", {{defaultDbusSvc, {"a"}}}}};
 
-    associationChanged(io, *server, associations, "/new/source/path",
+    associationChanged(io, *server, associations,
+                       sdbusplus::object_path("/new/source/path"),
                        defaultDbusSvc, interfaceMap, assocMaps);
 
     // Two source paths
@@ -407,7 +408,8 @@ TEST_F(TestAssociations, associationChangedPending)
     AssociationMaps assocMaps;
     InterfaceMapType interfaceMap;
 
-    associationChanged(io, *server, associations, "/new/source/path",
+    associationChanged(io, *server, associations,
+                       sdbusplus::object_path("/new/source/path"),
                        defaultDbusSvc, interfaceMap, assocMaps);
 
     // No associations were actually added
@@ -492,8 +494,8 @@ TEST_F(TestAssociations, checkIfPending)
     EXPECT_EQ(assocMaps.ifaces.size(), 2);
 
     // This shouldn't do anything, since /new/path isn't pending
-    checkIfPendingAssociation(io, "/new/path", interfaceMap, assocMaps,
-                              *server);
+    checkIfPendingAssociation(io, sdbusplus::object_path("/new/path"),
+                              interfaceMap, assocMaps, *server);
     EXPECT_TRUE(assocMaps.pending.empty());
     EXPECT_EQ(assocMaps.owners.size(), 1);
     EXPECT_EQ(assocMaps.ifaces.size(), 2);

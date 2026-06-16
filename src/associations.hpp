@@ -89,9 +89,9 @@ void checkAssociationEndpointRemoves(
  */
 void associationChanged(
     boost::asio::io_context& io, sdbusplus::asio::object_server& objectServer,
-    const std::vector<Association>& associations, const std::string& path,
-    const std::string& owner, const InterfaceMapType& interfaceMap,
-    AssociationMaps& assocMaps);
+    const std::vector<Association>& associations,
+    const sdbusplus::object_path& path, const std::string& owner,
+    const InterfaceMapType& interfaceMap, AssociationMaps& assocMaps);
 
 /** @brief Add a pending associations entry
  *
@@ -160,7 +160,7 @@ void addSingleAssociation(
  * @param[in,out] server    - sdbus system object
  */
 void checkIfPendingAssociation(
-    boost::asio::io_context& io, const std::string& objectPath,
+    boost::asio::io_context& io, const sdbusplus::object_path& objectPath,
     const InterfaceMapType& interfaceMap, AssociationMaps& assocMaps,
     sdbusplus::asio::object_server& server);
 
@@ -189,5 +189,5 @@ void findAssociations(const std::string& endpointPath,
  * @param[in,out] server    - sdbus system object
  */
 void moveAssociationToPending(
-    boost::asio::io_context& io, const std::string& endpointPath,
+    boost::asio::io_context& io, const sdbusplus::object_path& endpointPath,
     AssociationMaps& assocMaps, sdbusplus::asio::object_server& server);

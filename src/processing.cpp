@@ -105,7 +105,7 @@ void processInterfaceAdded(
     const std::string& wellKnown, AssociationMaps& assocMaps,
     sdbusplus::asio::object_server& server)
 {
-    auto& ifaceList = interfaceMap[objPath.str];
+    auto& ifaceList = interfaceMap[objPath.string()];
 
     for (const auto& interfacePair : intfAdded)
     {
@@ -130,7 +130,7 @@ void processInterfaceAdded(
             }
             std::vector<Association> associations =
                 std::get<std::vector<Association>>(*variantAssociations);
-            associationChanged(io, server, associations, objPath.str, wellKnown,
+            associationChanged(io, server, associations, objPath, wellKnown,
                                interfaceMap, assocMaps);
         }
     }
@@ -150,12 +150,11 @@ void processInterfaceAdded(
     using iface_map_iterator = InterfaceMapType::iterator;
     using name_map_iterator = ConnectionNames::iterator;
 
-    std::string parent = objPath.str;
-    auto pos = parent.find_last_of('/');
+    auto parent = objPath;
 
-    while (pos != std::string::npos)
+    while (parent != "/")
     {
-        parent = parent.substr(0, pos);
+        parent = parent.parent_path();
 
         std::pair<iface_map_iterator, bool> parentEntry =
             interfaceMap.emplace(parent, ConnectionNames{});
@@ -168,10 +167,8 @@ void processInterfaceAdded(
             // Entry was already there for this name so done.
             break;
         }
-
-        pos = parent.find_last_of('/');
     }
 
     // The new interface might have an association pending
-    checkIfPendingAssociation(io, objPath.str, interfaceMap, assocMaps, server);
+    checkIfPendingAssociation(io, objPath, interfaceMap, assocMaps, server);
 }

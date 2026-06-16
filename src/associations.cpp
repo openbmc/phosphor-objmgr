@@ -241,9 +241,9 @@ static void addEndpointsToAssocIfaces(
 
 void associationChanged(
     boost::asio::io_context& io, sdbusplus::asio::object_server& objectServer,
-    const std::vector<Association>& associations, const std::string& path,
-    const std::string& owner, const InterfaceMapType& interfaceMap,
-    AssociationMaps& assocMaps)
+    const std::vector<Association>& associations,
+    const sdbusplus::object_path& path, const std::string& owner,
+    const InterfaceMapType& interfaceMap, AssociationMaps& assocMaps)
 {
     AssociationPaths objects;
 
@@ -256,7 +256,8 @@ void associationChanged(
 
         if (objectPath.empty())
         {
-            std::cerr << "Found invalid association on path " << path << "\n";
+            std::cerr << "Found invalid association on path " << path.string()
+                      << "\n";
             continue;
         }
 
@@ -419,7 +420,7 @@ void addSingleAssociation(
 }
 
 void checkIfPendingAssociation(
-    boost::asio::io_context& io, const std::string& objectPath,
+    boost::asio::io_context& io, const sdbusplus::object_path& objectPath,
     const InterfaceMapType& interfaceMap, AssociationMaps& assocMaps,
     sdbusplus::asio::object_server& server)
 {
@@ -456,7 +457,7 @@ void checkIfPendingAssociation(
         const auto& ownerPath = std::get<reversePathPos>(e);
         const auto& owner = std::get<ownerPos>(*endpoint);
 
-        auto assocPath = objectPath + '/' + std::get<forwardTypePos>(e);
+        auto assocPath = objectPath / std::get<forwardTypePos>(e);
         auto endpointPath = ownerPath;
 
         try
@@ -476,8 +477,8 @@ void checkIfPendingAssociation(
             // exception is thrown. mapper has no control of the interface/path
             // of the associations, so it has to catch the error and drop the
             // association request.
-            std::cerr << "Error adding association: assocPath " << assocPath
-                      << ", endpointPath " << endpointPath
+            std::cerr << "Error adding association: assocPath "
+                      << assocPath.string() << ", endpointPath " << endpointPath
                       << ", what: " << ex.what() << "\n";
         }
 
@@ -627,7 +628,7 @@ static void removeAssociationOwnersEntry(
 }
 
 void moveAssociationToPending(
-    boost::asio::io_context& io, const std::string& endpointPath,
+    boost::asio::io_context& io, const sdbusplus::object_path& endpointPath,
     AssociationMaps& assocMaps, sdbusplus::asio::object_server& server)
 {
     FindAssocResults associationData;

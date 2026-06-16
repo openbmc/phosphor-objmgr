@@ -291,7 +291,7 @@ std::vector<InterfaceMapType::value_type> getAssociatedSubTree(
     const sdbusplus::object_path& reqPath, int32_t depth,
     std::vector<std::string>& interfaces)
 {
-    auto findEndpoint = associationMaps.ifaces.find(associationPath.str);
+    auto findEndpoint = associationMaps.ifaces.find(associationPath);
     if (findEndpoint == associationMaps.ifaces.end())
     {
         return {};
@@ -321,7 +321,7 @@ std::vector<std::string> getAssociatedSubTreePaths(
     const sdbusplus::object_path& reqPath, int32_t depth,
     std::vector<std::string>& interfaces)
 {
-    auto findEndpoint = associationMaps.ifaces.find(associationPath.str);
+    auto findEndpoint = associationMaps.ifaces.find(associationPath);
     if (findEndpoint == associationMaps.ifaces.end())
     {
         return {};
