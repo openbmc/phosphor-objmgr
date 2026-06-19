@@ -439,9 +439,9 @@ int main()
         }
     };
 
-    sdbusplus::bus::match_t nameOwnerChanged(
+    sdbusplus::match nameOwnerChanged(
         static_cast<sdbusplus::bus_t&>(*systemBus),
-        sdbusplus::bus::match::rules::nameOwnerChanged(),
+        sdbusplus::match_rules::nameOwnerChanged(),
         std::move(nameChangeHandler));
 
     auto interfacesAddedHandler = [&io, &interfaceMap, &nameOwners,
@@ -461,10 +461,9 @@ int main()
         }
     };
 
-    sdbusplus::bus::match_t interfacesAdded(
-        static_cast<sdbusplus::bus_t&>(*systemBus),
-        sdbusplus::bus::match::rules::interfacesAdded(),
-        std::move(interfacesAddedHandler));
+    sdbusplus::match interfacesAdded(static_cast<sdbusplus::bus_t&>(*systemBus),
+                                     sdbusplus::match_rules::interfacesAdded(),
+                                     std::move(interfacesAddedHandler));
 
     auto interfacesRemovedHandler = [&io, &interfaceMap, &nameOwners,
                                      &server](sdbusplus::message_t& message) {
@@ -530,9 +529,9 @@ int main()
         removeUnneededParents(objPath.str, sender, interfaceMap);
     };
 
-    sdbusplus::bus::match_t interfacesRemoved(
+    sdbusplus::match interfacesRemoved(
         static_cast<sdbusplus::bus_t&>(*systemBus),
-        sdbusplus::bus::match::rules::interfacesRemoved(),
+        sdbusplus::match_rules::interfacesRemoved(),
         std::move(interfacesRemovedHandler));
 
     auto associationChangedHandler = [&io, &server, &nameOwners, &interfaceMap](
@@ -557,12 +556,11 @@ int main()
                                wellKnown, interfaceMap, associationMaps);
         }
     };
-    sdbusplus::bus::match_t assocChangedMatch(
+    sdbusplus::match assocChangedMatch(
         static_cast<sdbusplus::bus_t&>(*systemBus),
-        sdbusplus::bus::match::rules::interface(
-            "org.freedesktop.DBus.Properties") +
-            sdbusplus::bus::match::rules::member("PropertiesChanged") +
-            sdbusplus::bus::match::rules::argN(0, assocDefsInterface),
+        sdbusplus::match_rules::interface("org.freedesktop.DBus.Properties") +
+            sdbusplus::match_rules::member("PropertiesChanged") +
+            sdbusplus::match_rules::argN(0, assocDefsInterface),
         std::move(associationChangedHandler));
 
     std::shared_ptr<sdbusplus::asio::dbus_interface> iface =
