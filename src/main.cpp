@@ -439,7 +439,7 @@ int main()
         }
     };
 
-    sdbusplus::bus::match_t nameOwnerChanged(
+    sdbusplus::match nameOwnerChanged(
         static_cast<sdbusplus::bus_t&>(*systemBus),
         sdbusplus::bus::match::rules::nameOwnerChanged(),
         std::move(nameChangeHandler));
@@ -461,7 +461,7 @@ int main()
         }
     };
 
-    sdbusplus::bus::match_t interfacesAdded(
+    sdbusplus::match interfacesAdded(
         static_cast<sdbusplus::bus_t&>(*systemBus),
         sdbusplus::bus::match::rules::interfacesAdded(),
         std::move(interfacesAddedHandler));
@@ -530,7 +530,7 @@ int main()
         removeUnneededParents(objPath.str, sender, interfaceMap);
     };
 
-    sdbusplus::bus::match_t interfacesRemoved(
+    sdbusplus::match interfacesRemoved(
         static_cast<sdbusplus::bus_t&>(*systemBus),
         sdbusplus::bus::match::rules::interfacesRemoved(),
         std::move(interfacesRemovedHandler));
@@ -557,7 +557,7 @@ int main()
                                wellKnown, interfaceMap, associationMaps);
         }
     };
-    sdbusplus::bus::match_t assocChangedMatch(
+    sdbusplus::match assocChangedMatch(
         static_cast<sdbusplus::bus_t&>(*systemBus),
         sdbusplus::bus::match::rules::interface(
             "org.freedesktop.DBus.Properties") +
