@@ -107,6 +107,24 @@
       "message": "nit: \n\nI\u0027m not a big fan of aligning this since the output will already be large due to path length.\n\nMaybe better to just structure it as 2 lines per association?\n\nFeel free to ignore this comment if you disagree, it is just minor detail which can be changed later and kind of subjective.",
       "revId": "41d7f5cef7827ffb2ad5646e674f09188ef08b25",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d41f3379_89de175b",
+        "filename": "src/mappertool.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2026-07-01T21:49:34Z",
+      "side": 1,
+      "message": "We\u0027d be open to ideas still, even if adding other options to control the formatting.\n\nA 2 line version could maybe be like:\n\n```\n/xyz/openbmc_project/inventory/system/chassis/motherboard/fan0 | sensors\n/xyz/openbmc_project/sensors/fan_tach/fan0_0                   | inventory\n\n/xyz/openbmc_project/inventory/system/chassis/motherboard/fan1 | sensors\n/xyz/openbmc_project/sensors/fan_tach/fan1_0                   | inventory\n```",
+      "parentUuid": "0c9ec909_37924cb3",
+      "revId": "41d7f5cef7827ffb2ad5646e674f09188ef08b25",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
