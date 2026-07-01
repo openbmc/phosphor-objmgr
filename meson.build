@@ -139,6 +139,17 @@ executable(
     install: true,
 )
 
+executable(
+    'mappertool',
+    'src/mappertool.cpp',
+    dependencies: [
+        cli11,
+        sdbusplus,
+    ],
+    implicit_include_directories: false,
+    install: true,
+)
+
 mapperx = executable(
     'mapperx',
     [
