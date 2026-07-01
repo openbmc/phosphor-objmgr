@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c808e913_536c1231",
+        "filename": "src/mappertool.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2026-07-01T21:01:02Z",
+      "side": 1,
+      "message": "In the future I can see adding additional options, so I think it would be good to keep the main() function small and make this lambda be a proper function.",
+      "revId": "41d7f5cef7827ffb2ad5646e674f09188ef08b25",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
