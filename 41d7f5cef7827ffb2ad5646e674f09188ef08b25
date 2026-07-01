@@ -1,6 +1,57 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8319c7c8_7bcf2ef6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001712
+      },
+      "writtenOn": "2026-07-01T21:33:24Z",
+      "side": 1,
+      "message": "Looking forward to when this goes in 💯\n\nOverall it would be really useful for me 👍",
+      "revId": "41d7f5cef7827ffb2ad5646e674f09188ef08b25",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "443fb23e_2a3d0402",
+        "filename": "src/mappertool.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1001712
+      },
+      "writtenOn": "2026-07-01T21:33:24Z",
+      "side": 1,
+      "message": "can you use `sdbusplus::object_path` for any variables that represent actual object paths? i feel like its going to be easier to tell things apart that way and it gives helper functions",
+      "revId": "41d7f5cef7827ffb2ad5646e674f09188ef08b25",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f98c540b_eda5fc07",
+        "filename": "src/mappertool.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1001712
+      },
+      "writtenOn": "2026-07-01T21:33:24Z",
+      "side": 1,
+      "message": "nit: i am wondering if it would be ok to do the same trick as the bmcweb cli and just roll this tool into the main mapper binary then use a symlink or wrapper script or commandline option to select between daemon and cli.\n\ne.g.\n`mapper --service`\nand \n`mapper assocs -t probing`\n\nmaybe it would save a few bytes in the overall fw binary.\n\nFeel free to discard this comment if you prefer the traditional standalone binary.",
+      "revId": "41d7f5cef7827ffb2ad5646e674f09188ef08b25",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c808e913_536c1231",
@@ -14,6 +65,46 @@
       "writtenOn": "2026-07-01T21:01:02Z",
       "side": 1,
       "message": "In the future I can see adding additional options, so I think it would be good to keep the main() function small and make this lambda be a proper function.",
+      "revId": "41d7f5cef7827ffb2ad5646e674f09188ef08b25",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4183b5ee_fe31efc9",
+        "filename": "src/mappertool.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1001712
+      },
+      "writtenOn": "2026-07-01T21:33:24Z",
+      "side": 1,
+      "message": "`sdbusplus::object_path` has helper functions like `.filename()` and `.parent_path()` that do all of this.",
+      "range": {
+        "startLine": 124,
+        "startChar": 12,
+        "endLine": 126,
+        "endChar": 1
+      },
+      "revId": "41d7f5cef7827ffb2ad5646e674f09188ef08b25",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0c9ec909_37924cb3",
+        "filename": "src/mappertool.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1001712
+      },
+      "writtenOn": "2026-07-01T21:33:24Z",
+      "side": 1,
+      "message": "nit: \n\nI\u0027m not a big fan of aligning this since the output will already be large due to path length.\n\nMaybe better to just structure it as 2 lines per association?\n\nFeel free to ignore this comment if you disagree, it is just minor detail which can be changed later and kind of subjective.",
       "revId": "41d7f5cef7827ffb2ad5646e674f09188ef08b25",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
