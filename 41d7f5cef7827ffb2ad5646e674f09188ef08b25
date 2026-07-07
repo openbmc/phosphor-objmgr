@@ -35,6 +35,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "236e01d4_3df15c62",
+        "filename": "src/mappertool.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002985
+      },
+      "writtenOn": "2026-07-07T19:25:22Z",
+      "side": 1,
+      "message": "Done, AssocRow fields and the assocEndpoints map now use sdbusplus::object_path throughout, and filename()/parent_path() replace the manual rfind/substr logic.",
+      "parentUuid": "443fb23e_2a3d0402",
+      "revId": "41d7f5cef7827ffb2ad5646e674f09188ef08b25",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "f98c540b_eda5fc07",
@@ -71,6 +89,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "ac965c0f_bf4256c6",
+        "filename": "src/mappertool.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002985
+      },
+      "writtenOn": "2026-07-07T19:25:22Z",
+      "side": 1,
+      "message": "Done, extracted to dumpAssocs(), main() is now just CLI setup with a one-liner callback.",
+      "parentUuid": "c808e913_536c1231",
+      "revId": "41d7f5cef7827ffb2ad5646e674f09188ef08b25",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "4183b5ee_fe31efc9",
         "filename": "src/mappertool.cpp",
         "patchSetId": 3
@@ -82,6 +118,30 @@
       "writtenOn": "2026-07-01T21:33:24Z",
       "side": 1,
       "message": "`sdbusplus::object_path` has helper functions like `.filename()` and `.parent_path()` that do all of this.",
+      "range": {
+        "startLine": 124,
+        "startChar": 12,
+        "endLine": 126,
+        "endChar": 1
+      },
+      "revId": "41d7f5cef7827ffb2ad5646e674f09188ef08b25",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "026b5676_9a053b13",
+        "filename": "src/mappertool.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002985
+      },
+      "writtenOn": "2026-07-07T19:25:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4183b5ee_fe31efc9",
       "range": {
         "startLine": 124,
         "startChar": 12,
