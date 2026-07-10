@@ -16,6 +16,24 @@
       "message": "There\u0027s  a src/test/handler.cpp for testing these methods.",
       "revId": "0cd8577aca3460081cd25ab9fb25fad9a114d892",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e785c70e_2a4d7991",
+        "filename": "src/handler.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001712
+      },
+      "writtenOn": "2026-07-10T12:52:19Z",
+      "side": 1,
+      "message": "Added some tests similar to what the other calls have. Not sure if i did the stub  correctly but you will probably know.",
+      "parentUuid": "66368b3e_6fc623ec",
+      "revId": "0cd8577aca3460081cd25ab9fb25fad9a114d892",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
