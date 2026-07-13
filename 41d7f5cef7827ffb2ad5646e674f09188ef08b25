@@ -73,6 +73,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "764e1eff_c2dd0d87",
+        "filename": "src/mappertool.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002985
+      },
+      "writtenOn": "2026-07-13T17:09:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "236e01d4_3df15c62",
+      "revId": "41d7f5cef7827ffb2ad5646e674f09188ef08b25",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "f98c540b_eda5fc07",
         "filename": "src/mappertool.cpp",
         "patchSetId": 3
@@ -134,6 +152,24 @@
         "id": 1000008
       },
       "writtenOn": "2026-07-09T21:38:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ac965c0f_bf4256c6",
+      "revId": "41d7f5cef7827ffb2ad5646e674f09188ef08b25",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d1262265_933c7a53",
+        "filename": "src/mappertool.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002985
+      },
+      "writtenOn": "2026-07-13T17:09:06Z",
       "side": 1,
       "message": "Done",
       "parentUuid": "ac965c0f_bf4256c6",
