@@ -24,6 +24,30 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "eb51a6b1_1c6219bf",
+        "filename": "src/mappertool.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002985
+      },
+      "writtenOn": "2026-07-13T17:20:42Z",
+      "side": 1,
+      "message": "Fixed this although sometimes associations will be mismatched and now raw paths point forward only, for example -\u003e \n```\n/xyz/openbmc_project/inventory/system/chassis                                                    | assembly, containing\n\n/xyz/openbmc_project/inventory/system/chassis/motherboard/disk_backplane0/dp0_connector4         | contained_by, inventory\n```",
+      "parentUuid": "94007da5_355fa204",
+      "range": {
+        "startLine": 98,
+        "startChar": 4,
+        "endLine": 98,
+        "endChar": 74
+      },
+      "revId": "6dcf99842f856063911995c797ae243a7934be8e",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "023be056_1593af14",
@@ -47,6 +71,30 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8deb6116_6e3676ce",
+        "filename": "src/mappertool.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002985
+      },
+      "writtenOn": "2026-07-13T17:20:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "023be056_1593af14",
+      "range": {
+        "startLine": 104,
+        "startChar": 12,
+        "endLine": 104,
+        "endChar": 42
+      },
+      "revId": "6dcf99842f856063911995c797ae243a7934be8e",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2804006c_424dc545",
@@ -60,6 +108,30 @@
       "writtenOn": "2026-07-08T09:52:26Z",
       "side": 1,
       "message": "my query: why are you checking `reverseAssocPath` for empty string?\n\nWith correct usage `sdbusplus::object_path` can be no shorter than `\"/\"`.\n\nSee https://dbus.freedesktop.org/doc/dbus-specification.html#basic-types\n\nquote:\n\n```\n\n          The following rules define a valid object path. Implementations must\n          not send or accept messages with invalid object paths.\n          \n\n                The path may be of any length.\n              \n                The path must begin with an ASCII \u0027/\u0027 (integer 47) character,\n                and must consist of elements separated by slash characters.\n              \n                Each element must only contain the ASCII characters\n                \"[A-Z][a-z][0-9]_\"\n              \n                No element may be the empty string.\n              \n                Multiple \u0027/\u0027 characters cannot occur in sequence.\n              \n                A trailing \u0027/\u0027 character is not allowed unless the\n                path is the root path (a single \u0027/\u0027 character).\n              \n```",
+      "range": {
+        "startLine": 128,
+        "startChar": 21,
+        "endLine": 128,
+        "endChar": 58
+      },
+      "revId": "6dcf99842f856063911995c797ae243a7934be8e",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a4e67e88_690b9aa5",
+        "filename": "src/mappertool.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002985
+      },
+      "writtenOn": "2026-07-13T17:20:42Z",
+      "side": 1,
+      "message": "there is no reverseAssocPath at all in this design. The bucket approach folded everything into PairInfo with aToB/bToA sets so done as well technically.",
+      "parentUuid": "2804006c_424dc545",
       "range": {
         "startLine": 128,
         "startChar": 21,
