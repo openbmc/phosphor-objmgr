@@ -6,10 +6,12 @@
  * xyz.openbmc_project.ObjectMapper.
  *
  * Usage:
- *   mappertool assocs            dump all associations
- *   mappertool assocs -n <str>   filter: path must contain <str>
- *   mappertool assocs -t <type>  filter: any type (either direction) matches
- *   mappertool assocs -p         path mode: show raw assoc paths
+ *   mappertool assocs                    dump all associations
+ *   mappertool assocs -n <str>           filter by path containing <str>
+ *   mappertool assocs -t <type>          filter by association type
+ *   mappertool assocs -p                 show raw assoc paths
+ *   mappertool getobject <path>          show services/interfaces for a path
+ *   mappertool getobject <path> -i <if>  restrict to services with interface
  */
 
 #include <CLI/CLI.hpp>
@@ -38,6 +40,9 @@ using ManagedObjectType =
 
 static constexpr auto mapperService = "xyz.openbmc_project.ObjectMapper";
 static constexpr auto mapperRoot = "/";
+static constexpr auto mapperObj =
+    "/xyz/openbmc_project/object_mapper";
+static constexpr auto mapperIface = "xyz.openbmc_project.ObjectMapper";
 static constexpr auto objManagerIface = "org.freedesktop.DBus.ObjectManager";
 static constexpr auto assocIface = "xyz.openbmc_project.Association";
 
@@ -226,11 +231,54 @@ static void dumpAssocs(const std::string& nameFilter,
     }
 }
 
+static void getObject(const std::string& path,
+                      const std::vector<std::string>& interfaces)
+{
+    auto bus = sdbusplus::bus::new_default();
+
+    auto req = bus.new_method_call(mapperService, mapperObj, mapperIface,
+                                   "GetObject");
+    req.append(path, interfaces);
+
+    // a{sas}: map of service name -> list of interfaces
+    std::map<std::string, std::vector<std::string>> result;
+    try
+    {
+        auto reply = bus.call(req);
+        reply.read(result);
+    }
+    catch (const sdbusplus::exception_t& e)
+    {
+        std::println(stderr, "GetObject failed: {}", e.what());
+        return;
+    }
+
+    bool first = true;
+    for (const auto& [service, ifaces] : result)
+    {
+        if (ifaces.empty())
+        {
+            continue;
+        }
+        if (!first)
+        {
+            std::println("");
+        }
+        first = false;
+        std::println("{}", service);
+        for (const auto& iface : ifaces)
+        {
+            std::println("  {}", iface);
+        }
+    }
+}
+
 int main(int argc, char** argv)
 {
     CLI::App app{"mappertool - OpenBMC mapper inspection utility"};
     app.require_subcommand(1);
 
+    // assocs subcommand
     auto* assocs = app.add_subcommand("assocs", "Dump association objects");
 
     std::string nameFilter;
@@ -247,6 +295,21 @@ int main(int argc, char** argv)
                      "Print raw association paths instead of human form");
 
     assocs->callback([&]() { dumpAssocs(nameFilter, typeFilter, pathMode); });
+
+    // getobject subcommand
+    auto* getobj = app.add_subcommand(
+        "getobject", "Show which services implement a given object path");
+
+    std::string objPath;
+    getobj->add_option("path", objPath, "D-Bus object path to look up")
+        ->required();
+
+    std::vector<std::string> ifaceFilter;
+    getobj->add_option(
+        "-i,--interface", ifaceFilter,
+        "Restrict to services implementing this interface (repeatable)");
+
+    getobj->callback([&]() { getObject(objPath, ifaceFilter); });
 
     CLI11_PARSE(app, argc, argv);
     return 0;
