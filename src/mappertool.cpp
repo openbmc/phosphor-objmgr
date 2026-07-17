@@ -18,6 +18,8 @@
  *   mappertool getsubtree <subtree>         list objects with services/ifaces
  *   mappertool getsubtree <subtree> -d N    limit depth
  *   mappertool getsubtree <subtree> -i <if> filter by interface
+ *   mappertool getancestors <path>          list ancestor objects
+ *   mappertool getancestors <path> -i <if>  filter by interface
  */
 
 #include <CLI/CLI.hpp>
@@ -351,6 +353,47 @@ static void getSubTree(const std::string& subtreePath, int32_t depth,
     }
 }
 
+static void getAncestors(const std::string& path,
+                         const std::vector<std::string>& interfaces)
+{
+    auto bus = sdbusplus::bus::new_default();
+
+    auto req = bus.new_method_call(mapperService, mapperObj, mapperIface,
+                                   "GetAncestors");
+    req.append(path, interfaces);
+
+    SubTreeType result;
+    try
+    {
+        auto reply = bus.call(req);
+        reply.read(result);
+    }
+    catch (const sdbusplus::exception_t& e)
+    {
+        std::println(stderr, "GetAncestors failed: {}", e.what());
+        return;
+    }
+
+    bool firstObj = true;
+    for (const auto& [objPath, services] : result)
+    {
+        if (!firstObj)
+        {
+            std::println("");
+        }
+        firstObj = false;
+        std::println("{}", objPath);
+        for (const auto& [service, ifaces] : services)
+        {
+            std::println("  {}", service);
+            for (const auto& iface : ifaces)
+            {
+                std::println("    {}", iface);
+            }
+        }
+    }
+}
+
 int main(int argc, char** argv)
 {
     CLI::App app{"mappertool - OpenBMC mapper inspection utility"};
@@ -428,6 +471,22 @@ int main(int argc, char** argv)
         "Restrict to objects implementing this interface (repeatable)");
 
     getst->callback([&]() { getSubTree(stRoot, stDepth, stIfaces); });
+
+    // getancestors subcommand
+    auto* getanc = app.add_subcommand(
+        "getancestors",
+        "List ancestor objects of a path with their services and interfaces");
+
+    std::string ancPath;
+    getanc->add_option("path", ancPath, "D-Bus object path to look up")
+        ->required();
+
+    std::vector<std::string> ancIfaces;
+    getanc->add_option(
+        "-i,--interface", ancIfaces,
+        "Restrict to ancestors implementing this interface (repeatable)");
+
+    getanc->callback([&]() { getAncestors(ancPath, ancIfaces); });
 
     CLI11_PARSE(app, argc, argv);
     return 0;
