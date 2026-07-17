@@ -6,12 +6,15 @@
  * xyz.openbmc_project.ObjectMapper.
  *
  * Usage:
- *   mappertool assocs                    dump all associations
- *   mappertool assocs -n <str>           filter by path containing <str>
- *   mappertool assocs -t <type>          filter by association type
- *   mappertool assocs -p                 show raw assoc paths
- *   mappertool getobject <path>          show services/interfaces for a path
- *   mappertool getobject <path> -i <if>  restrict to services with interface
+ *   mappertool assocs                          dump all associations
+ *   mappertool assocs -n <str>                 filter by path containing <str>
+ *   mappertool assocs -t <type>                filter by association type
+ *   mappertool assocs -p                       show raw assoc paths
+ *   mappertool getobject <path>                show services/interfaces for a path
+ *   mappertool getobject <path> -i <if>        restrict to services with interface
+ *   mappertool getsubtreepaths <subtree>       list object paths under subtree
+ *   mappertool getsubtreepaths <subtree> -d N  limit to N levels of depth
+ *   mappertool getsubtreepaths <subtree> -i <if>  restrict to objects with interface
  */
 
 #include <CLI/CLI.hpp>
@@ -272,6 +275,35 @@ static void getObject(const std::string& path,
     }
 }
 
+static void getSubTreePaths(const std::string& subtreePath, int32_t depth,
+                            const std::vector<std::string>& interfaces)
+{
+    auto bus = sdbusplus::bus::new_default();
+
+    auto req =
+        bus.new_method_call(mapperService, mapperObj, mapperIface,
+                            "GetSubTreePaths");
+    req.append(subtreePath, depth, interfaces);
+
+    // as: array of object paths
+    std::vector<std::string> result;
+    try
+    {
+        auto reply = bus.call(req);
+        reply.read(result);
+    }
+    catch (const sdbusplus::exception_t& e)
+    {
+        std::println(stderr, "GetSubTreePaths failed: {}", e.what());
+        return;
+    }
+
+    for (const auto& path : result)
+    {
+        std::println("{}", path);
+    }
+}
+
 int main(int argc, char** argv)
 {
     CLI::App app{"mappertool - OpenBMC mapper inspection utility"};
@@ -309,6 +341,26 @@ int main(int argc, char** argv)
         "Restrict to services implementing this interface (repeatable)");
 
     getobj->callback([&]() { getObject(objPath, ifaceFilter); });
+
+    // getsubtreepaths subcommand
+    auto* getstp = app.add_subcommand(
+        "getsubtreepaths",
+        "List object paths under a subtree, optionally filtered by interface");
+
+    std::string stpRoot;
+    getstp->add_option("subtree", stpRoot, "D-Bus subtree root path to search")
+        ->required();
+
+    int32_t stpDepth = 0;
+    getstp->add_option("-d,--depth", stpDepth,
+                       "Maximum depth of objects to return (0 = unlimited)");
+
+    std::vector<std::string> stpIfaces;
+    getstp->add_option(
+        "-i,--interface", stpIfaces,
+        "Restrict to objects implementing this interface (repeatable)");
+
+    getstp->callback([&]() { getSubTreePaths(stpRoot, stpDepth, stpIfaces); });
 
     CLI11_PARSE(app, argc, argv);
     return 0;
