@@ -15,6 +15,9 @@
  *   mappertool getsubtreepaths <subtree>         list object paths
  *   mappertool getsubtreepaths <subtree> -d N    limit depth
  *   mappertool getsubtreepaths <subtree> -i <if> filter by interface
+ *   mappertool getsubtree <subtree>         list objects with services/ifaces
+ *   mappertool getsubtree <subtree> -d N    limit depth
+ *   mappertool getsubtree <subtree> -i <if> filter by interface
  */
 
 #include <CLI/CLI.hpp>
@@ -303,6 +306,51 @@ static void getSubTreePaths(const std::string& subtreePath, int32_t depth,
     }
 }
 
+// a{sa{as}}: map of object path -> map of service -> list of interfaces
+using SubTreeType =
+    std::map<std::string, std::map<std::string, std::vector<std::string>>>;
+
+static void getSubTree(const std::string& subtreePath, int32_t depth,
+                       const std::vector<std::string>& interfaces)
+{
+    auto bus = sdbusplus::bus::new_default();
+
+    auto req = bus.new_method_call(mapperService, mapperObj, mapperIface,
+                                   "GetSubTree");
+    req.append(subtreePath, depth, interfaces);
+
+    SubTreeType result;
+    try
+    {
+        auto reply = bus.call(req);
+        reply.read(result);
+    }
+    catch (const sdbusplus::exception_t& e)
+    {
+        std::println(stderr, "GetSubTree failed: {}", e.what());
+        return;
+    }
+
+    bool firstObj = true;
+    for (const auto& [objPath, services] : result)
+    {
+        if (!firstObj)
+        {
+            std::println("");
+        }
+        firstObj = false;
+        std::println("{}", objPath);
+        for (const auto& [service, ifaces] : services)
+        {
+            std::println("  {}", service);
+            for (const auto& iface : ifaces)
+            {
+                std::println("    {}", iface);
+            }
+        }
+    }
+}
+
 int main(int argc, char** argv)
 {
     CLI::App app{"mappertool - OpenBMC mapper inspection utility"};
@@ -360,6 +408,26 @@ int main(int argc, char** argv)
         "Restrict to objects implementing this interface (repeatable)");
 
     getstp->callback([&]() { getSubTreePaths(stpRoot, stpDepth, stpIfaces); });
+
+    // getsubtree subcommand
+    auto* getst = app.add_subcommand(
+        "getsubtree",
+        "List objects under a subtree with their services and interfaces");
+
+    std::string stRoot;
+    getst->add_option("subtree", stRoot, "D-Bus subtree root path to search")
+        ->required();
+
+    int32_t stDepth = 0;
+    getst->add_option("-d,--depth", stDepth,
+                      "Maximum depth of objects to return (0 = unlimited)");
+
+    std::vector<std::string> stIfaces;
+    getst->add_option(
+        "-i,--interface", stIfaces,
+        "Restrict to objects implementing this interface (repeatable)");
+
+    getst->callback([&]() { getSubTree(stRoot, stDepth, stIfaces); });
 
     CLI11_PARSE(app, argc, argv);
     return 0;
