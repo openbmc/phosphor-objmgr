@@ -22,6 +22,30 @@
       },
       "revId": "73ade2d513b3a26ac1a125d28980b00d0658268d",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "492be76c_33a4c070",
+        "filename": "src/mappertool.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 1002985
+      },
+      "writtenOn": "2026-07-22T16:48:06Z",
+      "side": 1,
+      "message": "Done!",
+      "parentUuid": "2e7b08d9_e054ec95",
+      "range": {
+        "startLine": 270,
+        "startChar": 25,
+        "endLine": 270,
+        "endChar": 32
+      },
+      "revId": "73ade2d513b3a26ac1a125d28980b00d0658268d",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
