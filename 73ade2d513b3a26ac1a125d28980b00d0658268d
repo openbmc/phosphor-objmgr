@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2e7b08d9_e054ec95",
+        "filename": "src/mappertool.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2026-07-22T15:54:46Z",
+      "side": 1,
+      "message": "on all of these commands that return nested results, could you change the indent levels to 4?  Not a big deal, but I think would be slightly easier to read.",
+      "range": {
+        "startLine": 270,
+        "startChar": 25,
+        "endLine": 270,
+        "endChar": 32
+      },
+      "revId": "73ade2d513b3a26ac1a125d28980b00d0658268d",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
