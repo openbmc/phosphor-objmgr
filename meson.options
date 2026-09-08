@@ -6,3 +6,10 @@ option(
     value: 'enabled',
     description: 'Build phosphor-unit-failure-monitor',
 )
+
+option(
+    'mappertool',
+    type: 'feature',
+    value: 'enabled',
+    description: 'Include mappertool for D-Bus association inspection',
+)

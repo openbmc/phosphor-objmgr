@@ -139,16 +139,18 @@ executable(
     install: true,
 )
 
-executable(
-    'mappertool',
-    'src/mappertool.cpp',
-    dependencies: [
-        cli11,
-        sdbusplus,
-    ],
-    implicit_include_directories: false,
-    install: true,
-)
+if get_option('mappertool').enabled()
+    executable(
+        'mappertool',
+        'src/mappertool.cpp',
+        dependencies: [
+            cli11,
+            sdbusplus,
+        ],
+        implicit_include_directories: false,
+        install: true,
+    )
+endif
 
 mapperx = executable(
     'mapperx',
