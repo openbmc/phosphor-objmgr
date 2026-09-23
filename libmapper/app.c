@@ -188,16 +188,21 @@ finish:
     exit(r < 0 ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
-/* print out the distinct dbus service name for the input dbus path */
+/* print out the distinct dbus service name for the input dbus path.
+ * Usage: mapper get-service OBJECTPATH [INTERFACE]
+ * When INTERFACE is supplied, only services that implement that interface are
+ * considered, and the first such service is returned.
+ */
 static int get_service_main(int argc, char* argv[])
 {
     int r;
     sd_bus* conn = NULL;
     char* service = NULL;
 
-    if (argc != 3)
+    if (argc < 3 || argc > 4)
     {
-        fprintf(stderr, "Usage: %s get-service OBJECTPATH\n", argv[0]);
+        fprintf(stderr, "Usage: %s get-service OBJECTPATH [INTERFACE]\n",
+                argv[0]);
         exit(EXIT_FAILURE);
     }
 
@@ -208,7 +213,15 @@ static int get_service_main(int argc, char* argv[])
         goto finish;
     }
 
-    r = mapper_get_service(conn, argv[2], &service);
+    if (argc == 4)
+    {
+        r = mapper_get_service_with_iface(conn, argv[2], argv[3], &service);
+    }
+    else
+    {
+        r = mapper_get_service(conn, argv[2], &service);
+    }
+
     if (r < 0)
     {
         fprintf(stderr, "Error finding '%s' service: %s\n", argv[2],
@@ -232,7 +245,9 @@ int main(int argc, char* argv[])
         "  subtree-remove\n"
         "                 wait until the specified interface is not present\n"
         "                 in any of the subtrees of the specified namespace\n"
-        "  get-service    return the service identifier for input path\n";
+        "  get-service    return the service identifier for input path\n"
+        "                 optional INTERFACE arg limits results to services\n"
+        "                 that implement the specified interface\n";
 
     if (argc < 2)
     {

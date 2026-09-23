@@ -632,8 +632,12 @@ free_subtree:
     return r;
 }
 
-_public_ int mapper_get_object(sd_bus* conn, const char* obj,
-                               sd_bus_message** reply)
+/* Internal: issues a GetObject call with an explicit interface filter.
+ * Pass n_ifaces == 0 and iface == NULL for no filter (all services returned).
+ * On success the caller owns *reply and must sd_bus_message_unref() it.
+ */
+static int do_get_object(sd_bus* conn, const char* obj, int n_ifaces,
+                         const char* iface, sd_bus_message** reply)
 {
     sd_bus_message* request = NULL;
     int r, retry = 0;
@@ -652,7 +656,8 @@ _public_ int mapper_get_object(sd_bus* conn, const char* obj,
     {
         goto exit;
     }
-    r = sd_bus_message_append(request, "as", 0, NULL);
+
+    r = sd_bus_message_append(request, "as", n_ifaces, iface);
     if (r < 0)
     {
         goto exit;
@@ -673,13 +678,46 @@ _public_ int mapper_get_object(sd_bus* conn, const char* obj,
         break;
     }
 
-    if (r < 0)
-    {
-        goto exit;
-    }
-
 exit:
     sd_bus_message_unref(request);
+
+    return r;
+}
+
+_public_ int mapper_get_object(sd_bus* conn, const char* obj,
+                               sd_bus_message** reply)
+{
+    return do_get_object(conn, obj, 0, NULL, reply);
+}
+
+static int read_first_service(sd_bus_message* reply, char** service)
+{
+    int r;
+    const char* tmp;
+
+    r = sd_bus_message_enter_container(reply, 0, NULL);
+    if (r < 0)
+    {
+        return r;
+    }
+
+    r = sd_bus_message_enter_container(reply, 0, NULL);
+    if (r < 0)
+    {
+        return r;
+    }
+
+    r = sd_bus_message_read(reply, "s", &tmp);
+    if (r < 0)
+    {
+        return r;
+    }
+
+    *service = strdup(tmp);
+    if (*service == NULL)
+    {
+        r = -ENOMEM;
+    }
 
     return r;
 }
@@ -687,7 +725,6 @@ exit:
 _public_ int mapper_get_service(sd_bus* conn, const char* obj, char** service)
 {
     sd_bus_message* reply = NULL;
-    const char* tmp;
     int r;
 
     r = mapper_get_object(conn, obj, &reply);
@@ -696,25 +733,33 @@ _public_ int mapper_get_service(sd_bus* conn, const char* obj, char** service)
         goto exit;
     }
 
-    r = sd_bus_message_enter_container(reply, 0, NULL);
+    r = read_first_service(reply, service);
+
+exit:
+    sd_bus_message_unref(reply);
+
+    return r;
+}
+
+/*
+ * Like mapper_get_service but passes a required interface to GetObject so that
+ * only services implementing that interface are considered. This is useful when
+ * multiple services are registered for the same path and the caller knows which
+ * interface it needs.
+ */
+_public_ int mapper_get_service_with_iface(
+    sd_bus* conn, const char* obj, const char* interface, char** service)
+{
+    sd_bus_message* reply = NULL;
+    int r;
+
+    r = do_get_object(conn, obj, 1, interface, &reply);
     if (r < 0)
     {
         goto exit;
     }
 
-    r = sd_bus_message_enter_container(reply, 0, NULL);
-    if (r < 0)
-    {
-        goto exit;
-    }
-
-    r = sd_bus_message_read(reply, "s", &tmp);
-    if (r < 0)
-    {
-        goto exit;
-    }
-
-    *service = strdup(tmp);
+    r = read_first_service(reply, service);
 
 exit:
     sd_bus_message_unref(reply);
