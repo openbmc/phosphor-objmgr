@@ -16,6 +16,29 @@
       "message": "It seems looking good to me",
       "revId": "3980cc0ee2f3678181a7b0dbf0a0841645d4bde1",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2eb97b21_b27ff443",
+        "filename": "libmapper/mapper.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 716,
+      "author": {
+        "id": 1002901
+      },
+      "writtenOn": "2026-10-05T21:19:21Z",
+      "side": 1,
+      "message": "Do we need to check for NULL similar to line 131?",
+      "range": {
+        "startLine": 716,
+        "startChar": 15,
+        "endLine": 716,
+        "endChar": 21
+      },
+      "revId": "3980cc0ee2f3678181a7b0dbf0a0841645d4bde1",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
