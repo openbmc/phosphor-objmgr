@@ -1,0 +1,7 @@
+Code-Review+2: Matt Spinler <spinler@us.ibm.com>
+Verified+1: OpenBMC CI <openbmcbump-ci@yahoo.com>
+Submitted-by: Tan Siewert <tan@siewert.io>
+Submitted-at: Wed, 14 Oct 2026 21:46:51 +0000
+Reviewed-on: https://gerrit.openbmc.org/c/openbmc/phosphor-objmgr/+/95802
+Project: openbmc/phosphor-objmgr
+Branch: refs/heads/master
