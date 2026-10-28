@@ -576,22 +576,8 @@ TEST_F(TestAssociations, moveAssocToPending)
     EXPECT_TRUE(assocMaps.owners.empty());
 
     // Check the association interfaces were removed
-    {
-        auto assocs = assocMaps.ifaces.find(defaultFwdPath);
-        auto& iface = std::get<ifacePos>(assocs->second);
-        auto& endpoints = std::get<endpointsPos>(assocs->second);
-
-        EXPECT_EQ(iface.get(), nullptr);
-        EXPECT_TRUE(endpoints.empty());
-    }
-    {
-        auto assocs = assocMaps.ifaces.find(defaultRevPath);
-        auto& iface = std::get<ifacePos>(assocs->second);
-        auto& endpoints = std::get<endpointsPos>(assocs->second);
-
-        EXPECT_EQ(iface.get(), nullptr);
-        EXPECT_TRUE(endpoints.empty());
-    }
+    EXPECT_FALSE(assocMaps.ifaces.contains(defaultFwdPath));
+    EXPECT_FALSE(assocMaps.ifaces.contains(defaultRevPath));
 }
 
 // Creating an association object with an invalid D-Bus object path must not
