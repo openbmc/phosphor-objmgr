@@ -8,6 +8,7 @@
 #include <sdbusplus/exception.hpp>
 
 #include <algorithm>
+#include <array>
 #include <iostream>
 #include <string>
 #include <utility>
@@ -170,8 +171,8 @@ void removeAssociation(boost::asio::io_context& io,
 
     for (const auto& [assocPath, endpointsToRemove] : assocs->second)
     {
-        removeAssociationEndpoints(io, server, assocPath, endpointsToRemove,
-                                   assocMaps);
+        removeAssociationEndpoints(io, server, sourcePath, owner, assocPath,
+                                   endpointsToRemove, assocMaps);
     }
 
     // Remove the associationOwners entries for this owning path/service.
@@ -182,8 +183,45 @@ void removeAssociation(boost::asio::io_context& io,
     }
 }
 
+// Whether or not an association owner other than (sourcePath, owner) declares
+// endpoint as an endpoint of assocPath. An association object <path>/<type>
+// with endpoint <endpoint> results either from an association declared by
+// <path> or from an association declared by <endpoint>. Hence, only examine
+// the associationOwners entries of these two paths instead of all entries.
+static bool isEndpointDeclaredByOthers(
+    const AssociationMaps& assocMaps, const std::string& sourcePath,
+    const std::string& owner, const std::string& assocPath,
+    const std::string& endpoint)
+{
+    const std::array<std::string, 2> declarers{
+        splitAssociationPath(assocPath).first, endpoint};
+
+    for (const std::string& declarer : declarers)
+    {
+        auto owners = assocMaps.owners.find(declarer);
+        if (owners == assocMaps.owners.end())
+        {
+            continue;
+        }
+        for (const auto& [otherOwner, assocPaths] : owners->second)
+        {
+            if (declarer == sourcePath && otherOwner == owner)
+            {
+                continue;
+            }
+            auto p = assocPaths.find(assocPath);
+            if (p != assocPaths.end() && p->second.contains(endpoint))
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 void removeAssociationEndpoints(
     boost::asio::io_context& io, sdbusplus::asio::object_server& objectServer,
+    const std::string& sourcePath, const std::string& owner,
     const std::string& assocPath,
     const boost::container::flat_set<std::string>& endpointsToRemove,
     AssociationMaps& assocMaps)
@@ -198,6 +236,15 @@ void removeAssociationEndpoints(
 
     for (const auto& endpointToRemove : endpointsToRemove)
     {
+        // Because endpointsInDBus has no duplicates, keep an endpoint that is
+        // still declared by another association owner, e.g. if two objects
+        // declare both sides of the same association.
+        if (isEndpointDeclaredByOthers(assocMaps, sourcePath, owner, assocPath,
+                                       endpointToRemove))
+        {
+            continue;
+        }
+
         auto e = std::find(endpointsInDBus.begin(), endpointsInDBus.end(),
                            endpointToRemove);
 
@@ -241,8 +288,9 @@ void checkAssociationEndpointRemoves(
         auto newEndpoints = newAssociations.find(originalAssocPath);
         if (newEndpoints == newAssociations.end())
         {
-            removeAssociationEndpoints(io, objectServer, originalAssocPath,
-                                       originalEndpoints, assocMaps);
+            removeAssociationEndpoints(io, objectServer, sourcePath, owner,
+                                       originalAssocPath, originalEndpoints,
+                                       assocMaps);
         }
         else
         {
@@ -261,8 +309,9 @@ void checkAssociationEndpointRemoves(
             }
             if (!toRemove.empty())
             {
-                removeAssociationEndpoints(io, objectServer, originalAssocPath,
-                                           toRemove, assocMaps);
+                removeAssociationEndpoints(io, objectServer, sourcePath, owner,
+                                           originalAssocPath, toRemove,
+                                           assocMaps);
             }
         }
     }

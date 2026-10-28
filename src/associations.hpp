@@ -28,12 +28,17 @@ void removeAssociation(boost::asio::io_context& io,
 /** @brief Remove input paths from endpoints of an association
  *
  * If the last endpoint was removed, then remove the whole
- * association object, otherwise just set the property
+ * association object, otherwise just set the property.
+ * Endpoints that are also declared by another association owner
+ * (another source path or service) are not removed.
  *
  * @param[in] io                  - io context
  * @param[in] objectServer        - sdbus system object
- * @param[in] assocPath           - Path of the object that contains the
+ * @param[in] sourcePath          - Path of the object that contains the
  *                                  org.openbmc.Associations
+ * @param[in] owner               - The D-Bus service that no longer
+ *                                  declares the endpoints
+ * @param[in] assocPath           - Path of the association object
  * @param[in] endpointsToRemove   - Endpoints to remove
  * @param[in,out] assocMaps       - The association maps
  *
@@ -41,6 +46,7 @@ void removeAssociation(boost::asio::io_context& io,
  */
 void removeAssociationEndpoints(
     boost::asio::io_context& io, sdbusplus::asio::object_server& objectServer,
+    const std::string& sourcePath, const std::string& owner,
     const std::string& assocPath,
     const boost::container::flat_set<std::string>& endpointsToRemove,
     AssociationMaps& assocMaps);
