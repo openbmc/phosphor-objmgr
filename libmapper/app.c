@@ -82,9 +82,13 @@ static int wait_main(int argc, char* argv[])
                 if (attempts <= max_attempts)
                 {
                     fprintf(stderr, "Retrying in 1s\n");
-                    sleep(1);
+                    /* Cancel the requests and timers of this attempt before
+                     * releasing the bus and the event loop. */
+                    mapper_wait_async_free(wait);
+                    wait = NULL;
                     sd_event_unref(loop);
                     sd_bus_unref(conn);
+                    sleep(1);
                     continue;
                 }
                 else
