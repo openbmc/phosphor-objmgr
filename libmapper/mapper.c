@@ -576,20 +576,21 @@ static int async_subtree_getpaths_callback(sd_bus_message* m, void* userdata,
         goto exit;
     }
 
-    r = sd_bus_message_get_errno(m);
-
     if (sd_bus_message_is_method_error(
             m, "xyz.openbmc_project.Common.Error.ResourceNotFound"))
     {
         if (subtree->op == MAPPER_OP_REMOVE)
         {
+            /* The namespace does not exist (anymore). Hence, the interface
+             * is not present in any of its subtrees. Report success instead
+             * of trying to parse the error reply as a list of paths. */
             r = 0;
+            goto done;
         }
-        else
-        {
-            goto exit;
-        }
+        goto exit;
     }
+
+    r = sd_bus_message_get_errno(m);
 
     if ((r == EBUSY || r == ENOBUFS) && req->retry < mapper_busy_retries)
     {
