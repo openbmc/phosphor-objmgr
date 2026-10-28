@@ -26,6 +26,42 @@ std::span<const std::string> getWellKnownNames(const NameOwners& owners,
     return {&*it->second.begin(), it->second.size()};
 }
 
+bool hasInterface(const InterfaceMapType& interfaceMap, const std::string& path,
+                  const std::string& service, const std::string& interface)
+{
+    auto pathIt = interfaceMap.find(path);
+    if (pathIt == interfaceMap.end())
+    {
+        return false;
+    }
+    auto serviceIt = pathIt->second.find(service);
+    return serviceIt != pathIt->second.end() &&
+           serviceIt->second.contains(interface);
+}
+
+void processAssociationsChanged(
+    boost::asio::io_context& io, const NameOwners& nameOwners,
+    const std::string& sender, const std::string& path,
+    const std::vector<Association>& associations,
+    const InterfaceMapType& interfaceMap, AssociationMaps& assocMaps,
+    sdbusplus::asio::object_server& server)
+{
+    for (const std::string& wellKnown : getWellKnownNames(nameOwners, sender))
+    {
+        // Any connection can emit this signal for any path. Only accept it
+        // from a service that implements the association definitions
+        // interface on that path. Otherwise the associations would not be
+        // removed when the sender disappears.
+        if (!hasInterface(interfaceMap, path, wellKnown, assocDefsInterface))
+        {
+            continue;
+        }
+        associationChanged(io, server, associations,
+                           sdbusplus::object_path(path), wellKnown,
+                           interfaceMap, assocMaps);
+    }
+}
+
 bool needToIntrospect(const std::string& processName)
 {
     using namespace std::string_view_literals;

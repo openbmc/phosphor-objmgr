@@ -431,30 +431,25 @@ int main()
         catchExceptions("InterfacesRemoved",
                         std::move(interfacesRemovedHandler)));
 
-    auto associationChangedHandler = [&io, &server, &nameOwners, &interfaceMap,
-                                      &associationMaps](
-                                         sdbusplus::message_t& message) {
-        std::string objectName;
-        boost::container::flat_map<std::string,
-                                   std::variant<std::vector<Association>>>
-            values;
-        message.read(objectName, values);
-        auto prop = values.find(assocDefsProperty);
-        if (prop != values.end())
-        {
-            std::vector<Association> associations =
-                std::get<std::vector<Association>>(prop->second);
-
-            const std::string sender = message.get_sender();
-            for (const std::string& wellKnown :
-                 getWellKnownNames(nameOwners, sender))
+    auto associationChangedHandler =
+        [&io, &server, &nameOwners, &interfaceMap,
+         &associationMaps](sdbusplus::message_t& message) {
+            std::string objectName;
+            boost::container::flat_map<std::string,
+                                       std::variant<std::vector<Association>>>
+                values;
+            message.read(objectName, values);
+            auto prop = values.find(assocDefsProperty);
+            if (prop != values.end())
             {
-                associationChanged(io, server, associations,
-                                   sdbusplus::object_path(message.get_path()),
-                                   wellKnown, interfaceMap, associationMaps);
+                std::vector<Association> associations =
+                    std::get<std::vector<Association>>(prop->second);
+
+                processAssociationsChanged(
+                    io, nameOwners, message.get_sender(), message.get_path(),
+                    associations, interfaceMap, associationMaps, server);
             }
-        }
-    };
+        };
     sdbusplus::match assocChangedMatch(
         static_cast<sdbusplus::bus_t&>(*systemBus),
         sdbusplus::match_rules::interface("org.freedesktop.DBus.Properties") +

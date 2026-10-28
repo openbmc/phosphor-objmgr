@@ -41,6 +41,40 @@ using InterfacesAdded = std::vector<std::pair<
 std::span<const std::string> getWellKnownNames(const NameOwners& owners,
                                                const std::string& request);
 
+/** @brief Whether or not a service implements an interface on a path
+ *
+ * @param[in] interfaceMap - Global map of interfaces
+ * @param[in] path         - Object path
+ * @param[in] service      - Well known name of the service
+ * @param[in] interface    - Interface name
+ *
+ * @return True if service implements interface on path, false otherwise
+ */
+bool hasInterface(const InterfaceMapType& interfaceMap, const std::string& path,
+                  const std::string& service, const std::string& interface);
+
+/** @brief Process a change of the associations property
+ *
+ * Apply the new value of the associations property of path to all
+ * well-known names of sender that implement the association definitions
+ * interface on path. Ignore the change for other well-known names.
+ *
+ * @param[in] io           - io context
+ * @param[in] nameOwners   - Map of unique name to well known names
+ * @param[in] sender       - Sender of the PropertiesChanged signal
+ * @param[in] path         - Object path of the associations property
+ * @param[in] associations - New value of the associations property
+ * @param[in] interfaceMap     - Global map of interfaces
+ * @param[in,out] assocMaps    - The association maps
+ * @param[in,out] server       - sdbus system object
+ */
+void processAssociationsChanged(
+    boost::asio::io_context& io, const NameOwners& nameOwners,
+    const std::string& sender, const std::string& path,
+    const std::vector<Association>& associations,
+    const InterfaceMapType& interfaceMap, AssociationMaps& assocMaps,
+    sdbusplus::asio::object_server& server);
+
 /** @brief Determine if dbus service is something to monitor
  *
  * mapper does not monitor all DBus services.  needToIntrospect determines
