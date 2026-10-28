@@ -7,6 +7,8 @@
 #include <sdbusplus/asio/connection.hpp>
 #include <sdbusplus/asio/object_server.hpp>
 
+#include <set>
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -838,4 +840,144 @@ TEST_F(TestAssociations, associationChangedPartialUpdate)
     EXPECT_TRUE(assocMaps.pending.empty());
     EXPECT_TRUE(assocMaps.pendingByOwner.empty());
     EXPECT_TRUE(assocMaps.ifaces.empty());
+}
+
+// Multiple associations between the same two paths must each be reported
+// once and nested paths must not be confused with the endpoint.
+TEST_F(TestAssociations, findAssociationsMultipleAndNested)
+{
+    std::vector<std::tuple<std::string, Association>> associationData;
+    AssociationMaps assocMaps;
+
+    assocMaps.owners = {
+        {"/x",
+         {{"ownerA",
+           {{"/x/f1", {"/b", "/b/c"}},
+            {"/x/f2", {"/b"}},
+            {"/b/r1", {"/x"}},
+            {"/b/r2", {"/x"}},
+            {"/b/c/r3", {"/x"}}}}}}};
+
+    findAssociations("/b", assocMaps, associationData);
+    ASSERT_EQ(associationData.size(), 2);
+
+    std::set<std::string> thisTypes;
+    std::set<std::string> otherTypes;
+    for (const auto& [owner, assoc] : associationData)
+    {
+        EXPECT_EQ(owner, "ownerA");
+        EXPECT_EQ(std::get<reversePathPos>(assoc), "/x");
+        thisTypes.insert(std::get<forwardTypePos>(assoc));
+        otherTypes.insert(std::get<reverseTypePos>(assoc));
+    }
+    EXPECT_EQ(thisTypes, (std::set<std::string>{"r1", "r2"}));
+    EXPECT_EQ(otherTypes, (std::set<std::string>{"f1", "f2"}));
+
+    associationData.clear();
+    findAssociations("/b/c", assocMaps, associationData);
+    ASSERT_EQ(associationData.size(), 1);
+    EXPECT_EQ(std::get<forwardTypePos>(std::get<1>(associationData[0])), "r3");
+    EXPECT_EQ(std::get<reverseTypePos>(std::get<1>(associationData[0])), "f1");
+}
+
+// An association with the root path as endpoint can be found
+TEST_F(TestAssociations, findAssociationsRoot)
+{
+    std::vector<std::tuple<std::string, Association>> associationData;
+    AssociationMaps assocMaps;
+
+    assocMaps.owners = {
+        {"/x", {{"ownerA", {{"/x/f", {"/"}}, {"/r", {"/x"}}}}}}};
+
+    findAssociations("/", assocMaps, associationData);
+    ASSERT_EQ(associationData.size(), 1);
+    const auto& assoc = std::get<1>(associationData[0]);
+    EXPECT_EQ(std::get<forwardTypePos>(assoc), "r");
+    EXPECT_EQ(std::get<reverseTypePos>(assoc), "f");
+    EXPECT_EQ(std::get<reversePathPos>(assoc), "/x");
+}
+
+// Multiple associations between the same two paths that have the same type
+// on the side of the endpoint must all be reported
+TEST_F(TestAssociations, findAssociationsSharedType)
+{
+    std::vector<std::tuple<std::string, Association>> associationData;
+    AssociationMaps assocMaps;
+
+    assocMaps.owners = {
+        {"/x",
+         {{"ownerA",
+           {{"/x/f1", {"/b"}}, {"/x/f2", {"/b"}}, {"/b/r1", {"/x"}}}}}}};
+
+    findAssociations("/b", assocMaps, associationData);
+    ASSERT_EQ(associationData.size(), 2);
+
+    std::set<std::string> thisTypes;
+    std::set<std::string> otherTypes;
+    for (const auto& [owner, assoc] : associationData)
+    {
+        EXPECT_EQ(owner, "ownerA");
+        EXPECT_EQ(std::get<reversePathPos>(assoc), "/x");
+        thisTypes.insert(std::get<forwardTypePos>(assoc));
+        otherTypes.insert(std::get<reverseTypePos>(assoc));
+    }
+    EXPECT_EQ(thisTypes, (std::set<std::string>{"r1"}));
+    EXPECT_EQ(otherTypes, (std::set<std::string>{"f1", "f2"}));
+}
+
+// Associations that share a type must all be moved to pending and must all
+// be recreated once the endpoint shows up again
+TEST_F(TestAssociations, moveAssocToPendingSharedType)
+{
+    std::vector<Association> associations = {
+        {"f1_matpst", "r_matpst", defaultEndpoint},
+        {"f2_matpst", "r_matpst", defaultEndpoint}};
+
+    AssociationMaps assocMaps;
+    InterfaceMapType interfaceMap = createDefaultInterfaceMap();
+
+    associationChanged(io, *server, associations, defaultSourcePath,
+                       defaultDbusSvc, interfaceMap, assocMaps);
+    ASSERT_EQ(assocMaps.ifaces.size(), 3);
+
+    moveAssociationToPending(io, defaultEndpoint, assocMaps, *server);
+    EXPECT_TRUE(assocMaps.ifaces.empty());
+    EXPECT_TRUE(assocMaps.owners.empty());
+    ASSERT_EQ(assocMaps.pending.size(), 1);
+    EXPECT_EQ(assocMaps.pending.begin()->second.size(), 2);
+
+    checkIfPendingAssociation(io, sdbusplus::object_path(defaultEndpoint),
+                              interfaceMap, assocMaps, *server);
+    EXPECT_TRUE(assocMaps.pending.empty());
+    EXPECT_EQ(assocMaps.ifaces.size(), 3);
+    EXPECT_TRUE(assocMaps.ifaces.contains(defaultSourcePath + "/f1_matpst"));
+    EXPECT_TRUE(assocMaps.ifaces.contains(defaultSourcePath + "/f2_matpst"));
+    EXPECT_TRUE(assocMaps.ifaces.contains(defaultEndpoint + "/r_matpst"));
+}
+
+// An association with an empty forward type must be moved to pending and
+// recreated once the endpoint shows up again
+TEST_F(TestAssociations, moveAssocToPendingEmptyForwardType)
+{
+    std::vector<Association> associations = {
+        {"", "r_matpeft", defaultEndpoint}};
+
+    AssociationMaps assocMaps;
+    InterfaceMapType interfaceMap = createDefaultInterfaceMap();
+
+    associationChanged(io, *server, associations, defaultSourcePath,
+                       defaultDbusSvc, interfaceMap, assocMaps);
+    ASSERT_EQ(assocMaps.ifaces.size(), 1);
+
+    moveAssociationToPending(io, defaultEndpoint, assocMaps, *server);
+    EXPECT_TRUE(assocMaps.ifaces.empty());
+    EXPECT_TRUE(assocMaps.owners.empty());
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+
+    checkIfPendingAssociation(io, sdbusplus::object_path(defaultEndpoint),
+                              interfaceMap, assocMaps, *server);
+    EXPECT_TRUE(assocMaps.pending.empty());
+    ASSERT_EQ(assocMaps.ifaces.size(), 1);
+    EXPECT_TRUE(assocMaps.ifaces.contains(defaultEndpoint + "/r_matpeft"));
+    EXPECT_TRUE(assocMaps.owners.contains(defaultSourcePath));
 }

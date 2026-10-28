@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <iostream>
 #include <string>
+#include <utility>
+#include <vector>
 
 // Whether or not an association type can be used as an object path segment.
 // An empty type is allowed and means that no association object is created
@@ -17,6 +19,21 @@
 static bool isValidAssociationType(const std::string& type)
 {
     return type.empty() || isValidPathElement(type);
+}
+
+// Split an association path into the object path and the association type.
+static std::pair<std::string, std::string> splitAssociationPath(
+    const std::string& assocPath)
+{
+    auto pos = assocPath.rfind('/');
+    if (pos == std::string::npos)
+    {
+        // Not reached since association paths are valid object paths.
+        return {"", assocPath};
+    }
+    // The parent of "/type" is the root path.
+    return {pos == 0 ? std::string("/") : assocPath.substr(0, pos),
+            assocPath.substr(pos + 1)};
 }
 
 static void updateEndpointsOnDbus(sdbusplus::asio::object_server& objectServer,
@@ -586,50 +603,57 @@ void findAssociations(const std::string& endpointPath,
 {
     for (const auto& [sourcePath, owners] : assocMaps.owners)
     {
+        // The associations declared by endpointPath itself are removed by
+        // removeAssociation() instead of being moved to pending.
+        if (sourcePath == endpointPath)
+        {
+            continue;
+        }
+
         for (const auto& [owner, assocs] : owners)
         {
+            // An association (forward, reverse, endpointPath) declared by
+            // sourcePath results in the association objects
+            // sourcePath/forward -> [endpointPath] and
+            // endpointPath/reverse -> [sourcePath]. No object is created for
+            // an empty type.
+            std::vector<std::string> thisTypes;
+            std::vector<std::string> otherTypes;
             for (const auto& [assocPath, endpoints] : assocs)
             {
-                if (std::find(endpoints.begin(), endpoints.end(),
-                              endpointPath) != endpoints.end())
+                auto [parent, type] = splitAssociationPath(assocPath);
+                if (parent == sourcePath && endpoints.contains(endpointPath))
                 {
-                    // assocPath is <path>/<type> which tells us what is on the
-                    // other side of the association.
-                    auto pos = assocPath.rfind('/');
-                    auto otherPath = assocPath.substr(0, pos);
-                    auto otherType = assocPath.substr(pos + 1);
-
-                    // Now we need to find the endpointPath/<type> ->
-                    // [otherPath] entry so that we can get the type for
-                    // endpointPath's side of the assoc.  Do this by finding
-                    // otherPath as an endpoint, and also checking for
-                    // 'endpointPath/*' as the key.
-                    auto a = std::find_if(
-                        assocs.begin(), assocs.end(),
-                        [&endpointPath, &otherPath](const auto& ap) {
-                            const auto& otherEndpoints = ap.second;
-                            auto endpoint =
-                                std::find(otherEndpoints.begin(),
-                                          otherEndpoints.end(), otherPath);
-                            if (endpoint != otherEndpoints.end())
-                            {
-                                return ap.first.starts_with(endpointPath + '/');
-                            }
-                            return false;
-                        });
-
-                    if (a != assocs.end())
-                    {
-                        // Pull out the type from endpointPath/<type>
-                        pos = a->first.rfind('/');
-                        auto thisType = a->first.substr(pos + 1);
-
-                        // Now we know the full association:
-                        // endpointPath/thisType -> otherPath/otherType
-                        Association association{thisType, otherType, otherPath};
-                        associationData.emplace_back(owner, association);
-                    }
+                    otherTypes.emplace_back(std::move(type));
                 }
+                else if (parent == endpointPath &&
+                         endpoints.contains(sourcePath))
+                {
+                    thisTypes.emplace_back(std::move(type));
+                }
+            }
+
+            // How the types were paired in the declared associations is
+            // not recorded. If there are multiple associations between
+            // sourcePath and endpointPath, pair the types such that every
+            // association object occurs in at least one pair. Recreating
+            // the associations from these pairs results in the same
+            // association objects. An empty type is reported for a
+            // direction without association objects.
+            const size_t count = std::max(thisTypes.size(), otherTypes.size());
+            for (size_t i = 0; i < count; ++i)
+            {
+                std::string thisType =
+                    thisTypes.empty()
+                        ? std::string()
+                        : thisTypes[std::min(i, thisTypes.size() - 1)];
+                std::string otherType =
+                    otherTypes.empty()
+                        ? std::string()
+                        : otherTypes[std::min(i, otherTypes.size() - 1)];
+                associationData.emplace_back(
+                    owner, Association{std::move(thisType),
+                                       std::move(otherType), sourcePath});
             }
         }
     }
@@ -736,20 +760,26 @@ void moveAssociationToPending(
         addPendingAssociation(forwardPath, forwardType, reversePath,
                               reverseType, owner, assocMaps);
 
-        // Remove both sides of the association from assocMaps.ifaces
-        removeAssociationIfacesEntry(
-            io, appendPathSegment(forwardPath, forwardType), reversePath,
-            assocMaps, server);
-        removeAssociationIfacesEntry(
-            io, appendPathSegment(reversePath, reverseType), forwardPath,
-            assocMaps, server);
-
-        // Remove both sides of the association from assocMaps.owners
-        removeAssociationOwnersEntry(
-            appendPathSegment(forwardPath, forwardType), reversePath, owner,
-            assocMaps);
-        removeAssociationOwnersEntry(
-            appendPathSegment(reversePath, reverseType), forwardPath, owner,
-            assocMaps);
+        // Remove both sides of the association from assocMaps.ifaces and
+        // assocMaps.owners. There is no association object for a direction
+        // with an empty type.
+        if (!forwardType.empty())
+        {
+            const std::string assocPath =
+                appendPathSegment(forwardPath, forwardType);
+            removeAssociationIfacesEntry(io, assocPath, reversePath, assocMaps,
+                                         server);
+            removeAssociationOwnersEntry(assocPath, reversePath, owner,
+                                         assocMaps);
+        }
+        if (!reverseType.empty())
+        {
+            const std::string assocPath =
+                appendPathSegment(reversePath, reverseType);
+            removeAssociationIfacesEntry(io, assocPath, forwardPath, assocMaps,
+                                         server);
+            removeAssociationOwnersEntry(assocPath, forwardPath, owner,
+                                         assocMaps);
+        }
     }
 }
