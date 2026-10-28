@@ -110,7 +110,7 @@ TEST_F(TestHandler, AddObjectMapResult)
     auto entry = std::find_if(
         interfaceMaps.begin(), interfaceMaps.end(),
         [](const auto& i) { return "test_object_path" == i.first; });
-    ASSERT_NE(entry, interfaceMap.end());
+    ASSERT_NE(entry, interfaceMaps.end());
     for (const auto& [_, interfaces] : entry->second)
     {
         ASSERT_THAT(interfaces,
