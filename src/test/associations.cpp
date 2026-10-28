@@ -744,3 +744,85 @@ TEST_F(TestAssociations, removeAssociationAfterMoveToPending)
                       assocMaps);
     EXPECT_TRUE(assocMaps.pending.empty());
 }
+
+// Clearing the associations property must remove pending associations
+TEST_F(TestAssociations, associationChangedClearsPending)
+{
+    std::vector<Association> associations = {
+        {"callout_accp", "fault_accp", "/xyz/openbmc_project/missing_accp"}};
+
+    AssociationMaps assocMaps;
+    InterfaceMapType interfaceMap = createDefaultInterfaceMap();
+
+    associationChanged(io, *server, associations, defaultSourcePath,
+                       defaultDbusSvc, interfaceMap, assocMaps);
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+
+    associationChanged(io, *server, {}, defaultSourcePath, defaultDbusSvc,
+                       interfaceMap, assocMaps);
+    EXPECT_TRUE(assocMaps.pending.empty());
+}
+
+// Clearing the associations property must remove the associationOwners
+// entry such that the association is not resurrected later on.
+TEST_F(TestAssociations, associationChangedClearsOwners)
+{
+    std::vector<Association> associations = {
+        {"inventory_acco", "error_acco", defaultEndpoint}};
+
+    AssociationMaps assocMaps;
+    InterfaceMapType interfaceMap = createDefaultInterfaceMap();
+
+    associationChanged(io, *server, associations, defaultSourcePath,
+                       defaultDbusSvc, interfaceMap, assocMaps);
+    EXPECT_EQ(assocMaps.owners.size(), 1);
+    EXPECT_EQ(assocMaps.ifaces.size(), 2);
+
+    associationChanged(io, *server, {}, defaultSourcePath, defaultDbusSvc,
+                       interfaceMap, assocMaps);
+    EXPECT_TRUE(assocMaps.owners.empty());
+    EXPECT_TRUE(assocMaps.ifaces.empty());
+
+    // The endpoint disappearing must not create a pending association
+    moveAssociationToPending(io, defaultEndpoint, assocMaps, *server);
+    EXPECT_TRUE(assocMaps.pending.empty());
+}
+
+// Removing some associations from the associations property must only
+// remove the association objects and pending associations of the removed
+// associations.
+TEST_F(TestAssociations, associationChangedPartialUpdate)
+{
+    const std::string missing = "/xyz/openbmc_project/missing_acpu";
+    const Association present{"inventory_acpu", "error_acpu", defaultEndpoint};
+    const Association absent{"callout_acpu", "fault_acpu", missing};
+
+    AssociationMaps assocMaps;
+    InterfaceMapType interfaceMap = createDefaultInterfaceMap();
+
+    associationChanged(io, *server, {present, absent}, defaultSourcePath,
+                       defaultDbusSvc, interfaceMap, assocMaps);
+    EXPECT_EQ(assocMaps.ifaces.size(), 2);
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+
+    // Remove the association with the missing endpoint
+    associationChanged(io, *server, {present}, defaultSourcePath,
+                       defaultDbusSvc, interfaceMap, assocMaps);
+    EXPECT_EQ(assocMaps.ifaces.size(), 2);
+    EXPECT_TRUE(assocMaps.pending.empty());
+
+    // Replace the association with the existing endpoint by the
+    // association with the missing endpoint
+    associationChanged(io, *server, {absent}, defaultSourcePath, defaultDbusSvc,
+                       interfaceMap, assocMaps);
+    EXPECT_TRUE(assocMaps.ifaces.empty());
+    EXPECT_TRUE(assocMaps.owners.empty());
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+
+    // Make the missing endpoint show up
+    interfaceMap[missing][defaultDbusSvc] = {"b"};
+    checkIfPendingAssociation(io, sdbusplus::object_path(missing), interfaceMap,
+                              assocMaps, *server);
+    EXPECT_TRUE(assocMaps.pending.empty());
+    EXPECT_EQ(assocMaps.ifaces.size(), 2);
+}

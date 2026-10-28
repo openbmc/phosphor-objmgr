@@ -279,6 +279,11 @@ void associationChanged(
 {
     AssociationPaths objects;
 
+    // The new property value replaces the old one. Hence, forget about the
+    // pending associations of the old value. The pending associations of
+    // the new value are added below.
+    removeFromPendingAssociations(path, owner, assocMaps);
+
     for (const Association& association : associations)
     {
         std::string forward;
@@ -333,28 +338,39 @@ void associationChanged(
     checkAssociationEndpointRemoves(io, path, owner, objects, objectServer,
                                     assocMaps);
 
-    if (!objects.empty())
+    // Update associationOwners with the latest info
+    auto a = assocMaps.owners.find(path);
+    if (objects.empty())
     {
-        // Update associationOwners with the latest info
-        auto a = assocMaps.owners.find(path);
+        // Do not keep information about associations that no longer
+        // exist. Otherwise moveAssociationToPending() would resurrect
+        // these associations.
         if (a != assocMaps.owners.end())
         {
-            auto o = a->second.find(owner);
-            if (o != a->second.end())
+            a->second.erase(owner);
+            if (a->second.empty())
             {
-                o->second = std::move(objects);
+                assocMaps.owners.erase(a);
             }
-            else
-            {
-                a->second.emplace(owner, std::move(objects));
-            }
+        }
+    }
+    else if (a != assocMaps.owners.end())
+    {
+        auto o = a->second.find(owner);
+        if (o != a->second.end())
+        {
+            o->second = std::move(objects);
         }
         else
         {
-            boost::container::flat_map<std::string, AssociationPaths> owners;
-            owners.emplace(owner, std::move(objects));
-            assocMaps.owners.emplace(path, owners);
+            a->second.emplace(owner, std::move(objects));
         }
+    }
+    else
+    {
+        boost::container::flat_map<std::string, AssociationPaths> owners;
+        owners.emplace(owner, std::move(objects));
+        assocMaps.owners.emplace(path, owners);
     }
 }
 
