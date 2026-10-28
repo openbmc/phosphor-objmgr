@@ -8,6 +8,7 @@ tests = [
     ['associations', [associations_cpp_dep]],
     ['name_change', [associations_cpp_dep, processing_cpp_dep]],
     ['interfaces_added', [associations_cpp_dep, processing_cpp_dep]],
+    ['interfaces_removed', [associations_cpp_dep, processing_cpp_dep]],
     ['handler', [handler_cpp_dep, sdbusplus, phosphor_dbus_interfaces]],
 ]
 

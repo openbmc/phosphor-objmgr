@@ -173,6 +173,21 @@ void processInterfaceAdded(
     checkIfPendingAssociation(io, objPath, interfaceMap, assocMaps, server);
 }
 
+// Whether or not an interface set only contains interfaces that sd-bus
+// implements for every object. This is also the case for an empty interface
+// set, which is what processInterfaceAdded() stores for parent paths.
+static bool hasOnlyDefaultInterfaces(const InterfaceNames& interfaces)
+{
+    static constexpr std::array<std::string_view, 3> defaultInterfaces{
+        "org.freedesktop.DBus.Introspectable", "org.freedesktop.DBus.Peer",
+        "org.freedesktop.DBus.Properties"};
+
+    return std::ranges::all_of(interfaces, [](const std::string& interface) {
+        return std::ranges::find(defaultInterfaces, interface) !=
+               defaultInterfaces.end();
+    });
+}
+
 void removeUnneededParents(const sdbusplus::object_path& objectPath,
                            const std::string& owner,
                            InterfaceMapType& interfaceMap)
@@ -200,7 +215,7 @@ void removeUnneededParents(const sdbusplus::object_path& objectPath,
             break;
         }
 
-        if (ifacesIt->second.size() != 3)
+        if (!hasOnlyDefaultInterfaces(ifacesIt->second))
         {
             break;
         }
