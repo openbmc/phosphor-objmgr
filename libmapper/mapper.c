@@ -38,6 +38,17 @@ static const char* interfaces_removed_match =
 static const int mapper_busy_retries = 5;
 static const uint64_t mapper_busy_delay_interval_usec = 1000000;
 
+/* Flags in mapper_async_wait.status[]. */
+enum
+{
+    /* The object has been found. */
+    ASYNC_WAIT_FOUND = 1,
+    /* A GetObject request for the object is outstanding. */
+    ASYNC_WAIT_BUSY = 2,
+    /* A signal has been received while a request was outstanding. */
+    ASYNC_WAIT_RESEND = 4,
+};
+
 struct async_wait_callback_data;
 
 struct mapper_async_wait
@@ -62,6 +73,7 @@ struct async_wait_callback_data
 {
     mapper_async_wait* wait;
     const char* path;
+    size_t index;
     sd_bus_slot* call_slot;
     sd_event_source* event_source;
     struct async_wait_callback_data* prev;
@@ -102,6 +114,7 @@ static int async_wait_match_introspection_complete(sd_bus_message*, void*,
 static int async_wait_check_done(mapper_async_wait*);
 static void async_wait_done(int r, mapper_async_wait*);
 static int async_wait_get_objects(mapper_async_wait*);
+static int async_wait_send_request(mapper_async_wait*, size_t);
 static int async_wait_getobject_callback(sd_bus_message*, void*, sd_bus_error*);
 
 static int async_subtree_match_callback(sd_bus_message*, void*, sd_bus_error*);
@@ -170,6 +183,7 @@ static void async_wait_free_request(struct async_wait_callback_data* data)
 
     sd_bus_slot_unref(data->call_slot);
     sd_event_source_unref(data->event_source);
+    wait->status[data->index] &= ~ASYNC_WAIT_BUSY;
     if (data->prev)
     {
         data->prev->next = data->next;
@@ -198,6 +212,9 @@ static int async_wait_timeout_callback(_unused_ sd_event_source* s,
         async_wait_free_request(data);
         return 0;
     }
+
+    /* The request that is sent below covers all signals received so far. */
+    wait->status[data->index] &= ~ASYNC_WAIT_RESEND;
 
     /* The reply callback has already released data->call_slot. */
     r = sd_bus_call_method_async(
@@ -234,7 +251,20 @@ static int async_wait_getobject_callback(sd_bus_message* m, void* userdata,
     if (sd_bus_message_is_method_error(
             m, "xyz.openbmc_project.Common.Error.ResourceNotFound"))
     {
-        goto exit;
+        i = data->index;
+        async_wait_free_request(data);
+        /* If a signal has been received while this request was outstanding,
+         * the object may have appeared after the mapper processed this
+         * request. Hence, ask again. */
+        if (wait->status[i] & ASYNC_WAIT_RESEND)
+        {
+            r = async_wait_send_request(wait, i);
+            if (r < 0)
+            {
+                async_wait_done(r, wait);
+            }
+        }
+        return 0;
     }
 
     r = sd_bus_message_get_errno(m);
@@ -269,7 +299,7 @@ static int async_wait_getobject_callback(sd_bus_message* m, void* userdata,
     {
         if (!strcmp(data->path, wait->objs[i]))
         {
-            wait->status[i] = 1;
+            wait->status[i] |= ASYNC_WAIT_FOUND;
         }
     }
 
@@ -292,40 +322,65 @@ exit:
     return 0;
 }
 
+static int async_wait_send_request(mapper_async_wait* wait, size_t i)
+{
+    int r;
+    struct async_wait_callback_data* data;
+
+    data = calloc(1, sizeof(*data));
+    if (!data)
+    {
+        return -ENOMEM;
+    }
+    data->wait = wait;
+    data->path = wait->objs[i];
+    data->index = i;
+    data->next = wait->requests;
+    if (wait->requests)
+    {
+        wait->requests->prev = data;
+    }
+    wait->requests = data;
+    wait->status[i] |= ASYNC_WAIT_BUSY;
+    wait->status[i] &= ~ASYNC_WAIT_RESEND;
+    r = sd_bus_call_method_async(
+        wait->conn, &data->call_slot, "xyz.openbmc_project.ObjectMapper",
+        "/xyz/openbmc_project/object_mapper",
+        "xyz.openbmc_project.ObjectMapper", "GetObject",
+        async_wait_getobject_callback, data, "sas", wait->objs[i], 0, NULL);
+    if (r < 0)
+    {
+        async_wait_free_request(data);
+        fprintf(stderr, "Error invoking method: %s\n", strerror(-r));
+        return r;
+    }
+
+    return 0;
+}
+
 static int async_wait_get_objects(mapper_async_wait* wait)
 {
     size_t i;
     int r;
-    struct async_wait_callback_data* data = NULL;
 
     for (i = 0; i < wait->count; ++i)
     {
-        if (wait->status[i])
+        if (wait->status[i] & ASYNC_WAIT_FOUND)
         {
             continue;
         }
-        data = calloc(1, sizeof(*data));
-        if (!data)
+        /* Do not send another request for the same object while one is
+         * outstanding. Every InterfacesAdded signal on the bus triggers this
+         * function. Instead, send another request once the outstanding
+         * request has completed. */
+        if (wait->status[i] & ASYNC_WAIT_BUSY)
         {
-            return -ENOMEM;
+            wait->status[i] |= ASYNC_WAIT_RESEND;
+            continue;
         }
-        data->wait = wait;
-        data->path = wait->objs[i];
-        data->next = wait->requests;
-        if (wait->requests)
-        {
-            wait->requests->prev = data;
-        }
-        wait->requests = data;
-        r = sd_bus_call_method_async(
-            wait->conn, &data->call_slot, "xyz.openbmc_project.ObjectMapper",
-            "/xyz/openbmc_project/object_mapper",
-            "xyz.openbmc_project.ObjectMapper", "GetObject",
-            async_wait_getobject_callback, data, "sas", wait->objs[i], 0, NULL);
+        r = async_wait_send_request(wait, i);
         if (r < 0)
         {
-            async_wait_free_request(data);
-            fprintf(stderr, "Error invoking method: %s\n", strerror(-r));
             return r;
         }
     }
@@ -390,7 +445,7 @@ static int async_wait_check_done(mapper_async_wait* w)
 
     for (i = 0; i < w->count; ++i)
     {
-        if (!w->status[i])
+        if (!(w->status[i] & ASYNC_WAIT_FOUND))
         {
             return 0;
         }
