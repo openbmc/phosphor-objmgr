@@ -7,6 +7,7 @@
 #include <sdbusplus/asio/connection.hpp>
 #include <sdbusplus/asio/object_server.hpp>
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 class TestAssociations : public AsioServerClassTest
@@ -95,12 +96,15 @@ TEST_F(TestAssociations, PathIsInAssociatedInterfacesExtraEndpoints)
     // Verify owner association was deleted
     EXPECT_TRUE(assocMaps.owners.empty());
 
-    // Verify all endpoints are deleted since source path was deleted
-    auto intfEndpoints =
-        std::get<endpointsPos>(assocMaps.ifaces[defaultFwdPath]);
-    EXPECT_EQ(intfEndpoints.size(), 0);
-    intfEndpoints = std::get<endpointsPos>(assocMaps.ifaces[defaultRevPath]);
-    EXPECT_EQ(intfEndpoints.size(), 0);
+    // Verify that only the endpoint owned by the removed source path was
+    // deleted from the forward association
+    auto fwd = assocMaps.ifaces.find(defaultFwdPath);
+    ASSERT_NE(fwd, assocMaps.ifaces.end());
+    EXPECT_THAT(std::get<endpointsPos>(fwd->second),
+                testing::ElementsAre(extraEndpoint));
+
+    // The reverse association had a single endpoint and is gone
+    EXPECT_FALSE(assocMaps.ifaces.contains(defaultRevPath));
 }
 
 // Verify no associations or endpoints removed when the change is identical

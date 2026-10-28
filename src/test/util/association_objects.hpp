@@ -43,8 +43,8 @@ inline AssociationInterfaces createDefaultInterfaceAssociation(
 inline void addEndpointToInterfaceAssociation(
     AssociationInterfaces& interfaceAssoc)
 {
-    auto iface = interfaceAssoc[defaultFwdPath];
-    auto endpoints = std::get<endpointsPos>(iface);
+    auto& iface = interfaceAssoc[defaultFwdPath];
+    auto& endpoints = std::get<endpointsPos>(iface);
     endpoints.push_back(extraEndpoint);
 }
 
