@@ -395,7 +395,7 @@ static std::vector<std::string> getSubTreePathsById(
         {
             continue;
         }
-        if (thisPath.starts_with(objectPath))
+        if (thisPath.starts_with(localObjectPath))
         {
             for (const auto& connectionInterfaces : path.second)
             {

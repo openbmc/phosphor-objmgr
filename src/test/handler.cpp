@@ -614,3 +614,25 @@ TEST_F(TestHandler, getAssociatedSubTreePathsByIdGood)
     ASSERT_THAT(subtreePath, ElementsAre("/test/object_path_0/child1",
                                          "/test/object_path_0/child"));
 }
+
+TEST_F(TestHandler, getAssociatedSubTreePathsByIdSiblingPrefix)
+{
+    // "/test/object_path_0/child1" ends with "/child1" and starts with the
+    // string "/test/object_path_0/child" but is not inside the subtree
+    // "/test/object_path_0/child".
+    std::get<endpointsPos>(
+        associationMap.ifaces["/test/object_path_0/child1/descendent"])
+        .push_back("/test/object_path_0/child/grandchild");
+    sdbusplus::object_path path("/test/object_path_0/child");
+    std::vector<std::string> subtreeInterfaces = {"test_interface_4"};
+    std::vector<std::string> endpointInterfaces = {"test_interface_2"};
+
+    EXPECT_TRUE(getAssociatedSubTreePathsById(interfaceMap, associationMap,
+                                              "child1", path, subtreeInterfaces,
+                                              "descendent", endpointInterfaces)
+                    .empty());
+    EXPECT_TRUE(getAssociatedSubTreeById(interfaceMap, associationMap, "child1",
+                                         path, subtreeInterfaces, "descendent",
+                                         endpointInterfaces)
+                    .empty());
+}
