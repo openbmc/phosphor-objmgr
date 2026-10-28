@@ -195,25 +195,50 @@ static void doAssociations(
     InterfaceMapType& interfaceMap, AssociationMaps& assocMaps,
     sdbusplus::asio::object_server& objectServer,
     const std::string& processName, const std::string& path,
-    uint64_t generation, int timeoutRetries = 0)
+    uint64_t generation, unsigned int timeouts = 0)
 {
-    constexpr int maxTimeoutRetries = 3;
     systemBus->async_method_call(
         [&io, &objectServer, path, processName, &interfaceMap, &assocMaps,
-         systemBus, generation, timeoutRetries](
+         systemBus, generation, timeouts](
             const boost::system::error_code ec,
             const std::variant<std::vector<Association>>& variantAssociations) {
             if (ec)
             {
+                // Retry for the same reasons as Introspect calls that time
+                // out. See also doIntrospect().
                 if (ec.value() == boost::system::errc::timed_out &&
-                    timeoutRetries < maxTimeoutRetries &&
                     isCurrentGeneration(processName, generation) &&
                     hasInterface(interfaceMap, path, processName,
                                  assocDefsInterface))
                 {
-                    doAssociations(io, systemBus, interfaceMap, assocMaps,
-                                   objectServer, processName, path, generation,
-                                   timeoutRetries + 1);
+                    const unsigned int newTimeouts = timeouts + 1;
+                    const std::chrono::seconds delay =
+                        introspectRetryDelay(newTimeouts);
+                    if (shouldLogRetry(newTimeouts))
+                    {
+                        std::cerr
+                            << "Getting associations timed out " << newTimeouts
+                            << " times on process: " << processName
+                            << " path: " << path << "; retrying in "
+                            << delay.count() << " s\n";
+                    }
+                    auto timer = std::make_shared<boost::asio::steady_timer>(
+                        io, addRetryJitter(delay, retryRng));
+                    timer->async_wait(
+                        [&io, &objectServer, path, processName, &interfaceMap,
+                         &assocMaps, systemBus, generation, newTimeouts,
+                         timer](const boost::system::error_code& timerEc) {
+                            if (timerEc ||
+                                !isCurrentGeneration(processName, generation) ||
+                                !hasInterface(interfaceMap, path, processName,
+                                              assocDefsInterface))
+                            {
+                                return;
+                            }
+                            doAssociations(io, systemBus, interfaceMap,
+                                           assocMaps, objectServer, processName,
+                                           path, generation, newTimeouts);
+                        });
                     return;
                 }
                 std::cerr << "Error getting associations from " << path
