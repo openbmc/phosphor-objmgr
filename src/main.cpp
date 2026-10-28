@@ -212,9 +212,10 @@ static void doIntrospect(
                 return;
             }
             auto& thisPathMap = interfaceMap[path];
-            tinyxml2::XMLElement* pElement =
-                pRoot->FirstChildElement("interface");
-            while (pElement != nullptr)
+            for (tinyxml2::XMLElement* pElement =
+                     pRoot->FirstChildElement("interface");
+                 pElement != nullptr;
+                 pElement = pElement->NextSiblingElement("interface"))
             {
                 const char* ifaceName = pElement->Attribute("name");
                 if (ifaceName == nullptr)
@@ -229,8 +230,6 @@ static void doIntrospect(
                     doAssociations(io, systemBus, interfaceMap, objectServer,
                                    transaction->processName, path);
                 }
-
-                pElement = pElement->NextSiblingElement("interface");
             }
 
             // Check if this new path has a pending association that can
@@ -238,8 +237,10 @@ static void doIntrospect(
             checkIfPendingAssociation(io, path, interfaceMap,
                                       transaction->assocMaps, objectServer);
 
-            pElement = pRoot->FirstChildElement("node");
-            while (pElement != nullptr)
+            for (tinyxml2::XMLElement* pElement =
+                     pRoot->FirstChildElement("node");
+                 pElement != nullptr;
+                 pElement = pElement->NextSiblingElement("node"))
             {
                 const char* childPath = pElement->Attribute("name");
                 if (childPath != nullptr)
@@ -253,7 +254,6 @@ static void doIntrospect(
                     doIntrospect(io, systemBus, transaction, interfaceMap,
                                  objectServer, parentPath + "/" + childPath);
                 }
-                pElement = pElement->NextSiblingElement("node");
             }
         },
         transaction->processName, path, "org.freedesktop.DBus.Introspectable",
