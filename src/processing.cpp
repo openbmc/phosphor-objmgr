@@ -220,15 +220,17 @@ void removeUnneededParents(const sdbusplus::object_path& objectPath,
             break;
         }
 
-        auto childPath = parent.string() + '/';
+        const std::string childPath =
+            parent == "/" ? parent.string() : parent.string() + '/';
 
         // Remove this parent if there isn't a remaining child on this owner
-        auto child = std::find_if(
-            interfaceMap.begin(), interfaceMap.end(),
-            [&owner, &childPath](const auto& entry) {
-                return entry.first.starts_with(childPath) &&
-                       (entry.second.find(owner) != entry.second.end());
-            });
+        auto child =
+            std::find_if(interfaceMap.begin(), interfaceMap.end(),
+                         [&owner, &parent, &childPath](const auto& entry) {
+                             return entry.first != parent &&
+                                    entry.first.starts_with(childPath) &&
+                                    entry.second.contains(owner);
+                         });
 
         if (child == interfaceMap.end())
         {

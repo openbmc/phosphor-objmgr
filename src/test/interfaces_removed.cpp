@@ -58,6 +58,36 @@ TEST_F(TestInterfacesRemoved, ImplicitParentsWithOtherChildKept)
     EXPECT_TRUE(interfaceMap.contains("/"));
 }
 
+// The root path must only be removed for an owner if that owner has no other
+// objects.
+TEST_F(TestInterfacesRemoved, RootKeptWithOtherChild)
+{
+    const InterfaceNames defaults = {"org.freedesktop.DBus.Introspectable",
+                                     "org.freedesktop.DBus.Peer",
+                                     "org.freedesktop.DBus.Properties"};
+    InterfaceNames withIface = defaults;
+    withIface.emplace("xyz.openbmc_project.Test.Iface");
+
+    InterfaceMapType interfaceMap = {
+        {"/", {{service, defaults}}},     {"/a", {{service, defaults}}},
+        {"/a/x", {{service, withIface}}}, {"/b", {{service, defaults}}},
+        {"/b/y", {{service, withIface}}},
+    };
+
+    // "/" and "/a" only have default interfaces. "/" must be kept since
+    // service still owns "/b/y".
+    interfaceMap.erase("/a/x");
+    removeUnneededParents(sdbusplus::object_path("/a/x"), service,
+                          interfaceMap);
+    EXPECT_FALSE(interfaceMap.contains("/a"));
+    EXPECT_TRUE(interfaceMap.contains("/"));
+
+    interfaceMap.erase("/b/y");
+    removeUnneededParents(sdbusplus::object_path("/b/y"), service,
+                          interfaceMap);
+    EXPECT_TRUE(interfaceMap.empty());
+}
+
 // The empty parent entries that the ObjectMapper creates for its own
 // association objects must be removed once the association object has been
 // removed, without affecting the entries of other services.
