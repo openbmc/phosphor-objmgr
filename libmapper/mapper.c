@@ -38,6 +38,8 @@ static const char* interfaces_removed_match =
 static const int mapper_busy_retries = 5;
 static const uint64_t mapper_busy_delay_interval_usec = 1000000;
 
+struct async_wait_callback_data;
+
 struct mapper_async_wait
 {
     char** objs;
@@ -47,17 +49,23 @@ struct mapper_async_wait
     sd_bus* conn;
     sd_bus_slot* introspection_slot;
     sd_bus_slot* intf_slot;
+    /* List of outstanding GetObject requests. */
+    struct async_wait_callback_data* requests;
     int* status;
     size_t count;
     int finished;
     int r;
 };
 
+/* State of a single GetObject request. */
 struct async_wait_callback_data
 {
     mapper_async_wait* wait;
     const char* path;
+    sd_bus_slot* call_slot;
     sd_event_source* event_source;
+    struct async_wait_callback_data* prev;
+    struct async_wait_callback_data* next;
     int retry;
 };
 
@@ -142,6 +150,28 @@ error:
     return NULL;
 }
 
+/* Cancel a GetObject request and free the memory associated with it. */
+static void async_wait_free_request(struct async_wait_callback_data* data)
+{
+    mapper_async_wait* wait = data->wait;
+
+    sd_bus_slot_unref(data->call_slot);
+    sd_event_source_unref(data->event_source);
+    if (data->prev)
+    {
+        data->prev->next = data->next;
+    }
+    else
+    {
+        wait->requests = data->next;
+    }
+    if (data->next)
+    {
+        data->next->prev = data->prev;
+    }
+    free(data);
+}
+
 static int async_wait_timeout_callback(_unused_ sd_event_source* s,
                                        _unused_ uint64_t usec, void* userdata)
 {
@@ -149,16 +179,23 @@ static int async_wait_timeout_callback(_unused_ sd_event_source* s,
     struct async_wait_callback_data* data = userdata;
     mapper_async_wait* wait = data->wait;
 
-    sd_event_source_unref(data->event_source);
+    data->event_source = sd_event_source_unref(data->event_source);
+    if (wait->finished)
+    {
+        async_wait_free_request(data);
+        return 0;
+    }
+
+    /* The reply callback has already released data->call_slot. */
     r = sd_bus_call_method_async(
-        wait->conn, NULL, "xyz.openbmc_project.ObjectMapper",
+        wait->conn, &data->call_slot, "xyz.openbmc_project.ObjectMapper",
         "/xyz/openbmc_project/object_mapper",
         "xyz.openbmc_project.ObjectMapper", "GetObject",
         async_wait_getobject_callback, data, "sas", data->path, 0, NULL);
     if (r < 0)
     {
+        async_wait_free_request(data);
         async_wait_done(r, wait);
-        free(data);
     }
 
     return 0;
@@ -172,6 +209,9 @@ static int async_wait_getobject_callback(sd_bus_message* m, void* userdata,
     struct async_wait_callback_data* data = userdata;
     mapper_async_wait* wait = data->wait;
     uint64_t next_retry;
+
+    /* The reply has been received. Release the reference to the slot. */
+    data->call_slot = sd_bus_slot_unref(data->call_slot);
 
     if (wait->finished)
     {
@@ -191,8 +231,7 @@ static int async_wait_getobject_callback(sd_bus_message* m, void* userdata,
         r = sd_event_now(wait->loop, CLOCK_MONOTONIC, &next_retry);
         if (r < 0)
         {
-            async_wait_done(r, wait);
-            goto exit;
+            goto fail;
         }
 
         next_retry += mapper_busy_delay_interval_usec * (1 << data->retry);
@@ -201,8 +240,7 @@ static int async_wait_getobject_callback(sd_bus_message* m, void* userdata,
         ++data->retry;
         if (r < 0)
         {
-            async_wait_done(r, wait);
-            goto exit;
+            goto fail;
         }
 
         return 0;
@@ -210,8 +248,8 @@ static int async_wait_getobject_callback(sd_bus_message* m, void* userdata,
 
     if (r)
     {
-        async_wait_done(-r, wait);
-        goto exit;
+        r = -r;
+        goto fail;
     }
 
     for (i = 0; i < wait->count; ++i)
@@ -222,13 +260,22 @@ static int async_wait_getobject_callback(sd_bus_message* m, void* userdata,
         }
     }
 
+    /* Free data before invoking the callback since the callback may call
+     * mapper_wait_async_free(). */
+    async_wait_free_request(data);
     if (async_wait_check_done(wait))
     {
         async_wait_done(0, wait);
     }
+    return 0;
+
+fail:
+    async_wait_free_request(data);
+    async_wait_done(r, wait);
+    return 0;
 
 exit:
-    free(data);
+    async_wait_free_request(data);
     return 0;
 }
 
@@ -244,19 +291,27 @@ static int async_wait_get_objects(mapper_async_wait* wait)
         {
             continue;
         }
-        data = malloc(sizeof(*data));
+        data = calloc(1, sizeof(*data));
+        if (!data)
+        {
+            return -ENOMEM;
+        }
         data->wait = wait;
         data->path = wait->objs[i];
-        data->retry = 0;
-        data->event_source = NULL;
+        data->next = wait->requests;
+        if (wait->requests)
+        {
+            wait->requests->prev = data;
+        }
+        wait->requests = data;
         r = sd_bus_call_method_async(
-            wait->conn, NULL, "xyz.openbmc_project.ObjectMapper",
+            wait->conn, &data->call_slot, "xyz.openbmc_project.ObjectMapper",
             "/xyz/openbmc_project/object_mapper",
             "xyz.openbmc_project.ObjectMapper", "GetObject",
             async_wait_getobject_callback, data, "sas", wait->objs[i], 0, NULL);
         if (r < 0)
         {
-            free(data);
+            async_wait_free_request(data);
             fprintf(stderr, "Error invoking method: %s\n", strerror(-r));
             return r;
         }
@@ -285,6 +340,14 @@ static int async_wait_match_introspection_complete(
     return 0;
 }
 
+static void async_wait_free_requests(mapper_async_wait* w)
+{
+    while (w->requests)
+    {
+        async_wait_free_request(w->requests);
+    }
+}
+
 static void async_wait_done(int r, mapper_async_wait* w)
 {
     if (w->finished)
@@ -293,8 +356,9 @@ static void async_wait_done(int r, mapper_async_wait* w)
     }
 
     w->finished = 1;
-    sd_bus_slot_unref(w->introspection_slot);
-    sd_bus_slot_unref(w->intf_slot);
+    w->introspection_slot = sd_bus_slot_unref(w->introspection_slot);
+    w->intf_slot = sd_bus_slot_unref(w->intf_slot);
+    async_wait_free_requests(w);
 
     if (w->callback)
     {
@@ -324,6 +388,17 @@ static int async_wait_check_done(mapper_async_wait* w)
 
 _public_ void mapper_wait_async_free(mapper_async_wait* w)
 {
+    if (!w)
+    {
+        return;
+    }
+
+    /* Cancel the match rules and all outstanding requests such that no
+     * callback can access w after it has been freed. */
+    w->finished = 1;
+    sd_bus_slot_unref(w->introspection_slot);
+    sd_bus_slot_unref(w->intf_slot);
+    async_wait_free_requests(w);
     free(w->status);
     sarrayfree(w->objs);
     free(w);
@@ -399,6 +474,7 @@ _public_ int mapper_wait_async(sd_bus* conn, sd_event* loop, char* objs[],
     return 0;
 
 unref_intf_slot:
+    async_wait_free_requests(wait);
     sd_bus_slot_unref(wait->intf_slot);
 unref_name_slot:
     sd_bus_slot_unref(wait->introspection_slot);
