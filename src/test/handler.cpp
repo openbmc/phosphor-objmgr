@@ -227,6 +227,10 @@ TEST_F(TestHandler, getAncestorsOfRoot)
     std::string path = "/";
     std::vector<std::string> interfaces;
     EXPECT_TRUE(getAncestors(interfaceMap, path, interfaces).empty());
+
+    // "//" is "/" after stripping the trailing slash
+    path = "//";
+    EXPECT_TRUE(getAncestors(interfaceMap, path, interfaces).empty());
 }
 
 TEST_F(TestHandler, getObjectBad)
@@ -659,4 +663,31 @@ TEST_F(TestHandler, getAssociatedSubTreePathsByIdSiblingPrefix)
                                          path, subtreeInterfaces, "descendent",
                                          endpointInterfaces)
                     .empty());
+}
+
+// GetSubTree("/") reports all objects including the root object itself.
+TEST_F(TestHandler, getSubTreeRoot)
+{
+    interfaceMap["/"] = {{"test_object_connection_0", {"test_interface_0"}}};
+    std::vector<std::string> interfaces;
+    std::vector<InterfaceMapType::value_type> subtree =
+        getSubTree(interfaceMap, "/", 0, interfaces);
+    ASSERT_EQ(subtree.size(), interfaceMap.size());
+    EXPECT_EQ(subtree[0].first, "/");
+
+    std::vector<std::string> paths =
+        getSubTreePaths(interfaceMap, "/", 0, interfaces);
+    ASSERT_EQ(paths.size(), interfaceMap.size());
+    EXPECT_EQ(paths[0], "/");
+}
+
+// Objects in a sibling subtree whose name starts with the requested path must
+// not be reported.
+TEST_F(TestHandler, getSubTreeSiblingPrefix)
+{
+    std::vector<std::string> interfaces;
+    std::vector<std::string> paths = getSubTreePaths(
+        interfaceMap, "/test/object_path_0/child", 0, interfaces);
+    EXPECT_THAT(paths, ElementsAre("/test/object_path_0/child/grandchild",
+                                   "/test/object_path_0/child/grandchild/dog"));
 }
