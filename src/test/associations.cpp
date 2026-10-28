@@ -604,3 +604,23 @@ TEST_F(TestAssociations, addSingleAssociationInvalidPath)
                              defaultDbusSvc, defaultSourcePath, assocMaps));
     EXPECT_TRUE(assocMaps.ifaces.empty());
 }
+
+// Associations that would result in an invalid object path must be ignored
+TEST_F(TestAssociations, associationChangedInvalidType)
+{
+    std::vector<Association> associations = {
+        {"fan-sensor", "chassis_ici", defaultEndpoint},
+        {"inventory_ici", "has/slash", defaultEndpoint},
+        {"inventory_ici", "error_ici", "not/an/object/path"}};
+
+    AssociationMaps assocMaps;
+    InterfaceMapType interfaceMap = createDefaultInterfaceMap();
+
+    EXPECT_NO_THROW(
+        associationChanged(io, *server, associations, defaultSourcePath,
+                           defaultDbusSvc, interfaceMap, assocMaps));
+
+    EXPECT_TRUE(assocMaps.owners.empty());
+    EXPECT_TRUE(assocMaps.ifaces.empty());
+    EXPECT_TRUE(assocMaps.pending.empty());
+}

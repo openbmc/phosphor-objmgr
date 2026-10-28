@@ -2,11 +2,22 @@
 
 #include "path.hpp"
 
+#include <systemd/sd-bus.h>
+
 #include <boost/asio/steady_timer.hpp>
 #include <sdbusplus/exception.hpp>
 
+#include <algorithm>
 #include <iostream>
 #include <string>
+
+// Whether or not an association type can be used as an object path segment.
+// An empty type is allowed and means that no association object is created
+// for that direction.
+static bool isValidAssociationType(const std::string& type)
+{
+    return type.empty() || isValidPathElement(type);
+}
 
 static void updateEndpointsOnDbus(sdbusplus::asio::object_server& objectServer,
                                   const std::string& assocPath,
@@ -277,6 +288,19 @@ void associationChanged(
         {
             std::cerr << "Found invalid association on path " << path.string()
                       << "\n";
+            continue;
+        }
+
+        // The association types are used as object path segments and the
+        // endpoint is used as an object path. Reject values that would
+        // result in an invalid object path.
+        if (!sd_bus_object_path_is_valid(objectPath.c_str()) ||
+            !isValidAssociationType(forward) ||
+            !isValidAssociationType(reverse))
+        {
+            std::cerr << "Found invalid association (" << forward << ", "
+                      << reverse << ", " << objectPath << ") on path "
+                      << path.string() << "\n";
             continue;
         }
 
