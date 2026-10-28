@@ -1,9 +1,8 @@
 #include "associations.hpp"
 #include "handler.hpp"
+#include "introspect.hpp"
 #include "processing.hpp"
 #include "types.hpp"
-
-#include <tinyxml2.h>
 
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/signal_set.hpp>
@@ -16,6 +15,7 @@
 #include <exception>
 #include <iomanip>
 #include <iostream>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -196,36 +196,19 @@ static void doIntrospect(
                 return;
             }
 
-            tinyxml2::XMLDocument doc;
-
-            tinyxml2::XMLError e = doc.Parse(introspectXml.c_str());
-            if (e != tinyxml2::XMLError::XML_SUCCESS)
+            std::optional<IntrospectResult> result =
+                parseIntrospectXml(path, introspectXml);
+            if (!result)
             {
-                std::cerr << "XML parsing failed\n";
                 return;
             }
 
-            tinyxml2::XMLNode* pRoot = doc.FirstChildElement("node");
-            if (pRoot == nullptr)
-            {
-                std::cerr << "XML document did not contain any data\n";
-                return;
-            }
             auto& thisPathMap = interfaceMap[path];
-            for (tinyxml2::XMLElement* pElement =
-                     pRoot->FirstChildElement("interface");
-                 pElement != nullptr;
-                 pElement = pElement->NextSiblingElement("interface"))
+            for (const std::string& ifaceName : result->interfaces)
             {
-                const char* ifaceName = pElement->Attribute("name");
-                if (ifaceName == nullptr)
-                {
-                    continue;
-                }
-
                 thisPathMap[transaction->processName].emplace(ifaceName);
 
-                if (std::strcmp(ifaceName, assocDefsInterface) == 0)
+                if (ifaceName == assocDefsInterface)
                 {
                     doAssociations(io, systemBus, interfaceMap, objectServer,
                                    transaction->processName, path);
@@ -237,23 +220,10 @@ static void doIntrospect(
             checkIfPendingAssociation(io, path, interfaceMap,
                                       transaction->assocMaps, objectServer);
 
-            for (tinyxml2::XMLElement* pElement =
-                     pRoot->FirstChildElement("node");
-                 pElement != nullptr;
-                 pElement = pElement->NextSiblingElement("node"))
+            for (const std::string& childPath : result->childPaths)
             {
-                const char* childPath = pElement->Attribute("name");
-                if (childPath != nullptr)
-                {
-                    std::string parentPath(path);
-                    if (parentPath == "/")
-                    {
-                        parentPath.clear();
-                    }
-
-                    doIntrospect(io, systemBus, transaction, interfaceMap,
-                                 objectServer, parentPath + "/" + childPath);
-                }
+                doIntrospect(io, systemBus, transaction, interfaceMap,
+                             objectServer, childPath);
             }
         },
         transaction->processName, path, "org.freedesktop.DBus.Introspectable",

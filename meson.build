@@ -68,6 +68,7 @@ cli11 = dependency('CLI11', include_type: 'system')
 phosphor_logging = dependency('phosphor-logging')
 phosphor_dbus_interfaces = dependency('phosphor-dbus-interfaces')
 sdbusplus = dependency('sdbusplus')
+tinyxml2 = dependency('tinyxml2', default_options: ['tests=false'])
 boost = dependency(
     'boost',
     version: '>=1.79.0',
@@ -159,6 +160,7 @@ mapperx = executable(
         'src/processing.cpp',
         'src/associations.cpp',
         'src/handler.cpp',
+        'src/introspect.cpp',
     ],
     dependencies: [
         boost,
@@ -166,7 +168,7 @@ mapperx = executable(
         phosphor_dbus_interfaces,
         sdbusplus,
         dependency('threads'),
-        dependency('tinyxml2', default_options: ['tests=false']),
+        tinyxml2,
     ],
     implicit_include_directories: false,
     install: true,
