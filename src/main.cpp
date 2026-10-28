@@ -382,6 +382,32 @@ static void removeUnneededParents(const sdbusplus::object_path& objectPath,
     }
 }
 
+// sdbusplus invokes match callbacks from a noexcept function. Since any
+// process on the bus can emit a signal with an unexpected signature, an
+// exception thrown while handling a signal must not reach sdbusplus because
+// that would terminate the mapper. Exceptions are typically thrown while
+// reading the signal arguments, before any state has been modified. If an
+// exception is thrown later on, the changes made before the exception was
+// thrown are not undone.
+static sdbusplus::bus::match_t::callback_t catchExceptions(
+    const char* signalName, sdbusplus::bus::match_t::callback_t handler)
+{
+    return [signalName,
+            handler = std::move(handler)](sdbusplus::message_t& message) {
+        try
+        {
+            handler(message);
+        }
+        catch (const std::exception& e)
+        {
+            const char* sender = message.get_sender();
+            std::cerr << "Failed to process " << signalName << " signal from "
+                      << (sender != nullptr ? sender : "(unknown)") << ": "
+                      << e.what() << "\n";
+        }
+    };
+}
+
 int main()
 {
     boost::asio::io_context io;
@@ -442,7 +468,7 @@ int main()
     sdbusplus::match nameOwnerChanged(
         static_cast<sdbusplus::bus_t&>(*systemBus),
         sdbusplus::match_rules::nameOwnerChanged(),
-        std::move(nameChangeHandler));
+        catchExceptions("NameOwnerChanged", std::move(nameChangeHandler)));
 
     auto interfacesAddedHandler = [&io, &interfaceMap, &nameOwners,
                                    &server](sdbusplus::message_t& message) {
@@ -461,9 +487,10 @@ int main()
         }
     };
 
-    sdbusplus::match interfacesAdded(static_cast<sdbusplus::bus_t&>(*systemBus),
-                                     sdbusplus::match_rules::interfacesAdded(),
-                                     std::move(interfacesAddedHandler));
+    sdbusplus::match interfacesAdded(
+        static_cast<sdbusplus::bus_t&>(*systemBus),
+        sdbusplus::match_rules::interfacesAdded(),
+        catchExceptions("InterfacesAdded", std::move(interfacesAddedHandler)));
 
     auto interfacesRemovedHandler = [&io, &interfaceMap, &nameOwners,
                                      &server](sdbusplus::message_t& message) {
@@ -531,7 +558,8 @@ int main()
     sdbusplus::match interfacesRemoved(
         static_cast<sdbusplus::bus_t&>(*systemBus),
         sdbusplus::match_rules::interfacesRemoved(),
-        std::move(interfacesRemovedHandler));
+        catchExceptions("InterfacesRemoved",
+                        std::move(interfacesRemovedHandler)));
 
     auto associationChangedHandler = [&io, &server, &nameOwners, &interfaceMap](
                                          sdbusplus::message_t& message) {
@@ -561,7 +589,8 @@ int main()
         sdbusplus::match_rules::interface("org.freedesktop.DBus.Properties") +
             sdbusplus::match_rules::member("PropertiesChanged") +
             sdbusplus::match_rules::argN(0, assocDefsInterface),
-        std::move(associationChangedHandler));
+        catchExceptions("PropertiesChanged",
+                        std::move(associationChangedHandler)));
 
     std::shared_ptr<sdbusplus::asio::dbus_interface> iface =
         server.add_interface("/xyz/openbmc_project/object_mapper",
