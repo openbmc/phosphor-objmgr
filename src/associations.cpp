@@ -499,26 +499,34 @@ void checkIfPendingAssociation(
         //
         const auto& ownerPath = std::get<reversePathPos>(e);
         const auto& owner = std::get<ownerPos>(*endpoint);
+        const auto& forwardType = std::get<forwardTypePos>(e);
+        const auto& reverseType = std::get<reverseTypePos>(e);
 
         // Build the association paths the same way as associationChanged()
-        // does.
-        std::string assocPath =
-            appendPathSegment(objectPath, std::get<forwardTypePos>(e));
-        std::string endpointPath = ownerPath;
-
+        // does. An empty type means that no association object is created
+        // for that direction.
+        std::string assocPath;
+        std::string endpointPath;
         try
         {
-            addSingleAssociation(io, server, assocPath, endpointPath, owner,
-                                 ownerPath, assocMaps);
+            if (!forwardType.empty())
+            {
+                assocPath = appendPathSegment(objectPath, forwardType);
+                endpointPath = ownerPath;
+                addSingleAssociation(io, server, assocPath, endpointPath, owner,
+                                     ownerPath, assocMaps);
+            }
 
             // Now the reverse direction (still the same owner and ownerPath)
-            assocPath =
-                appendPathSegment(endpointPath, std::get<reverseTypePos>(e));
-            endpointPath = objectPath;
-            addSingleAssociation(io, server, assocPath, endpointPath, owner,
-                                 ownerPath, assocMaps);
+            if (!reverseType.empty())
+            {
+                assocPath = appendPathSegment(ownerPath, reverseType);
+                endpointPath = objectPath;
+                addSingleAssociation(io, server, assocPath, endpointPath, owner,
+                                     ownerPath, assocMaps);
+            }
         }
-        catch (const sdbusplus::exception_t& ex)
+        catch (const std::exception& ex)
         {
             // In some case the interface could not be created on DBus and an
             // exception is thrown. mapper has no control of the interface/path

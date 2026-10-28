@@ -664,3 +664,53 @@ TEST_F(TestAssociations, checkIfPendingSamePaths)
     EXPECT_TRUE(assocMaps.ifaces.contains(defaultSourcePath + "/_fwd_cipsp"));
     EXPECT_TRUE(assocMaps.ifaces.contains(endpoint + "/_rev_cipsp"));
 }
+
+// A pending association with an empty type must only create and record the
+// association object for the non-empty direction once the endpoint shows up.
+TEST_F(TestAssociations, checkIfPendingEmptyType)
+{
+    const std::string endpoint1 = "/xyz/openbmc_project/new/endpoint1_cipet";
+    const std::string endpoint2 = "/xyz/openbmc_project/new/endpoint2_cipet";
+    std::vector<Association> associations = {{"fwd_cipet", "", endpoint1},
+                                             {"", "rev_cipet", endpoint2}};
+
+    AssociationMaps assocMaps;
+    InterfaceMapType interfaceMap = createDefaultInterfaceMap();
+
+    associationChanged(io, *server, associations, defaultSourcePath,
+                       defaultDbusSvc, interfaceMap, assocMaps);
+    EXPECT_EQ(assocMaps.pending.size(), 2);
+
+    // Complete the association with an empty reverse type.
+    interfaceMap[endpoint1][defaultDbusSvc] = {"b"};
+    checkIfPendingAssociation(io, sdbusplus::object_path(endpoint1),
+                              interfaceMap, assocMaps, *server);
+
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+    ASSERT_EQ(assocMaps.ifaces.size(), 1);
+    EXPECT_TRUE(assocMaps.ifaces.contains(defaultSourcePath + "/fwd_cipet"));
+    ASSERT_TRUE(assocMaps.owners.contains(defaultSourcePath));
+    ASSERT_TRUE(assocMaps.owners[defaultSourcePath].contains(defaultDbusSvc));
+    EXPECT_EQ(assocMaps.owners[defaultSourcePath][defaultDbusSvc].size(), 1);
+    EXPECT_TRUE(assocMaps.owners[defaultSourcePath][defaultDbusSvc].contains(
+        defaultSourcePath + "/fwd_cipet"));
+
+    // Complete the association with an empty forward type.
+    interfaceMap[endpoint2][defaultDbusSvc] = {"b"};
+    checkIfPendingAssociation(io, sdbusplus::object_path(endpoint2),
+                              interfaceMap, assocMaps, *server);
+
+    EXPECT_TRUE(assocMaps.pending.empty());
+    ASSERT_EQ(assocMaps.ifaces.size(), 2);
+    EXPECT_TRUE(assocMaps.ifaces.contains(endpoint2 + "/rev_cipet"));
+    EXPECT_EQ(assocMaps.owners[defaultSourcePath][defaultDbusSvc].size(), 2);
+    EXPECT_TRUE(assocMaps.owners[defaultSourcePath][defaultDbusSvc].contains(
+        endpoint2 + "/rev_cipet"));
+    EXPECT_FALSE(assocMaps.owners.contains(endpoint1));
+    EXPECT_FALSE(assocMaps.owners.contains(endpoint2));
+
+    removeAssociation(io, defaultSourcePath, defaultDbusSvc, *server,
+                      assocMaps);
+    EXPECT_TRUE(assocMaps.ifaces.empty());
+    EXPECT_TRUE(assocMaps.owners.empty());
+}
