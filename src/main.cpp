@@ -110,27 +110,37 @@ struct InProgressIntrospect
             {
                 return;
             }
-            sendIntrospectionCompleteSignal(systemBus, processName);
-            if constexpr (!MAPPER_ENABLE_DEBUG)
+            // If the owner of the bus name changed, the introspection of the
+            // new owner signals IntrospectionComplete.
+            if (introspectGenerations.isCurrent(processName, generation))
             {
-                return;
+                sendIntrospectionCompleteSignal(systemBus, processName);
+                if constexpr (MAPPER_ENABLE_DEBUG)
+                {
+                    if (processStartTime.has_value())
+                    {
+                        std::chrono::duration<float> diff =
+                            std::chrono::steady_clock::now() -
+                            processStartTime.value();
+                        std::cout
+                            << std::setw(50) << processName << " scan took "
+                            << diff.count() << " seconds\n";
+                    }
+                }
             }
-            if (!processStartTime.has_value())
-            {
-                return;
-            }
-            std::chrono::duration<float> diff =
-                std::chrono::steady_clock::now() - processStartTime.value();
-            std::cout << std::setw(50) << processName << " scan took "
-                      << diff.count() << " seconds\n";
 
             // If we're the last outstanding caller globally, calculate the
             // time it took
-            if (globalStartTime != nullptr && globalStartTime.use_count() == 1)
+            if constexpr (MAPPER_ENABLE_DEBUG)
             {
-                diff = std::chrono::steady_clock::now() - *globalStartTime;
-                std::cout << "Total scan took " << diff.count()
-                          << " seconds to complete\n";
+                if (globalStartTime != nullptr &&
+                    globalStartTime.use_count() == 1)
+                {
+                    std::chrono::duration<float> diff =
+                        std::chrono::steady_clock::now() - *globalStartTime;
+                    std::cout << "Total scan took " << diff.count()
+                              << " seconds to complete\n";
+                }
             }
         }
         catch (const std::exception& e)
@@ -162,13 +172,22 @@ struct InProgressIntrospect
 };
 
 /*
+ * Returns true if the owner of bus name processName has not changed since
+ * the introspection with the specified generation number started.
+ */
+static bool isCurrentGeneration(const std::string& processName,
+                                uint64_t generation)
+{
+    return introspectGenerations.isCurrent(processName, generation);
+}
+
+/*
  * Returns true if the bus name owner of transaction.processName has not
  * changed since the transaction started.
  */
 static bool isCurrentIntrospect(const InProgressIntrospect& transaction)
 {
-    return introspectGenerations.isCurrent(transaction.processName,
-                                           transaction.generation);
+    return isCurrentGeneration(transaction.processName, transaction.generation);
 }
 
 static void doAssociations(
@@ -176,27 +195,39 @@ static void doAssociations(
     InterfaceMapType& interfaceMap, AssociationMaps& assocMaps,
     sdbusplus::asio::object_server& objectServer,
     const std::string& processName, const std::string& path,
-    int timeoutRetries = 0)
+    uint64_t generation, int timeoutRetries = 0)
 {
     constexpr int maxTimeoutRetries = 3;
     systemBus->async_method_call(
         [&io, &objectServer, path, processName, &interfaceMap, &assocMaps,
-         systemBus, timeoutRetries](
+         systemBus, generation, timeoutRetries](
             const boost::system::error_code ec,
             const std::variant<std::vector<Association>>& variantAssociations) {
             if (ec)
             {
                 if (ec.value() == boost::system::errc::timed_out &&
-                    timeoutRetries < maxTimeoutRetries)
+                    timeoutRetries < maxTimeoutRetries &&
+                    isCurrentGeneration(processName, generation) &&
+                    hasInterface(interfaceMap, path, processName,
+                                 assocDefsInterface))
                 {
                     doAssociations(io, systemBus, interfaceMap, assocMaps,
-                                   objectServer, processName, path,
+                                   objectServer, processName, path, generation,
                                    timeoutRetries + 1);
                     return;
                 }
                 std::cerr << "Error getting associations from " << path
                           << " of process " << processName << ": " << ec << ", "
                           << ec.message() << "\n";
+                return;
+            }
+            // Ignore the reply if the bus name has a new owner or if the
+            // association definitions interface was removed while the call was
+            // in flight.
+            if (!isCurrentGeneration(processName, generation) ||
+                !hasInterface(interfaceMap, path, processName,
+                              assocDefsInterface))
+            {
                 return;
             }
             std::vector<Association> associations =
@@ -269,6 +300,13 @@ static void doIntrospect(
                 return;
             }
 
+            // Ignore the reply if the bus name has a new owner. Its objects
+            // are added by the introspection of the new owner.
+            if (!isCurrentIntrospect(*transaction))
+            {
+                return;
+            }
+
             std::optional<IntrospectResult> result =
                 parseIntrospectXml(path, introspectXml);
             if (!result)
@@ -285,7 +323,8 @@ static void doIntrospect(
                 {
                     doAssociations(io, systemBus, interfaceMap,
                                    transaction->assocMaps, objectServer,
-                                   transaction->processName, path);
+                                   transaction->processName, path,
+                                   transaction->generation);
                 }
             }
 
