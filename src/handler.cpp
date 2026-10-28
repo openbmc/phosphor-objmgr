@@ -12,6 +12,31 @@
 #include <utility>
 #include <vector>
 
+// Whether or not two sorted ranges have at least one element in common. This
+// is faster than std::set_intersection() because no output is generated.
+static bool intersects(const std::vector<std::string>& interfaces,
+                       const InterfaceNames& objectInterfaces)
+{
+    auto a = interfaces.begin();
+    auto b = objectInterfaces.begin();
+    while (a != interfaces.end() && b != objectInterfaces.end())
+    {
+        if (*a < *b)
+        {
+            ++a;
+        }
+        else if (*b < *a)
+        {
+            ++b;
+        }
+        else
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 void addObjectMapResult(std::vector<InterfaceMapType::value_type>& objectMap,
                         const std::string& objectPath,
                         const ConnectionNames::value_type& interfaceMap)
@@ -82,15 +107,7 @@ std::vector<InterfaceMapType::value_type> getAncestors(
             {
                 for (const auto& connectionInterfaces : objectPath.second)
                 {
-                    std::vector<std::string> output(std::min(
-                        interfaces.size(), connectionInterfaces.second.size()));
-                    // Return iterator points at the first output elemtn,
-                    // meaning that there are no intersections.
-                    if (std::set_intersection(
-                            interfaces.begin(), interfaces.end(),
-                            connectionInterfaces.second.begin(),
-                            connectionInterfaces.second.end(),
-                            output.begin()) != output.begin())
+                    if (intersects(interfaces, connectionInterfaces.second))
                     {
                         addObjectMapResult(ret, thisPath, connectionInterfaces);
                     }
@@ -122,14 +139,7 @@ ConnectionNames getObject(const InterfaceMapType& interfaceMap,
     }
     for (const auto& connectionInterfaces : pathRef->second)
     {
-        std::vector<std::string> output(
-            std::min(interfaces.size(), connectionInterfaces.second.size()));
-        // Return iterator points at the first output elemtn,
-        // meaning that there are no intersections.
-        if (std::set_intersection(interfaces.begin(), interfaces.end(),
-                                  connectionInterfaces.second.begin(),
-                                  connectionInterfaces.second.end(),
-                                  output.begin()) != output.begin())
+        if (intersects(interfaces, connectionInterfaces.second))
         {
             results.emplace(connectionInterfaces.first,
                             connectionInterfaces.second);
@@ -194,16 +204,8 @@ std::vector<InterfaceMapType::value_type> getSubTree(
             {
                 for (const auto& connectionInterfaces : objectPath.second)
                 {
-                    std::vector<std::string> output(std::min(
-                        interfaces.size(), connectionInterfaces.second.size()));
-                    // Return iterator points at the first output elemtn,
-                    // meaning that there are no intersections.
-                    if (std::set_intersection(
-                            interfaces.begin(), interfaces.end(),
-                            connectionInterfaces.second.begin(),
-                            connectionInterfaces.second.end(),
-                            output.begin()) != output.begin() ||
-                        interfaces.empty())
+                    if (interfaces.empty() ||
+                        intersects(interfaces, connectionInterfaces.second))
                     {
                         addObjectMapResult(ret, thisPath, connectionInterfaces);
                     }
@@ -265,15 +267,7 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
                 bool add = interfaces.empty();
                 for (const auto& connectionInterfaces : objectPath.second)
                 {
-                    std::vector<std::string> output(std::min(
-                        interfaces.size(), connectionInterfaces.second.size()));
-                    // Return iterator points at the first output elemtn,
-                    // meaning that there are no intersections.
-                    if (std::set_intersection(
-                            interfaces.begin(), interfaces.end(),
-                            connectionInterfaces.second.begin(),
-                            connectionInterfaces.second.end(),
-                            output.begin()) != output.begin())
+                    if (intersects(interfaces, connectionInterfaces.second))
                     {
                         add = true;
                         break;
@@ -399,13 +393,7 @@ static std::vector<std::string> getSubTreePathsById(
         {
             for (const auto& connectionInterfaces : path.second)
             {
-                std::vector<std::string> tempoutput(std::min(
-                    interfaces.size(), connectionInterfaces.second.size()));
-                if (std::set_intersection(interfaces.begin(), interfaces.end(),
-                                          connectionInterfaces.second.begin(),
-                                          connectionInterfaces.second.end(),
-                                          tempoutput.begin()) !=
-                    tempoutput.begin())
+                if (intersects(interfaces, connectionInterfaces.second))
                 {
                     output.emplace_back(thisPath);
                     break;
