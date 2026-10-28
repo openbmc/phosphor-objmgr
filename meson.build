@@ -70,7 +70,7 @@ phosphor_dbus_interfaces = dependency('phosphor-dbus-interfaces')
 sdbusplus = dependency('sdbusplus')
 boost = dependency(
     'boost',
-    version: '>=1.87.0',
+    version: '>=1.79.0',
     required: false,
     include_type: 'system',
 )
