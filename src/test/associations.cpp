@@ -701,3 +701,46 @@ TEST_F(TestAssociations, checkIfPendingEmptyType)
     EXPECT_TRUE(assocMaps.ifaces.empty());
     EXPECT_TRUE(assocMaps.owners.empty());
 }
+
+// Removing the associations of a path for which all associations are pending
+// must also remove the pending associations.
+TEST_F(TestAssociations, removeAssociationOnlyPending)
+{
+    std::vector<Association> associations = {
+        {"callout_raop", "fault_raop", "/xyz/openbmc_project/missing_raop"}};
+
+    AssociationMaps assocMaps;
+    InterfaceMapType interfaceMap = createDefaultInterfaceMap();
+
+    associationChanged(io, *server, associations, defaultSourcePath,
+                       defaultDbusSvc, interfaceMap, assocMaps);
+    EXPECT_TRUE(assocMaps.owners.empty());
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+
+    removeAssociation(io, defaultSourcePath, defaultDbusSvc, *server,
+                      assocMaps);
+    EXPECT_TRUE(assocMaps.pending.empty());
+}
+
+// Removing the association owner after its endpoint has disappeared must
+// also remove the pending association that moveAssociationToPending() created.
+TEST_F(TestAssociations, removeAssociationAfterMoveToPending)
+{
+    std::vector<Association> associations = {
+        {"callout_ramtp", "fault_ramtp", defaultEndpoint}};
+
+    AssociationMaps assocMaps;
+    InterfaceMapType interfaceMap = createDefaultInterfaceMap();
+
+    associationChanged(io, *server, associations, defaultSourcePath,
+                       defaultDbusSvc, interfaceMap, assocMaps);
+    EXPECT_EQ(assocMaps.ifaces.size(), 2);
+
+    moveAssociationToPending(io, defaultEndpoint, assocMaps, *server);
+    EXPECT_TRUE(assocMaps.owners.empty());
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+
+    removeAssociation(io, defaultSourcePath, defaultDbusSvc, *server,
+                      assocMaps);
+    EXPECT_TRUE(assocMaps.pending.empty());
+}

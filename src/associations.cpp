@@ -130,6 +130,12 @@ void removeAssociation(boost::asio::io_context& io,
     // that contains the org.openbmc.Associations interface and not the
     // association path itself.
 
+    // If we were still waiting on the other side of an association owned
+    // by this path and service to show up, cancel that wait. Do this first
+    // because there may be no associationOwners entry for this path, e.g.
+    // if all its associations are pending.
+    removeFromPendingAssociations(sourcePath, owner, assocMaps);
+
     // Find the services that have associations for this object path
     auto owners = assocMaps.owners.find(sourcePath);
     if (owners == assocMaps.owners.end())
@@ -157,10 +163,6 @@ void removeAssociation(boost::asio::io_context& io,
     {
         assocMaps.owners.erase(owners);
     }
-
-    // If we were still waiting on the other side of this association to
-    // show up, cancel that wait.
-    removeFromPendingAssociations(sourcePath, owner, assocMaps);
 }
 
 void removeAssociationEndpoints(
