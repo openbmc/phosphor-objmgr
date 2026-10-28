@@ -190,6 +190,30 @@ static bool isCurrentIntrospect(const InProgressIntrospect& transaction)
     return isCurrentGeneration(transaction.processName, transaction.generation);
 }
 
+/*
+ * Wraps the completion handler of an async_method_call() call such that
+ * exceptions thrown by the handler are logged instead of propagating
+ * through sd-bus, which is written in C, and terminating the mapper. The
+ * reply argument types are specified explicitly because async_method_call()
+ * derives the reply signature from the parameter types of the handler.
+ */
+template <typename... ReplyArgs, typename Handler>
+static auto catchReplyExceptions(const char* methodName, Handler handler)
+{
+    return [methodName, handler = std::move(handler)](
+               const boost::system::error_code& ec, ReplyArgs... args) mutable {
+        try
+        {
+            handler(ec, std::forward<ReplyArgs>(args)...);
+        }
+        catch (const std::exception& e)
+        {
+            std::cerr << "Failed to process the " << methodName
+                      << " reply: " << e.what() << "\n";
+        }
+    };
+}
+
 static void doAssociations(
     boost::asio::io_context& io, sdbusplus::asio::connection* systemBus,
     InterfaceMapType& interfaceMap, AssociationMaps& assocMaps,
@@ -198,68 +222,76 @@ static void doAssociations(
     uint64_t generation, unsigned int timeouts = 0)
 {
     systemBus->async_method_call(
-        [&io, &objectServer, path, processName, &interfaceMap, &assocMaps,
-         systemBus, generation, timeouts](
-            const boost::system::error_code ec,
-            const std::variant<std::vector<Association>>& variantAssociations) {
-            if (ec)
-            {
-                // Retry for the same reasons as Introspect calls that time
-                // out. See also doIntrospect().
-                if (ec.value() == boost::system::errc::timed_out &&
-                    isCurrentGeneration(processName, generation) &&
-                    hasInterface(interfaceMap, path, processName,
-                                 assocDefsInterface))
+        catchReplyExceptions<const std::variant<std::vector<Association>>&>(
+            "Properties.Get",
+            [&io, &objectServer, path, processName, &interfaceMap, &assocMaps,
+             systemBus, generation,
+             timeouts](const boost::system::error_code ec,
+                       const std::variant<std::vector<Association>>&
+                           variantAssociations) {
+                if (ec)
                 {
-                    const unsigned int newTimeouts = timeouts + 1;
-                    const std::chrono::seconds delay =
-                        introspectRetryDelay(newTimeouts);
-                    if (shouldLogRetry(newTimeouts))
+                    // Retry for the same reasons as Introspect calls that time
+                    // out. See also doIntrospect().
+                    if (ec.value() == boost::system::errc::timed_out &&
+                        isCurrentGeneration(processName, generation) &&
+                        hasInterface(interfaceMap, path, processName,
+                                     assocDefsInterface))
                     {
-                        std::cerr
-                            << "Getting associations timed out " << newTimeouts
-                            << " times on process: " << processName
-                            << " path: " << path << "; retrying in "
-                            << delay.count() << " s\n";
+                        const unsigned int newTimeouts = timeouts + 1;
+                        const std::chrono::seconds delay =
+                            introspectRetryDelay(newTimeouts);
+                        if (shouldLogRetry(newTimeouts))
+                        {
+                            std::cerr
+                                << "Getting associations timed out "
+                                << newTimeouts << " times on process: "
+                                << processName << " path: " << path
+                                << "; retrying in " << delay.count() << " s\n";
+                        }
+                        auto timer =
+                            std::make_shared<boost::asio::steady_timer>(
+                                io, addRetryJitter(delay, retryRng));
+                        timer->async_wait(
+                            [&io, &objectServer, path, processName,
+                             &interfaceMap, &assocMaps, systemBus, generation,
+                             newTimeouts,
+                             timer](const boost::system::error_code& timerEc) {
+                                if (timerEc ||
+                                    !isCurrentGeneration(processName,
+                                                         generation) ||
+                                    !hasInterface(interfaceMap, path,
+                                                  processName,
+                                                  assocDefsInterface))
+                                {
+                                    return;
+                                }
+                                doAssociations(io, systemBus, interfaceMap,
+                                               assocMaps, objectServer,
+                                               processName, path, generation,
+                                               newTimeouts);
+                            });
+                        return;
                     }
-                    auto timer = std::make_shared<boost::asio::steady_timer>(
-                        io, addRetryJitter(delay, retryRng));
-                    timer->async_wait(
-                        [&io, &objectServer, path, processName, &interfaceMap,
-                         &assocMaps, systemBus, generation, newTimeouts,
-                         timer](const boost::system::error_code& timerEc) {
-                            if (timerEc ||
-                                !isCurrentGeneration(processName, generation) ||
-                                !hasInterface(interfaceMap, path, processName,
-                                              assocDefsInterface))
-                            {
-                                return;
-                            }
-                            doAssociations(io, systemBus, interfaceMap,
-                                           assocMaps, objectServer, processName,
-                                           path, generation, newTimeouts);
-                        });
+                    std::cerr << "Error getting associations from " << path
+                              << " of process " << processName << ": " << ec
+                              << ", " << ec.message() << "\n";
                     return;
                 }
-                std::cerr << "Error getting associations from " << path
-                          << " of process " << processName << ": " << ec << ", "
-                          << ec.message() << "\n";
-                return;
-            }
-            // Ignore the reply if the bus name has a new owner or if the
-            // association definitions interface was removed while the call was
-            // in flight.
-            if (!isCurrentGeneration(processName, generation) ||
-                !hasInterface(interfaceMap, path, processName,
-                              assocDefsInterface))
-            {
-                return;
-            }
-            std::vector<Association> associations =
-                std::get<std::vector<Association>>(variantAssociations);
-            associationChanged(io, objectServer, associations, path,
-                               processName, interfaceMap, assocMaps);
-        },
+                // Ignore the reply if the bus name has a new owner or if the
+                // association definitions interface was removed while the call
+                // was in flight.
+                if (!isCurrentGeneration(processName, generation) ||
+                    !hasInterface(interfaceMap, path, processName,
+                                  assocDefsInterface))
+                {
+                    return;
+                }
+                std::vector<Association> associations =
+                    std::get<std::vector<Association>>(variantAssociations);
+                associationChanged(io, objectServer, associations, path,
+                                   processName, interfaceMap, assocMaps);
+            }),
         processName, path, "org.freedesktop.DBus.Properties", "Get",
         assocDefsInterface, assocDefsProperty);
 }
@@ -272,98 +304,102 @@ static void doIntrospect(
     unsigned int timeouts = 0)
 {
     systemBus->async_method_call(
-        [&io, &interfaceMap, &objectServer, transaction, path, systemBus,
-         timeouts](const boost::system::error_code ec,
-                   const std::string& introspectXml) {
-            if (ec)
-            {
-                /*
-                 * The service or the ObjectMapper itself may be too busy to
-                 * respond in time, e.g. while the BMC is booting. Giving up
-                 * would leave the objects of this path out of the interface
-                 * map forever, since the ObjectMapper only introspects a
-                 * service again if its bus name changes owner. Hence retry
-                 * with exponential backoff for as long as the bus name owner
-                 * does not change. The transaction is kept alive while
-                 * retrying, so IntrospectionComplete is only signaled when
-                 * introspection has finished.
-                 */
-                if (ec.value() == boost::system::errc::timed_out &&
-                    isCurrentIntrospect(*transaction))
+        catchReplyExceptions<const std::string&>(
+            "Introspect",
+            [&io, &interfaceMap, &objectServer, transaction, path, systemBus,
+             timeouts](const boost::system::error_code ec,
+                       const std::string& introspectXml) {
+                if (ec)
                 {
-                    const unsigned int newTimeouts = timeouts + 1;
-                    const std::chrono::seconds delay =
-                        introspectRetryDelay(newTimeouts);
-                    if (shouldLogRetry(newTimeouts))
+                    /*
+                     * The service or the ObjectMapper itself may be too busy to
+                     * respond in time, e.g. while the BMC is booting. Giving up
+                     * would leave the objects of this path out of the interface
+                     * map forever, since the ObjectMapper only introspects a
+                     * service again if its bus name changes owner. Hence retry
+                     * with exponential backoff for as long as the bus name
+                     * owner does not change. The transaction is kept alive
+                     * while retrying, so IntrospectionComplete is only signaled
+                     * when introspection has finished.
+                     */
+                    if (ec.value() == boost::system::errc::timed_out &&
+                        isCurrentIntrospect(*transaction))
                     {
-                        std::cerr
-                            << "Introspect call timed out " << newTimeouts
-                            << " times on process: " << transaction->processName
-                            << " path: " << path << "; retrying in "
-                            << delay.count() << " s\n";
+                        const unsigned int newTimeouts = timeouts + 1;
+                        const std::chrono::seconds delay =
+                            introspectRetryDelay(newTimeouts);
+                        if (shouldLogRetry(newTimeouts))
+                        {
+                            std::cerr
+                                << "Introspect call timed out " << newTimeouts
+                                << " times on process: "
+                                << transaction->processName << " path: " << path
+                                << "; retrying in " << delay.count() << " s\n";
+                        }
+                        auto timer =
+                            std::make_shared<boost::asio::steady_timer>(
+                                io, addRetryJitter(delay, retryRng));
+                        timer->async_wait(
+                            [&io, &interfaceMap, &objectServer, transaction,
+                             path, systemBus, newTimeouts,
+                             timer](const boost::system::error_code& timerEc) {
+                                if (timerEc ||
+                                    !isCurrentIntrospect(*transaction))
+                                {
+                                    return;
+                                }
+                                doIntrospect(io, systemBus, transaction,
+                                             interfaceMap, objectServer, path,
+                                             newTimeouts);
+                            });
+                        return;
                     }
-                    auto timer = std::make_shared<boost::asio::steady_timer>(
-                        io, addRetryJitter(delay, retryRng));
-                    timer->async_wait(
-                        [&io, &interfaceMap, &objectServer, transaction, path,
-                         systemBus, newTimeouts,
-                         timer](const boost::system::error_code& timerEc) {
-                            if (timerEc || !isCurrentIntrospect(*transaction))
-                            {
-                                return;
-                            }
-                            doIntrospect(io, systemBus, transaction,
-                                         interfaceMap, objectServer, path,
-                                         newTimeouts);
-                        });
+                    std::cerr << "Introspect call failed with error: " << ec
+                              << ", " << ec.message()
+                              << " on process: " << transaction->processName
+                              << " path: " << path << "\n";
                     return;
                 }
-                std::cerr << "Introspect call failed with error: " << ec << ", "
-                          << ec.message()
-                          << " on process: " << transaction->processName
-                          << " path: " << path << "\n";
-                return;
-            }
 
-            // Ignore the reply if the bus name has a new owner. Its objects
-            // are added by the introspection of the new owner.
-            if (!isCurrentIntrospect(*transaction))
-            {
-                return;
-            }
-
-            std::optional<IntrospectResult> result =
-                parseIntrospectXml(path, introspectXml);
-            if (!result)
-            {
-                return;
-            }
-
-            auto& thisPathMap = interfaceMap[path];
-            for (const std::string& ifaceName : result->interfaces)
-            {
-                thisPathMap[transaction->processName].emplace(ifaceName);
-
-                if (ifaceName == assocDefsInterface)
+                // Ignore the reply if the bus name has a new owner. Its objects
+                // are added by the introspection of the new owner.
+                if (!isCurrentIntrospect(*transaction))
                 {
-                    doAssociations(io, systemBus, interfaceMap,
-                                   transaction->assocMaps, objectServer,
-                                   transaction->processName, path,
-                                   transaction->generation);
+                    return;
                 }
-            }
 
-            // Check if this new path has a pending association that can
-            // now be completed.
-            checkIfPendingAssociation(io, path, interfaceMap,
-                                      transaction->assocMaps, objectServer);
+                std::optional<IntrospectResult> result =
+                    parseIntrospectXml(path, introspectXml);
+                if (!result)
+                {
+                    return;
+                }
 
-            for (const std::string& childPath : result->childPaths)
-            {
-                doIntrospect(io, systemBus, transaction, interfaceMap,
-                             objectServer, childPath);
-            }
-        },
+                auto& thisPathMap = interfaceMap[path];
+                for (const std::string& ifaceName : result->interfaces)
+                {
+                    thisPathMap[transaction->processName].emplace(ifaceName);
+
+                    if (ifaceName == assocDefsInterface)
+                    {
+                        doAssociations(io, systemBus, interfaceMap,
+                                       transaction->assocMaps, objectServer,
+                                       transaction->processName, path,
+                                       transaction->generation);
+                    }
+                }
+
+                // Check if this new path has a pending association that can
+                // now be completed.
+                checkIfPendingAssociation(io, path, interfaceMap,
+                                          transaction->assocMaps, objectServer);
+
+                for (const std::string& childPath : result->childPaths)
+                {
+                    doIntrospect(io, systemBus, transaction, interfaceMap,
+                                 objectServer, childPath);
+                }
+            }),
         transaction->processName, path, "org.freedesktop.DBus.Introspectable",
         "Introspect");
 }
