@@ -157,7 +157,10 @@ static void doAssociations(
                                    processName, path, timeoutRetries + 1);
                     return;
                 }
-                std::cerr << "Error getting associations from " << path << "\n";
+                std::cerr << "Error getting associations from " << path
+                          << " of process " << processName << ": " << ec << ", "
+                          << ec.message() << "\n";
+                return;
             }
             std::vector<Association> associations =
                 std::get<std::vector<Association>>(variantAssociations);
