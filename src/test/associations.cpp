@@ -70,12 +70,9 @@ TEST_F(TestAssociations, PathIsInAssociatedInterfaces)
     // Verify owner association was deleted
     EXPECT_TRUE(assocMaps.owners.empty());
 
-    // Verify endpoint was deleted from interface association
-    auto intfEndpoints =
-        std::get<endpointsPos>(assocMaps.ifaces[defaultFwdPath]);
-    EXPECT_EQ(intfEndpoints.size(), 0);
-    intfEndpoints = std::get<endpointsPos>(assocMaps.ifaces[defaultRevPath]);
-    EXPECT_EQ(intfEndpoints.size(), 0);
+    // Verify the interface associations without endpoints were deleted
+    EXPECT_FALSE(assocMaps.ifaces.contains(defaultFwdPath));
+    EXPECT_FALSE(assocMaps.ifaces.contains(defaultRevPath));
 }
 
 // Verify call when path is in associated interfaces, with extra endpoints
