@@ -1,24 +1,47 @@
 #include "associations.hpp"
 #include "handler.hpp"
 #include "introspect.hpp"
+#include "introspect_retry.hpp"
 #include "processing.hpp"
 #include "types.hpp"
 
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/signal_set.hpp>
+#include <boost/asio/steady_timer.hpp>
 #include <boost/container/flat_map.hpp>
 #include <sdbusplus/asio/connection.hpp>
 #include <sdbusplus/asio/object_server.hpp>
 #include <xyz/openbmc_project/Common/error.hpp>
 
 #include <chrono>
+#include <cstdint>
 #include <exception>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 #include <optional>
+#include <random>
 #include <string>
 #include <string_view>
 #include <utility>
+
+/*
+ * Used to stop retrying Introspect calls for a service that lost or changed
+ * its bus name: a new owner triggers a new introspection.
+ */
+static IntrospectGenerations introspectGenerations;
+
+/* Used to spread the retries of requests that timed out. */
+static std::minstd_rand retryRng{std::random_device{}()};
+
+/*
+ * Set once the main loop has stopped. main() destroys the D-Bus connection
+ * before the io_context. Pending retry timers and the last references to
+ * InProgressIntrospect objects held by their completion handlers are only
+ * destroyed when the io_context is destroyed. Hence, the D-Bus connection
+ * must not be used anymore once the main loop has stopped.
+ */
+static bool mainLoopStopped = false;
 
 static void updateOwners(sdbusplus::asio::connection* conn, NameOwners& owners,
                          const std::string& newObject)
@@ -70,6 +93,7 @@ struct InProgressIntrospect
             globalIntrospectStartTime) :
         systemBus(systemBusConnection), io(ioContext),
         processName(introspectProcessName), assocMaps(am),
+        generation(introspectGenerations.start(introspectProcessName)),
         globalStartTime(std::move(globalIntrospectStartTime)),
         processStartTime(std::nullopt)
     {
@@ -82,6 +106,10 @@ struct InProgressIntrospect
     {
         try
         {
+            if (mainLoopStopped)
+            {
+                return;
+            }
             sendIntrospectionCompleteSignal(systemBus, processName);
             if constexpr (!MAPPER_ENABLE_DEBUG)
             {
@@ -123,6 +151,8 @@ struct InProgressIntrospect
     boost::asio::io_context& io;
     std::string processName;
     AssociationMaps& assocMaps;
+    /* Generation number of processName when this introspection started. */
+    uint64_t generation;
 
     // only relevant for MAPPER_ENABLE_DEBUG
     std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>
@@ -130,6 +160,16 @@ struct InProgressIntrospect
     std::optional<std::chrono::time_point<std::chrono::steady_clock>>
         processStartTime;
 };
+
+/*
+ * Returns true if the bus name owner of transaction.processName has not
+ * changed since the transaction started.
+ */
+static bool isCurrentIntrospect(const InProgressIntrospect& transaction)
+{
+    return introspectGenerations.isCurrent(transaction.processName,
+                                           transaction.generation);
+}
 
 static void doAssociations(
     boost::asio::io_context& io, sdbusplus::asio::connection* systemBus,
@@ -173,20 +213,53 @@ static void doIntrospect(
     const std::shared_ptr<InProgressIntrospect>& transaction,
     InterfaceMapType& interfaceMap,
     sdbusplus::asio::object_server& objectServer, const std::string& path,
-    int timeoutRetries = 0)
+    unsigned int timeouts = 0)
 {
-    constexpr int maxTimeoutRetries = 3;
     systemBus->async_method_call(
         [&io, &interfaceMap, &objectServer, transaction, path, systemBus,
-         timeoutRetries](const boost::system::error_code ec,
-                         const std::string& introspectXml) {
+         timeouts](const boost::system::error_code ec,
+                   const std::string& introspectXml) {
             if (ec)
             {
+                /*
+                 * The service or the ObjectMapper itself may be too busy to
+                 * respond in time, e.g. while the BMC is booting. Giving up
+                 * would leave the objects of this path out of the interface
+                 * map forever, since the ObjectMapper only introspects a
+                 * service again if its bus name changes owner. Hence retry
+                 * with exponential backoff for as long as the bus name owner
+                 * does not change. The transaction is kept alive while
+                 * retrying, so IntrospectionComplete is only signaled when
+                 * introspection has finished.
+                 */
                 if (ec.value() == boost::system::errc::timed_out &&
-                    timeoutRetries < maxTimeoutRetries)
+                    isCurrentIntrospect(*transaction))
                 {
-                    doIntrospect(io, systemBus, transaction, interfaceMap,
-                                 objectServer, path, timeoutRetries + 1);
+                    const unsigned int newTimeouts = timeouts + 1;
+                    const std::chrono::seconds delay =
+                        introspectRetryDelay(newTimeouts);
+                    if (shouldLogRetry(newTimeouts))
+                    {
+                        std::cerr
+                            << "Introspect call timed out " << newTimeouts
+                            << " times on process: " << transaction->processName
+                            << " path: " << path << "; retrying in "
+                            << delay.count() << " s\n";
+                    }
+                    auto timer = std::make_shared<boost::asio::steady_timer>(
+                        io, addRetryJitter(delay, retryRng));
+                    timer->async_wait(
+                        [&io, &interfaceMap, &objectServer, transaction, path,
+                         systemBus, newTimeouts,
+                         timer](const boost::system::error_code& timerEc) {
+                            if (timerEc || !isCurrentIntrospect(*transaction))
+                            {
+                                return;
+                            }
+                            doIntrospect(io, systemBus, transaction,
+                                         interfaceMap, objectServer, path,
+                                         newTimeouts);
+                        });
                     return;
                 }
                 std::cerr << "Introspect call failed with error: " << ec << ", "
@@ -351,6 +424,9 @@ int main()
             // We should do nothing with unique-name connections.
             return;
         }
+
+        // Stop retrying Introspect calls for the previous owner.
+        introspectGenerations.ownerChanged(name, !newOwner.empty());
 
         if (!oldOwner.empty())
         {
@@ -543,4 +619,5 @@ int main()
     systemBus->request_name("xyz.openbmc_project.ObjectMapper");
 
     io.run();
+    mainLoopStopped = true;
 }

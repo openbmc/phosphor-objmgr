@@ -16,6 +16,7 @@ tests = [
     ['associations_changed', [associations_cpp_dep, processing_cpp_dep]],
     ['handler', [handler_cpp_dep, sdbusplus, phosphor_dbus_interfaces]],
     ['introspect', [introspect_cpp_dep]],
+    ['introspect_retry', []],
 ]
 
 foreach t : tests
