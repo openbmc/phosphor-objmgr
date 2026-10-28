@@ -20,10 +20,8 @@
 #include <string_view>
 #include <utility>
 
-static void updateOwners(
-    sdbusplus::asio::connection* conn,
-    boost::container::flat_map<std::string, std::string>& owners,
-    const std::string& newObject)
+static void updateOwners(sdbusplus::asio::connection* conn, NameOwners& owners,
+                         const std::string& newObject)
 {
     if (newObject.starts_with(":"))
     {
@@ -38,7 +36,7 @@ static void updateOwners(
                           << ec << "\n";
                 return;
             }
-            owners[nameOwner] = newObject;
+            owners[nameOwner].insert(newObject);
         },
         "org.freedesktop.DBus", "/", "org.freedesktop.DBus", "GetNameOwner",
         newObject);
@@ -254,8 +252,7 @@ static void startNewIntrospect(
 
 static void doListNames(
     boost::asio::io_context& io, InterfaceMapType& interfaceMap,
-    sdbusplus::asio::connection* systemBus,
-    boost::container::flat_map<std::string, std::string>& nameOwners,
+    sdbusplus::asio::connection* systemBus, NameOwners& nameOwners,
     AssociationMaps& assocMaps, sdbusplus::asio::object_server& objectServer)
 {
     systemBus->async_method_call(
@@ -334,7 +331,7 @@ int main()
     });
 
     InterfaceMapType interfaceMap;
-    boost::container::flat_map<std::string, std::string> nameOwners;
+    NameOwners nameOwners;
     // The association maps hold references to the D-Bus connection through
     // the association interfaces. Hence, these must be destroyed before the
     // connection and the io_context.
@@ -374,7 +371,7 @@ int main()
             // New daemon added
             if (needToIntrospect(name))
             {
-                nameOwners[newOwner] = name;
+                nameOwners[newOwner].insert(name);
                 startNewIntrospect(systemBus.get(), io, interfaceMap, name,
                                    associationMaps, transaction, server);
             }
@@ -386,43 +383,47 @@ int main()
         sdbusplus::match_rules::nameOwnerChanged(),
         catchExceptions("NameOwnerChanged", std::move(nameChangeHandler)));
 
-    auto interfacesAddedHandler = [&io, &interfaceMap, &nameOwners, &server,
-                                   &associationMaps](
-                                      sdbusplus::message_t& message) {
-        sdbusplus::object_path objPath;
-        InterfacesAdded interfacesAdded;
-        message.read(objPath, interfacesAdded);
-        std::string wellKnown;
-        if (!getWellKnown(nameOwners, message.get_sender(), wellKnown))
-        {
-            return; // only introspect well-known
-        }
-        if (needToIntrospect(wellKnown))
-        {
-            processInterfaceAdded(io, interfaceMap, objPath, interfacesAdded,
-                                  wellKnown, associationMaps, server);
-        }
-    };
+    auto interfacesAddedHandler =
+        [&io, &interfaceMap, &nameOwners, &server,
+         &associationMaps](sdbusplus::message_t& message) {
+            sdbusplus::object_path objPath;
+            InterfacesAdded interfacesAdded;
+            message.read(objPath, interfacesAdded);
+            // Apply the signal to all well-known names of the sender. Signals
+            // from connections without a known well-known name are ignored.
+            const std::string sender = message.get_sender();
+            for (const std::string& wellKnown :
+                 getWellKnownNames(nameOwners, sender))
+            {
+                if (needToIntrospect(wellKnown))
+                {
+                    processInterfaceAdded(io, interfaceMap, objPath,
+                                          interfacesAdded, wellKnown,
+                                          associationMaps, server);
+                }
+            }
+        };
 
     sdbusplus::match interfacesAdded(
         static_cast<sdbusplus::bus_t&>(*systemBus),
         sdbusplus::match_rules::interfacesAdded(),
         catchExceptions("InterfacesAdded", std::move(interfacesAddedHandler)));
 
-    auto interfacesRemovedHandler = [&io, &interfaceMap, &nameOwners, &server,
-                                     &associationMaps](
-                                        sdbusplus::message_t& message) {
-        sdbusplus::object_path objPath;
-        std::vector<std::string> interfacesRemoved;
-        message.read(objPath, interfacesRemoved);
-        std::string sender;
-        if (!getWellKnown(nameOwners, message.get_sender(), sender))
-        {
-            return;
-        }
-        processInterfacesRemoved(io, interfaceMap, objPath, interfacesRemoved,
-                                 sender, associationMaps, server);
-    };
+    auto interfacesRemovedHandler =
+        [&io, &interfaceMap, &nameOwners, &server,
+         &associationMaps](sdbusplus::message_t& message) {
+            sdbusplus::object_path objPath;
+            std::vector<std::string> interfacesRemoved;
+            message.read(objPath, interfacesRemoved);
+            const std::string sender = message.get_sender();
+            for (const std::string& wellKnown :
+                 getWellKnownNames(nameOwners, sender))
+            {
+                processInterfacesRemoved(io, interfaceMap, objPath,
+                                         interfacesRemoved, wellKnown,
+                                         associationMaps, server);
+            }
+        };
 
     sdbusplus::match interfacesRemoved(
         static_cast<sdbusplus::bus_t&>(*systemBus),
@@ -430,30 +431,30 @@ int main()
         catchExceptions("InterfacesRemoved",
                         std::move(interfacesRemovedHandler)));
 
-    auto associationChangedHandler =
-        [&io, &server, &nameOwners, &interfaceMap,
-         &associationMaps](sdbusplus::message_t& message) {
-            std::string objectName;
-            boost::container::flat_map<std::string,
-                                       std::variant<std::vector<Association>>>
-                values;
-            message.read(objectName, values);
-            auto prop = values.find(assocDefsProperty);
-            if (prop != values.end())
-            {
-                std::vector<Association> associations =
-                    std::get<std::vector<Association>>(prop->second);
+    auto associationChangedHandler = [&io, &server, &nameOwners, &interfaceMap,
+                                      &associationMaps](
+                                         sdbusplus::message_t& message) {
+        std::string objectName;
+        boost::container::flat_map<std::string,
+                                   std::variant<std::vector<Association>>>
+            values;
+        message.read(objectName, values);
+        auto prop = values.find(assocDefsProperty);
+        if (prop != values.end())
+        {
+            std::vector<Association> associations =
+                std::get<std::vector<Association>>(prop->second);
 
-                std::string wellKnown;
-                if (!getWellKnown(nameOwners, message.get_sender(), wellKnown))
-                {
-                    return;
-                }
+            const std::string sender = message.get_sender();
+            for (const std::string& wellKnown :
+                 getWellKnownNames(nameOwners, sender))
+            {
                 associationChanged(io, server, associations,
                                    sdbusplus::object_path(message.get_path()),
                                    wellKnown, interfaceMap, associationMaps);
             }
-        };
+        }
+    };
     sdbusplus::match assocChangedMatch(
         static_cast<sdbusplus::bus_t&>(*systemBus),
         sdbusplus::match_rules::interface("org.freedesktop.DBus.Properties") +

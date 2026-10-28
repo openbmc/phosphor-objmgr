@@ -5,6 +5,7 @@
 #include <boost/container/flat_map.hpp>
 
 #include <cassert>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -25,19 +26,20 @@ using InterfacesAdded = std::vector<std::pair<
     std::string, std::vector<std::pair<
                      std::string, std::variant<std::vector<Association>>>>>>;
 
-/** @brief Get well known name of input unique name
+/** @brief Get the well known names of input unique name
  *
  * If user passes in well known name then that will be returned.
  *
  * @param[in] owners       - Current list of owners
  * @param[in] request      - The name to look up
- * @param[out] wellKnown   - The well known name if found
  *
- * @return True if well known name is found, false otherwise
+ * @return The well known names owned by request. Empty if request is a
+ *         unique name for which no well known names are known. The result
+ *         refers to request or to the elements of owners and hence is only
+ *         valid as long as request and owners are not modified or destroyed.
  */
-bool getWellKnown(
-    const boost::container::flat_map<std::string, std::string>& owners,
-    const std::string& request, std::string& wellKnown);
+std::span<const std::string> getWellKnownNames(const NameOwners& owners,
+                                               const std::string& request);
 
 /** @brief Determine if dbus service is something to monitor
  *
@@ -53,7 +55,7 @@ bool needToIntrospect(const std::string& processName);
 /** @brief Handle the removal of an existing name in objmgr data structures
  *
  * @param[in] io                  - io context
- * @param[in,out] nameOwners      - Map of unique name to well known name
+ * @param[in,out] nameOwners      - Map of unique name to well known names
  * @param[in]     wellKnown       - Well known name that has new owner
  * @param[in]     oldOwner        - Old unique name
  * @param[in,out] interfaceMap    - Map of interfaces
@@ -62,8 +64,7 @@ bool needToIntrospect(const std::string& processName);
  *
  */
 void processNameChangeDelete(
-    boost::asio::io_context& io,
-    boost::container::flat_map<std::string, std::string>& nameOwners,
+    boost::asio::io_context& io, NameOwners& nameOwners,
     const std::string& wellKnown, const std::string& oldOwner,
     InterfaceMapType& interfaceMap, AssociationMaps& assocMaps,
     sdbusplus::asio::object_server& server);

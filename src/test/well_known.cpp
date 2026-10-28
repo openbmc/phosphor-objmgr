@@ -1,37 +1,46 @@
 #include "src/processing.hpp"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
+using ::testing::ElementsAre;
+using ::testing::IsEmpty;
 
 // Verify if name does not start with a : that it is returned
 TEST(WellKnownName, NameNotStartColon)
 {
-    boost::container::flat_map<std::string, std::string> owners;
+    NameOwners owners;
     const std::string request = "test";
-    std::string wellKnown;
 
-    EXPECT_TRUE(getWellKnown(owners, request, wellKnown));
-    EXPECT_EQ(wellKnown, request);
+    EXPECT_THAT(getWellKnownNames(owners, request), ElementsAre(request));
 }
 
-// Verify if name is not found, false is returned
+// Verify if name is not found, no names are returned
 TEST(WellKnownName, NameNotFound)
 {
-    boost::container::flat_map<std::string, std::string> owners;
+    NameOwners owners;
     const std::string request = ":test";
-    std::string wellKnown;
 
-    EXPECT_FALSE(getWellKnown(owners, request, wellKnown));
-    EXPECT_TRUE(wellKnown.empty());
+    EXPECT_THAT(getWellKnownNames(owners, request), IsEmpty());
 }
 
-// Verify if name is found, true is returned and name is correct
+// Verify if name is found, the correct name is returned
 TEST(WellKnownName, NameFound)
 {
-    boost::container::flat_map<std::string, std::string> owners;
+    NameOwners owners;
     const std::string request = ":1.25";
-    std::string wellKnown;
 
-    owners[request] = "test";
-    EXPECT_TRUE(getWellKnown(owners, request, wellKnown));
-    EXPECT_EQ(wellKnown, "test");
+    owners[request] = {"test"};
+    EXPECT_THAT(getWellKnownNames(owners, request), ElementsAre("test"));
+}
+
+// Verify that all well known names of a connection are returned
+TEST(WellKnownName, MultipleNames)
+{
+    NameOwners owners;
+    const std::string request = ":1.25";
+
+    owners[request] = {"test0", "test1"};
+    EXPECT_THAT(getWellKnownNames(owners, request),
+                ElementsAre("test0", "test1"));
 }

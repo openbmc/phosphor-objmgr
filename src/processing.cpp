@@ -8,24 +8,22 @@
 #include <string>
 #include <string_view>
 
-bool getWellKnown(
-    const boost::container::flat_map<std::string, std::string>& owners,
-    const std::string& request, std::string& wellKnown)
+std::span<const std::string> getWellKnownNames(const NameOwners& owners,
+                                               const std::string& request)
 {
     // If it's already a well known name, just return
     if (!request.starts_with(":"))
     {
-        wellKnown = request;
-        return true;
+        return {&request, 1};
     }
 
     auto it = owners.find(request);
-    if (it == owners.end())
+    if (it == owners.end() || it->second.empty())
     {
-        return false;
+        return {};
     }
-    wellKnown = it->second;
-    return true;
+    // A flat_set stores its elements contiguously.
+    return {&*it->second.begin(), it->second.size()};
 }
 
 bool needToIntrospect(const std::string& processName)
@@ -42,18 +40,22 @@ bool needToIntrospect(const std::string& processName)
 }
 
 void processNameChangeDelete(
-    boost::asio::io_context& io,
-    boost::container::flat_map<std::string, std::string>& nameOwners,
+    boost::asio::io_context& io, NameOwners& nameOwners,
     const std::string& wellKnown, const std::string& oldOwner,
     InterfaceMapType& interfaceMap, AssociationMaps& assocMaps,
     sdbusplus::asio::object_server& server)
 {
     if (oldOwner.starts_with(":"))
     {
+        // The old owner may still own other well-known names.
         auto it = nameOwners.find(oldOwner);
         if (it != nameOwners.end())
         {
-            nameOwners.erase(it);
+            it->second.erase(wellKnown);
+            if (it->second.empty())
+            {
+                nameOwners.erase(it);
+            }
         }
     }
     // Connection removed
