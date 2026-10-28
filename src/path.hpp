@@ -20,6 +20,12 @@ inline std::string appendPathSegment(const std::string& target,
 {
     std::string newPath;
     newPath.reserve(target.size() + 1 + segment.size());
-    newPath.append(target).append("/").append(segment);
+    newPath.append(target);
+    // Avoid creating "//" if target is the root path.
+    if (!newPath.ends_with('/'))
+    {
+        newPath.append("/");
+    }
+    newPath.append(segment);
     return newPath;
 }

@@ -1055,3 +1055,57 @@ TEST_F(TestAssociations, associationChangedTwoServices)
     EXPECT_TRUE(assocMaps.ifaces.empty());
     EXPECT_TRUE(assocMaps.owners.empty());
 }
+
+// Associations with the root path as endpoint or as owner must not create
+// "//type" and must survive moving to pending and reappearing.
+TEST_F(TestAssociations, associationChangedRootEndpoint)
+{
+    AssociationMaps assocMaps;
+    InterfaceMapType interfaceMap = createDefaultInterfaceMap();
+    interfaceMap["/"][defaultDbusSvc] = {};
+
+    // Root path as endpoint.
+    EXPECT_NO_THROW(associationChanged(
+        io, *server, {{"inventory_cre", "error_cre", "/"}}, defaultSourcePath,
+        defaultDbusSvc, interfaceMap, assocMaps));
+
+    EXPECT_TRUE(
+        assocMaps.ifaces.contains(defaultSourcePath + "/inventory_cre"));
+    EXPECT_TRUE(assocMaps.ifaces.contains("/error_cre"));
+    EXPECT_FALSE(assocMaps.ifaces.contains("//error_cre"));
+
+    // The root path disappears and reappears.
+    moveAssociationToPending(io, sdbusplus::object_path("/"), assocMaps,
+                             *server);
+    EXPECT_TRUE(assocMaps.ifaces.empty());
+    EXPECT_TRUE(assocMaps.owners.empty());
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+
+    checkIfPendingAssociation(io, sdbusplus::object_path("/"), interfaceMap,
+                              assocMaps, *server);
+    EXPECT_TRUE(assocMaps.pending.empty());
+    EXPECT_TRUE(
+        assocMaps.ifaces.contains(defaultSourcePath + "/inventory_cre"));
+    EXPECT_TRUE(assocMaps.ifaces.contains("/error_cre"));
+    removeAssociation(io, defaultSourcePath, defaultDbusSvc, *server,
+                      assocMaps);
+
+    // Root path as association owner.
+    EXPECT_NO_THROW(associationChanged(
+        io, *server, {{"root_fwd_cre", "root_rev_cre", defaultEndpoint}},
+        sdbusplus::object_path("/"), defaultDbusSvc, interfaceMap, assocMaps));
+    EXPECT_TRUE(assocMaps.ifaces.contains("/root_fwd_cre"));
+    EXPECT_TRUE(assocMaps.ifaces.contains(defaultEndpoint + "/root_rev_cre"));
+    EXPECT_TRUE(assocMaps.owners.contains("/"));
+
+    moveAssociationToPending(io, sdbusplus::object_path(defaultEndpoint),
+                             assocMaps, *server);
+    EXPECT_TRUE(assocMaps.ifaces.empty());
+    EXPECT_TRUE(assocMaps.owners.empty());
+
+    checkIfPendingAssociation(io, sdbusplus::object_path(defaultEndpoint),
+                              interfaceMap, assocMaps, *server);
+    EXPECT_TRUE(assocMaps.ifaces.contains("/root_fwd_cre"));
+    EXPECT_TRUE(assocMaps.ifaces.contains(defaultEndpoint + "/root_rev_cre"));
+    EXPECT_TRUE(assocMaps.owners.contains("/"));
+}
