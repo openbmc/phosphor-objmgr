@@ -731,6 +731,21 @@ static void async_subtree_done(int r, mapper_async_subtree* t)
     }
 }
 
+_public_ void mapper_subtree_async_free(mapper_async_subtree* t)
+{
+    if (!t)
+    {
+        return;
+    }
+
+    /* Cancel the match rule and all outstanding requests such that no
+     * callback can access t after it has been freed. */
+    t->finished = 1;
+    sd_bus_slot_unref(t->slot);
+    async_subtree_free_requests(t);
+    free(t);
+}
+
 _public_ int mapper_subtree_async(sd_bus* conn, sd_event* loop, char* namespace,
                                   char* interface, void (*callback)(int, void*),
                                   void* userdata, mapper_async_subtree** t,
