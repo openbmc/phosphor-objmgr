@@ -4,7 +4,9 @@
 #include <boost/container/flat_set.hpp>
 #include <sdbusplus/asio/object_server.hpp>
 
+#include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -103,4 +105,9 @@ struct AssociationMaps
     AssociationInterfaces ifaces;
     AssociationOwnersType owners;
     PendingAssociations pending;
+    /* For each (association owner path, owner) pair, the keys of the
+     * pending map for which that pair has pending associations. Used to
+     * avoid scanning the entire pending map. */
+    std::map<std::pair<std::string, std::string>, std::set<std::string>>
+        pendingByOwner;
 };

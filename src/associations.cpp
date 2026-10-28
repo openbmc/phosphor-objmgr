@@ -404,37 +404,42 @@ void addPendingAssociation(
             endpoints.emplace_back(owner, std::move(assoc));
         }
     }
+
+    assocMaps.pendingByOwner[{endpointPath, owner}].insert(objectPath);
 }
 
 void removeFromPendingAssociations(const std::string& endpointPath,
                                    const std::string& owner,
                                    AssociationMaps& assocMaps)
 {
-    auto assoc = assocMaps.pending.begin();
-    while (assoc != assocMaps.pending.end())
+    auto byOwner = assocMaps.pendingByOwner.find({endpointPath, owner});
+    if (byOwner == assocMaps.pendingByOwner.end())
     {
-        auto endpoint = assoc->second.begin();
-        while (endpoint != assoc->second.end())
-        {
-            auto& e = std::get<assocPos>(*endpoint);
-            if (std::get<reversePathPos>(e) == endpointPath &&
-                std::get<ownerPos>(*endpoint) == owner)
-            {
-                endpoint = assoc->second.erase(endpoint);
-                continue;
-            }
+        return;
+    }
 
-            endpoint++;
-        }
-
-        if (assoc->second.empty())
+    for (const std::string& objectPath : byOwner->second)
+    {
+        auto assoc = assocMaps.pending.find(objectPath);
+        if (assoc == assocMaps.pending.end())
         {
-            assoc = assocMaps.pending.erase(assoc);
             continue;
         }
 
-        assoc++;
+        std::erase_if(assoc->second, [&endpointPath,
+                                      &owner](const auto& endpoint) {
+            return std::get<reversePathPos>(std::get<assocPos>(endpoint)) ==
+                       endpointPath &&
+                   std::get<ownerPos>(endpoint) == owner;
+        });
+
+        if (assoc->second.empty())
+        {
+            assocMaps.pending.erase(assoc);
+        }
     }
+
+    assocMaps.pendingByOwner.erase(byOwner);
 }
 
 void addSingleAssociation(
@@ -553,6 +558,16 @@ void checkIfPendingAssociation(
             std::cerr << "Error adding association: assocPath " << assocPath
                       << ", endpointPath " << endpointPath
                       << ", what: " << ex.what() << "\n";
+        }
+
+        auto byOwner = assocMaps.pendingByOwner.find({ownerPath, owner});
+        if (byOwner != assocMaps.pendingByOwner.end())
+        {
+            byOwner->second.erase(objectPath.str);
+            if (byOwner->second.empty())
+            {
+                assocMaps.pendingByOwner.erase(byOwner);
+            }
         }
 
         // Not pending anymore

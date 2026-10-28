@@ -810,19 +810,32 @@ TEST_F(TestAssociations, associationChangedPartialUpdate)
                        defaultDbusSvc, interfaceMap, assocMaps);
     EXPECT_EQ(assocMaps.ifaces.size(), 2);
     EXPECT_TRUE(assocMaps.pending.empty());
+    EXPECT_TRUE(assocMaps.pendingByOwner.empty());
 
-    // Replace the association with the existing endpoint by the
-    // association with the missing endpoint
-    associationChanged(io, *server, {absent}, defaultSourcePath, defaultDbusSvc,
-                       interfaceMap, assocMaps);
+    const std::string missing2 = "/xyz/openbmc_project/missing2_acpu";
+
+    // Replace the association with the existing endpoint by two pending
+    // associations so partial completion and owner removal both exercise
+    // pendingByOwner.
+    associationChanged(io, *server, {absent, {"f3_acpu", "r3_acpu", missing2}},
+                       defaultSourcePath, defaultDbusSvc, interfaceMap,
+                       assocMaps);
     EXPECT_TRUE(assocMaps.ifaces.empty());
     EXPECT_TRUE(assocMaps.owners.empty());
-    EXPECT_EQ(assocMaps.pending.size(), 1);
+    EXPECT_EQ(assocMaps.pending.size(), 2);
+    EXPECT_EQ(assocMaps.pendingByOwner.size(), 1);
 
-    // Make the missing endpoint show up
+    // Make the first missing endpoint show up
     interfaceMap[missing][defaultDbusSvc] = {"b"};
     checkIfPendingAssociation(io, sdbusplus::object_path(missing), interfaceMap,
                               assocMaps, *server);
-    EXPECT_TRUE(assocMaps.pending.empty());
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+    EXPECT_EQ(assocMaps.pendingByOwner.size(), 1);
     EXPECT_EQ(assocMaps.ifaces.size(), 2);
+
+    removeAssociation(io, defaultSourcePath, defaultDbusSvc, *server,
+                      assocMaps);
+    EXPECT_TRUE(assocMaps.pending.empty());
+    EXPECT_TRUE(assocMaps.pendingByOwner.empty());
+    EXPECT_TRUE(assocMaps.ifaces.empty());
 }

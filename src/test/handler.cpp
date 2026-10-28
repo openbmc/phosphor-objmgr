@@ -87,6 +87,7 @@ class TestHandler : public testing::Test
             },
         .owners = {},
         .pending = {},
+        .pendingByOwner = {},
     };
 };
 
