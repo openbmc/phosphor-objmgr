@@ -265,42 +265,49 @@ void processInterfacesRemoved(
         return;
     }
 
+    auto interfaceSet = connectionMap->second.find(sender);
+    if (interfaceSet == connectionMap->second.end())
+    {
+        removeUnneededParents(objPath, sender, interfaceMap);
+        return;
+    }
+
     for (const std::string& interface : interfacesRemoved)
     {
-        auto interfaceSet = connectionMap->second.find(sender);
-        if (interfaceSet == connectionMap->second.end())
-        {
-            continue;
-        }
-
         if (interface == assocDefsInterface)
         {
             removeAssociation(io, objPath, sender, server, assocMaps);
         }
 
         interfaceSet->second.erase(interface);
+    }
 
-        if (interfaceSet->second.empty())
+    // Objects that have been discovered through introspection also have the
+    // default sd-bus interfaces. These are not reported in the
+    // InterfacesRemoved signal. Hence, also consider the object removed if
+    // only default interfaces remain, unless the object is a parent of
+    // another object of the same service.
+    if (hasOnlyDefaultInterfaces(interfaceSet->second) &&
+        !hasChildForOwner(interfaceMap, objPath, sender))
+    {
+        // If this was the last interface on this connection,
+        // erase the connection
+        connectionMap->second.erase(interfaceSet);
+
+        // Instead of checking if every single path is the endpoint of an
+        // association that needs to be moved to pending, only check when
+        // the only remaining owner of this path is ourself, which would be
+        // because we still own the association path.
+        if ((connectionMap->second.size() == 1) &&
+            (connectionMap->second.begin()->first ==
+             "xyz.openbmc_project.ObjectMapper"))
         {
-            // If this was the last interface on this connection,
-            // erase the connection
-            connectionMap->second.erase(interfaceSet);
-
-            // Instead of checking if every single path is the endpoint
-            // of an association that needs to be moved to pending,
-            // only check when the only remaining owner of this path is
-            // ourself, which would be because we still own the
-            // association path.
-            if ((connectionMap->second.size() == 1) &&
-                (connectionMap->second.begin()->first ==
-                 "xyz.openbmc_project.ObjectMapper"))
-            {
-                // Remove the 2 association D-Bus paths and move the
-                // association to pending.
-                moveAssociationToPending(io, objPath, assocMaps, server);
-            }
+            // Remove the 2 association D-Bus paths and move the
+            // association to pending.
+            moveAssociationToPending(io, objPath, assocMaps, server);
         }
     }
+
     // If this was the last connection on this object path,
     // erase the object path
     if (connectionMap->second.empty())
