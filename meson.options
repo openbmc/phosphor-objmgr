@@ -10,6 +10,6 @@ option(
 option(
     'mappertool',
     type: 'feature',
-    value: 'enabled',
+    value: 'auto',
     description: 'Include mappertool for D-Bus association inspection',
 )

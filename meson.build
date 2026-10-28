@@ -140,7 +140,13 @@ executable(
     install: true,
 )
 
-if get_option('mappertool').enabled()
+# mappertool uses std::println(), which is not available in e.g.
+# libstdc++ 13.
+mappertool_option = get_option('mappertool').require(
+    cxx.has_header_symbol('print', 'std::println'),
+    error_message: 'mappertool requires std::println() from <print>',
+)
+if mappertool_option.allowed()
     executable(
         'mappertool',
         'src/mappertool.cpp',
