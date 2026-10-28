@@ -500,8 +500,11 @@ void checkIfPendingAssociation(
         const auto& ownerPath = std::get<reversePathPos>(e);
         const auto& owner = std::get<ownerPos>(*endpoint);
 
-        auto assocPath = objectPath / std::get<forwardTypePos>(e);
-        auto endpointPath = ownerPath;
+        // Build the association paths the same way as associationChanged()
+        // does.
+        std::string assocPath =
+            appendPathSegment(objectPath, std::get<forwardTypePos>(e));
+        std::string endpointPath = ownerPath;
 
         try
         {
@@ -509,7 +512,8 @@ void checkIfPendingAssociation(
                                  ownerPath, assocMaps);
 
             // Now the reverse direction (still the same owner and ownerPath)
-            assocPath = endpointPath + '/' + std::get<reverseTypePos>(e);
+            assocPath =
+                appendPathSegment(endpointPath, std::get<reverseTypePos>(e));
             endpointPath = objectPath;
             addSingleAssociation(io, server, assocPath, endpointPath, owner,
                                  ownerPath, assocMaps);
@@ -520,8 +524,8 @@ void checkIfPendingAssociation(
             // exception is thrown. mapper has no control of the interface/path
             // of the associations, so it has to catch the error and drop the
             // association request.
-            std::cerr << "Error adding association: assocPath "
-                      << assocPath.string() << ", endpointPath " << endpointPath
+            std::cerr << "Error adding association: assocPath " << assocPath
+                      << ", endpointPath " << endpointPath
                       << ", what: " << ex.what() << "\n";
         }
 

@@ -638,3 +638,29 @@ TEST_F(TestAssociations, addSingleAssociationOwnerKey)
     EXPECT_TRUE(assocMaps.owners.contains(defaultSourcePath));
     EXPECT_FALSE(assocMaps.owners.contains(defaultEndpoint));
 }
+
+// A pending association must result in the same association object paths
+// as an association for which the endpoint exists, also if the association
+// type starts with an underscore.
+TEST_F(TestAssociations, checkIfPendingSamePaths)
+{
+    const std::string endpoint = "/xyz/openbmc_project/new/endpoint_cipsp";
+    std::vector<Association> associations = {
+        {"_fwd_cipsp", "_rev_cipsp", endpoint}};
+
+    AssociationMaps assocMaps;
+    InterfaceMapType interfaceMap = createDefaultInterfaceMap();
+
+    associationChanged(io, *server, associations, defaultSourcePath,
+                       defaultDbusSvc, interfaceMap, assocMaps);
+    EXPECT_EQ(assocMaps.pending.size(), 1);
+
+    interfaceMap[endpoint][defaultDbusSvc] = {"b"};
+    checkIfPendingAssociation(io, sdbusplus::object_path(endpoint),
+                              interfaceMap, assocMaps, *server);
+
+    EXPECT_TRUE(assocMaps.pending.empty());
+    ASSERT_EQ(assocMaps.ifaces.size(), 2);
+    EXPECT_TRUE(assocMaps.ifaces.contains(defaultSourcePath + "/_fwd_cipsp"));
+    EXPECT_TRUE(assocMaps.ifaces.contains(endpoint + "/_rev_cipsp"));
+}
