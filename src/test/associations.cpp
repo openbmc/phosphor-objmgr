@@ -592,3 +592,15 @@ TEST_F(TestAssociations, moveAssocToPending)
         EXPECT_TRUE(endpoints.empty());
     }
 }
+
+// Creating an association object with an invalid D-Bus object path must not
+// throw or leave a failed entry in assocMaps.ifaces.
+TEST_F(TestAssociations, addSingleAssociationInvalidPath)
+{
+    AssociationMaps assocMaps;
+
+    EXPECT_NO_THROW(
+        addSingleAssociation(io, *server, "//invalid_asaip", defaultEndpoint,
+                             defaultDbusSvc, defaultSourcePath, assocMaps));
+    EXPECT_TRUE(assocMaps.ifaces.empty());
+}

@@ -37,9 +37,28 @@ static void updateEndpointsOnDbus(sdbusplus::asio::object_server& objectServer,
     }
     else if (!endpoints.empty())
     {
-        i = objectServer.add_interface(assocPath, xyzAssociationInterface);
-        i->register_property("endpoints", endpoints);
-        i->initialize();
+        try
+        {
+            i = objectServer.add_interface(assocPath, xyzAssociationInterface);
+            i->register_property("endpoints", endpoints);
+            i->initialize();
+        }
+        catch (const std::exception& e)
+        {
+            // Do not keep track of endpoints for which no D-Bus object
+            // exists, e.g. because assocPath is not a valid object path.
+            // The callers still record the association in
+            // assocMaps.owners. That is fine since the functions that
+            // remove associations ignore a missing assocMaps.ifaces entry.
+            std::cerr << "Failed to create association object " << assocPath
+                      << ": " << e.what() << "\n";
+            if (i)
+            {
+                objectServer.remove_interface(i);
+                i = nullptr;
+            }
+            endpoints.clear();
+        }
     }
 
     if (endpoints.empty())
