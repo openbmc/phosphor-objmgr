@@ -41,8 +41,8 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
  * @param depth            Level of depth to search into the base path
  * @param interfaces       Interface filter
  *
- * Use getSubTree and return only the dbus objects that are in the endpoint
- * of associationPath.
+ * Return only the dbus objects under reqPath that are in the endpoint of
+ * associationPath.
  *
  * @return std::vector<InterfaceMapType::value_type>
  */
@@ -63,8 +63,8 @@ std::vector<InterfaceMapType::value_type> getAssociatedSubTree(
  * @param depth            Level of depth to search into the base path
  * @param interfaces       Interface filter
  *
- * Use getSubTreePaths and return only the dbus objects that are in the
- * endpoint of associationPath.
+ * Return only the dbus object paths under reqPath that are in the endpoint
+ * of associationPath.
  *
  * @return std::vector<std::string>
  */

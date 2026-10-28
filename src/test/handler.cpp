@@ -469,6 +469,39 @@ TEST_F(TestHandler, getAssociatedSubTreePathsBad)
         sdbusplus::xyz::openbmc_project::Common::Error::ResourceNotFound);
 }
 
+// The endpoints of an association may be unsorted, may contain duplicates,
+// may not exist in the interface map and may be in a sibling subtree whose
+// name starts with the requested path.
+TEST_F(TestHandler, getAssociatedSubTreeUnusualEndpoints)
+{
+    sdbusplus::object_path path0("/test/object_path_0");
+    sdbusplus::object_path reqPath("/test/object_path_0/child");
+    sdbusplus::object_path associatedPath = path0 / "unusual";
+    associationMap.ifaces[associatedPath.str] = {
+        std::shared_ptr<sdbusplus::asio::dbus_interface>(),
+        {
+            "/test/object_path_0/child/grandchild/dog",
+            "/test/object_path_0/child1",
+            "/test/object_path_0/child/missing",
+            "/test/object_path_0/child/grandchild",
+            "/test/object_path_0/child/grandchild/dog",
+        },
+    };
+    std::vector<std::string> interfaces;
+
+    EXPECT_THAT(
+        getAssociatedSubTreePaths(interfaceMap, associationMap, associatedPath,
+                                  reqPath, 0, interfaces),
+        ElementsAre("/test/object_path_0/child/grandchild",
+                    "/test/object_path_0/child/grandchild/dog"));
+
+    std::vector<InterfaceMapType::value_type> subtree = getAssociatedSubTree(
+        interfaceMap, associationMap, associatedPath, reqPath, 0, interfaces);
+    ASSERT_EQ(subtree.size(), 2);
+    EXPECT_EQ(subtree[0].first, "/test/object_path_0/child/grandchild");
+    EXPECT_EQ(subtree[1].first, "/test/object_path_0/child/grandchild/dog");
+}
+
 TEST_F(TestHandler, getAssociatedSubTreePathsGood)
 {
     sdbusplus::object_path path0("/test/object_path_0");
