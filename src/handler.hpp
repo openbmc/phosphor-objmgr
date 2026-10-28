@@ -5,6 +5,12 @@
 #include <string>
 #include <vector>
 
+/**
+ * @brief Add a (service, interfaces) pair for objectPath to objectMap
+ *
+ * Entries must be added in sorted object path order: an existing entry for
+ * objectPath is only recognized if it is the last entry of objectMap.
+ */
 void addObjectMapResult(std::vector<InterfaceMapType::value_type>& objectMap,
                         const std::string& objectPath,
                         const ConnectionNames::value_type& interfaceMap);

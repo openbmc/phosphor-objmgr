@@ -136,6 +136,29 @@ TEST_F(TestHandler, AddObjectMapResult)
     }
 }
 
+// Entries for multiple paths that are added in sorted order must result in
+// one entry per path.
+TEST_F(TestHandler, AddObjectMapResultSorted)
+{
+    std::vector<InterfaceMapType::value_type> objectMap;
+    const std::pair<std::string, InterfaceNames> conn0("conn0", {"iface0"});
+    const std::pair<std::string, InterfaceNames> conn1("conn1", {"iface1"});
+
+    addObjectMapResult(objectMap, "/a", conn0);
+    addObjectMapResult(objectMap, "/a", conn1);
+    addObjectMapResult(objectMap, "/a/b", conn0);
+    addObjectMapResult(objectMap, "/c", conn0);
+    addObjectMapResult(objectMap, "/c", conn1);
+
+    ASSERT_EQ(objectMap.size(), 3);
+    EXPECT_EQ(objectMap[0].first, "/a");
+    EXPECT_EQ(objectMap[0].second.size(), 2);
+    EXPECT_EQ(objectMap[1].first, "/a/b");
+    EXPECT_EQ(objectMap[1].second.size(), 1);
+    EXPECT_EQ(objectMap[2].first, "/c");
+    EXPECT_EQ(objectMap[2].second.size(), 2);
+}
+
 TEST_F(TestHandler, getAncestorsBad)
 {
     std::string path = "/test/object_path_0/child/grandchild";

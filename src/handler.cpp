@@ -6,6 +6,7 @@
 #include <xyz/openbmc_project/Common/error.hpp>
 
 #include <algorithm>
+#include <cassert>
 #include <iterator>
 #include <string>
 #include <unordered_set>
@@ -46,21 +47,20 @@ void addObjectMapResult(std::vector<InterfaceMapType::value_type>& objectMap,
     // If an entry for the object path already exists, just add the
     // service name and interfaces to that entry, otherwise create
     // a new entry.
-    auto entry = std::find_if(
-        objectMap.begin(), objectMap.end(),
-        [&objectPath](const auto& i) { return objectPath == i.first; });
-
-    if (entry != objectMap.end())
+    //
+    // The callers add entries in sorted object path order. Hence, if an
+    // entry for objectPath exists, it is the last entry. Only checking the
+    // last entry avoids quadratic behavior.
+    assert(objectMap.empty() || objectMap.back().first <= objectPath);
+    if (!objectMap.empty() && objectMap.back().first == objectPath)
     {
-        entry->second.emplace(interfaceMap);
+        objectMap.back().second.emplace(interfaceMap);
+        return;
     }
-    else
-    {
-        InterfaceMapType::value_type object;
-        object.first = objectPath;
-        object.second.emplace(interfaceMap);
-        objectMap.push_back(object);
-    }
+    InterfaceMapType::value_type object;
+    object.first = objectPath;
+    object.second.emplace(interfaceMap);
+    objectMap.push_back(std::move(object));
 }
 
 std::vector<InterfaceMapType::value_type> getAncestors(
