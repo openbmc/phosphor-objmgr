@@ -7,10 +7,12 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstdint>
 #include <iterator>
+#include <limits>
+#include <optional>
 #include <string>
 #include <string_view>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -163,9 +165,11 @@ ConnectionNames getObject(const InterfaceMapType& interfaceMap,
     return results;
 }
 
-std::vector<InterfaceMapType::value_type> getSubTree(
-    const InterfaceMapType& interfaceMap, std::string reqPath, int32_t depth,
-    std::vector<std::string>& interfaces)
+// Normalize the arguments of a subtree query. Returns reqPath with a trailing
+// slash. Throws ResourceNotFound if reqPath does not exist.
+static std::string prepareSubTreeQuery(const InterfaceMapType& interfaceMap,
+                                       std::string reqPath, int32_t& depth,
+                                       std::vector<std::string>& interfaces)
 {
     if (depth <= 0)
     {
@@ -189,41 +193,77 @@ std::vector<InterfaceMapType::value_type> getSubTree(
         throw sdbusplus::xyz::openbmc_project::Common::Error::
             ResourceNotFound();
     }
+    return reqPath;
+}
+
+// Whether or not thisPath is part of the result of a subtree query for the
+// subtree prefix (with trailing slash) and depth.
+static bool isInSubTree(const std::string& thisPath, const std::string& prefix,
+                        int32_t depth)
+{
+    std::string_view reqPathStripped =
+        std::string_view(prefix).substr(0, prefix.size() - 1);
+
+    if (!thisPath.starts_with(prefix))
+    {
+        return false;
+    }
+    // count the number of slashes past the stripped search term
+    auto thisDepth = std::count(
+        thisPath.begin() +
+            static_cast<std::string::difference_type>(reqPathStripped.size()),
+        thisPath.end(), '/');
+    return thisDepth <= depth;
+}
+
+// Add the services of objectPath that implement one of the interfaces to the
+// result of a GetSubTree query. All services match if interfaces is empty.
+static void addSubTreeResult(std::vector<InterfaceMapType::value_type>& ret,
+                             const InterfaceMapType::value_type& objectPath,
+                             const std::vector<std::string>& interfaces)
+{
+    for (const auto& connectionInterfaces : objectPath.second)
+    {
+        if (interfaces.empty() ||
+            intersects(interfaces, connectionInterfaces.second))
+        {
+            addObjectMapResult(ret, objectPath.first, connectionInterfaces);
+        }
+    }
+}
+
+// Whether or not a service of objectPath implements one of the interfaces.
+// Always true if interfaces is empty.
+static bool matchesInterfaces(const InterfaceMapType::value_type& objectPath,
+                              const std::vector<std::string>& interfaces)
+{
+    if (interfaces.empty())
+    {
+        return true;
+    }
+    return std::ranges::any_of(
+        objectPath.second, [&interfaces](const auto& connectionInterfaces) {
+            return intersects(interfaces, connectionInterfaces.second);
+        });
+}
+
+std::vector<InterfaceMapType::value_type> getSubTree(
+    const InterfaceMapType& interfaceMap, std::string reqPath, int32_t depth,
+    std::vector<std::string>& interfaces)
+{
+    const std::string prefix = prepareSubTreeQuery(
+        interfaceMap, std::move(reqPath), depth, interfaces);
 
     std::vector<InterfaceMapType::value_type> ret;
-    // All paths that start with reqPath follow reqPath in the sorted
-    // interface map. Hence, there is no need to examine other paths.
-    for (auto objectIt = interfaceMap.lower_bound(reqPath);
-         objectIt != interfaceMap.end() && objectIt->first.starts_with(reqPath);
+    // All paths that start with prefix follow prefix in the sorted interface
+    // map. Hence, there is no need to examine other paths.
+    for (auto objectIt = interfaceMap.lower_bound(prefix);
+         objectIt != interfaceMap.end() && objectIt->first.starts_with(prefix);
          ++objectIt)
     {
-        const auto& objectPath = *objectIt;
-        const auto& thisPath = objectPath.first;
-
-        // Skip exact match on stripped search term
-        if (thisPath == reqPathStripped)
+        if (isInSubTree(objectIt->first, prefix, depth))
         {
-            continue;
-        }
-
-        if (thisPath.starts_with(reqPath))
-        {
-            // count the number of slashes past the stripped search term
-            auto thisDepth = std::count(
-                thisPath.begin() + std::distance(reqPathStripped.begin(),
-                                                 reqPathStripped.end()),
-                thisPath.end(), '/');
-            if (thisDepth <= depth)
-            {
-                for (const auto& connectionInterfaces : objectPath.second)
-                {
-                    if (interfaces.empty() ||
-                        intersects(interfaces, connectionInterfaces.second))
-                    {
-                        addObjectMapResult(ret, thisPath, connectionInterfaces);
-                    }
-                }
-            }
+            addSubTreeResult(ret, *objectIt, interfaces);
         }
     }
 
@@ -234,73 +274,42 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
                                          std::string reqPath, int32_t depth,
                                          std::vector<std::string>& interfaces)
 {
-    if (depth <= 0)
-    {
-        depth = std::numeric_limits<int32_t>::max();
-    }
-    // Interfaces need to be sorted for intersect to function
-    std::sort(interfaces.begin(), interfaces.end());
-
-    // reqPath is now guaranteed to have a trailing "/" while reqPathStripped
-    // will be guaranteed not to have a trailing "/"
-    if (!reqPath.ends_with("/"))
-    {
-        reqPath += "/";
-    }
-    std::string_view reqPathStripped =
-        std::string_view(reqPath).substr(0, reqPath.size() - 1);
-
-    if (!reqPathStripped.empty() &&
-        interfaceMap.find(reqPathStripped) == interfaceMap.end())
-    {
-        throw sdbusplus::xyz::openbmc_project::Common::Error::
-            ResourceNotFound();
-    }
+    const std::string prefix = prepareSubTreeQuery(
+        interfaceMap, std::move(reqPath), depth, interfaces);
 
     std::vector<std::string> ret;
-    // All paths that start with reqPath follow reqPath in the sorted
-    // interface map. Hence, there is no need to examine other paths.
-    for (auto objectIt = interfaceMap.lower_bound(reqPath);
-         objectIt != interfaceMap.end() && objectIt->first.starts_with(reqPath);
+    // All paths that start with prefix follow prefix in the sorted interface
+    // map. Hence, there is no need to examine other paths.
+    for (auto objectIt = interfaceMap.lower_bound(prefix);
+         objectIt != interfaceMap.end() && objectIt->first.starts_with(prefix);
          ++objectIt)
     {
-        const auto& objectPath = *objectIt;
-        const auto& thisPath = objectPath.first;
-
-        // Skip exact match on stripped search term
-        if (thisPath == reqPathStripped)
+        if (isInSubTree(objectIt->first, prefix, depth) &&
+            matchesInterfaces(*objectIt, interfaces))
         {
-            continue;
-        }
-
-        if (thisPath.starts_with(reqPath))
-        {
-            // count the number of slashes past the stripped search term
-            auto thisDepth = std::count(
-                thisPath.begin() + std::distance(reqPathStripped.begin(),
-                                                 reqPathStripped.end()),
-                thisPath.end(), '/');
-            if (thisDepth <= depth)
-            {
-                bool add = interfaces.empty();
-                for (const auto& connectionInterfaces : objectPath.second)
-                {
-                    if (intersects(interfaces, connectionInterfaces.second))
-                    {
-                        add = true;
-                        break;
-                    }
-                }
-                if (add)
-                {
-                    // TODO(ed) this is a copy
-                    ret.emplace_back(thisPath);
-                }
-            }
+            ret.emplace_back(objectIt->first);
         }
     }
 
     return ret;
+}
+
+// Return the endpoints of associationPath in sorted order without
+// duplicates or std::nullopt if associationPath does not exist.
+static std::optional<std::vector<std::string>> getSortedEndpoints(
+    const AssociationMaps& associationMaps, const std::string& associationPath)
+{
+    auto findEndpoint = associationMaps.ifaces.find(associationPath);
+    if (findEndpoint == associationMaps.ifaces.end())
+    {
+        return std::nullopt;
+    }
+    std::vector<std::string> endpoints =
+        std::get<endpointsPos>(findEndpoint->second);
+    std::sort(endpoints.begin(), endpoints.end());
+    endpoints.erase(std::unique(endpoints.begin(), endpoints.end()),
+                    endpoints.end());
+    return endpoints;
 }
 
 std::vector<InterfaceMapType::value_type> getAssociatedSubTree(
@@ -310,24 +319,29 @@ std::vector<InterfaceMapType::value_type> getAssociatedSubTree(
     const sdbusplus::object_path& reqPath, int32_t depth,
     std::vector<std::string>& interfaces)
 {
-    auto findEndpoint = associationMaps.ifaces.find(associationPath);
-    if (findEndpoint == associationMaps.ifaces.end())
+    const std::optional<std::vector<std::string>> endpoints =
+        getSortedEndpoints(associationMaps, associationPath.string());
+    if (!endpoints)
     {
         return {};
     }
-    const std::vector<std::string>& association =
-        std::get<endpointsPos>(findEndpoint->second);
-    std::unordered_set<std::string> associationSet(association.begin(),
-                                                   association.end());
-    const std::vector<InterfaceMapType::value_type> interfacePairs =
-        getSubTree(interfaceMap, reqPath, depth, interfaces);
+    const std::string prefix =
+        prepareSubTreeQuery(interfaceMap, reqPath.string(), depth, interfaces);
 
+    // Only examine the endpoints of the association instead of computing the
+    // entire subtree and filtering it afterwards. The endpoints are sorted, so
+    // the results are sorted as well.
     std::vector<InterfaceMapType::value_type> output;
-    for (const InterfaceMapType::value_type& interfacePair : interfacePairs)
+    for (const std::string& endpoint : *endpoints)
     {
-        if (associationSet.contains(interfacePair.first))
+        if (!isInSubTree(endpoint, prefix, depth))
         {
-            output.emplace_back(interfacePair);
+            continue;
+        }
+        auto objectIt = interfaceMap.find(endpoint);
+        if (objectIt != interfaceMap.end())
+        {
+            addSubTreeResult(output, *objectIt, interfaces);
         }
     }
     return output;
@@ -340,24 +354,29 @@ std::vector<std::string> getAssociatedSubTreePaths(
     const sdbusplus::object_path& reqPath, int32_t depth,
     std::vector<std::string>& interfaces)
 {
-    auto findEndpoint = associationMaps.ifaces.find(associationPath);
-    if (findEndpoint == associationMaps.ifaces.end())
+    const std::optional<std::vector<std::string>> endpoints =
+        getSortedEndpoints(associationMaps, associationPath.string());
+    if (!endpoints)
     {
         return {};
     }
-    const std::vector<std::string>& association =
-        std::get<endpointsPos>(findEndpoint->second);
-    std::unordered_set<std::string> associationSet(association.begin(),
-                                                   association.end());
-    const std::vector<std::string> paths =
-        getSubTreePaths(interfaceMap, reqPath, depth, interfaces);
+    const std::string prefix =
+        prepareSubTreeQuery(interfaceMap, reqPath.string(), depth, interfaces);
 
+    // Only examine the endpoints of the association instead of computing the
+    // entire subtree and filtering it afterwards.
     std::vector<std::string> output;
-    for (const auto& path : paths)
+    for (const std::string& endpoint : *endpoints)
     {
-        if (associationSet.contains(path))
+        if (!isInSubTree(endpoint, prefix, depth))
         {
-            output.emplace_back(path);
+            continue;
+        }
+        auto objectIt = interfaceMap.find(endpoint);
+        if (objectIt != interfaceMap.end() &&
+            matchesInterfaces(*objectIt, interfaces))
+        {
+            output.emplace_back(endpoint);
         }
     }
     return output;
