@@ -19,8 +19,7 @@ sdbusplus::asio::object_server* TestNameChange::AsioServerClassTest::server =
 // Verify unique name is removed from nameOwners
 TEST_F(TestNameChange, UniqueNameNoInterfaces)
 {
-    boost::container::flat_map<std::string, std::string> nameOwners = {
-        {":1.99", "test-name"}};
+    NameOwners nameOwners = {{":1.99", {"test-name"}}};
     std::string wellKnown = {"test-name"};
     std::string oldOwner = {":1.99"};
     InterfaceMapType interfaceMap;
@@ -34,8 +33,7 @@ TEST_F(TestNameChange, UniqueNameNoInterfaces)
 // Verify path removed from interface map and association objects
 TEST_F(TestNameChange, UniqueNameAssociationsAndInterface)
 {
-    boost::container::flat_map<std::string, std::string> nameOwners = {
-        {":1.99", defaultDbusSvc}};
+    NameOwners nameOwners = {{":1.99", {defaultDbusSvc}}};
     std::string oldOwner = {":1.99"};
     InterfaceNames assocInterfacesSet = {assocDefsInterface};
 
@@ -63,4 +61,19 @@ TEST_F(TestNameChange, UniqueNameAssociationsAndInterface)
 
     // Verify interface map was deleted
     EXPECT_TRUE(interfaceMap.empty());
+}
+
+// Verify that releasing one of multiple well known names of a connection
+// keeps the other well known names
+TEST_F(TestNameChange, UniqueNameMultipleNames)
+{
+    NameOwners nameOwners = {{":1.99", {"test-name0", "test-name1"}}};
+    InterfaceMapType interfaceMap;
+    AssociationMaps assocMaps;
+
+    processNameChangeDelete(io, nameOwners, "test-name0", ":1.99", interfaceMap,
+                            assocMaps, *server);
+    ASSERT_EQ(nameOwners.size(), 1);
+    EXPECT_EQ(nameOwners[":1.99"],
+              boost::container::flat_set<std::string>{"test-name1"});
 }

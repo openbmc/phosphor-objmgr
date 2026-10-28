@@ -98,6 +98,14 @@ using PendingAssociations = std::map<std::string, ExistingEndpoints>;
 using FindAssocResults = std::vector<std::tuple<std::string, Association>>;
 
 /**
+ * Map of unique connection names to the well-known names owned by that
+ * connection. A connection may own multiple well-known names.
+ */
+using NameOwners =
+    boost::container::flat_map<std::string,
+                               boost::container::flat_set<std::string>>;
+
+/**
  * Keeps all association related maps together.
  */
 struct AssociationMaps
