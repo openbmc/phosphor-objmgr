@@ -20,8 +20,6 @@
 #include <string_view>
 #include <utility>
 
-static AssociationMaps associationMaps;
-
 static void updateOwners(
     sdbusplus::asio::connection* conn,
     boost::container::flat_map<std::string, std::string>& owners,
@@ -137,15 +135,15 @@ struct InProgressIntrospect
 
 static void doAssociations(
     boost::asio::io_context& io, sdbusplus::asio::connection* systemBus,
-    InterfaceMapType& interfaceMap,
+    InterfaceMapType& interfaceMap, AssociationMaps& assocMaps,
     sdbusplus::asio::object_server& objectServer,
     const std::string& processName, const std::string& path,
     int timeoutRetries = 0)
 {
     constexpr int maxTimeoutRetries = 3;
     systemBus->async_method_call(
-        [&io, &objectServer, path, processName, &interfaceMap, systemBus,
-         timeoutRetries](
+        [&io, &objectServer, path, processName, &interfaceMap, &assocMaps,
+         systemBus, timeoutRetries](
             const boost::system::error_code ec,
             const std::variant<std::vector<Association>>& variantAssociations) {
             if (ec)
@@ -153,8 +151,9 @@ static void doAssociations(
                 if (ec.value() == boost::system::errc::timed_out &&
                     timeoutRetries < maxTimeoutRetries)
                 {
-                    doAssociations(io, systemBus, interfaceMap, objectServer,
-                                   processName, path, timeoutRetries + 1);
+                    doAssociations(io, systemBus, interfaceMap, assocMaps,
+                                   objectServer, processName, path,
+                                   timeoutRetries + 1);
                     return;
                 }
                 std::cerr << "Error getting associations from " << path
@@ -165,7 +164,7 @@ static void doAssociations(
             std::vector<Association> associations =
                 std::get<std::vector<Association>>(variantAssociations);
             associationChanged(io, objectServer, associations, path,
-                               processName, interfaceMap, associationMaps);
+                               processName, interfaceMap, assocMaps);
         },
         processName, path, "org.freedesktop.DBus.Properties", "Get",
         assocDefsInterface, assocDefsProperty);
@@ -213,7 +212,8 @@ static void doIntrospect(
 
                 if (ifaceName == assocDefsInterface)
                 {
-                    doAssociations(io, systemBus, interfaceMap, objectServer,
+                    doAssociations(io, systemBus, interfaceMap,
+                                   transaction->assocMaps, objectServer,
                                    transaction->processName, path);
                 }
             }
@@ -335,8 +335,13 @@ int main()
 
     InterfaceMapType interfaceMap;
     boost::container::flat_map<std::string, std::string> nameOwners;
+    // The association maps hold references to the D-Bus connection through
+    // the association interfaces. Hence, these must be destroyed before the
+    // connection and the io_context.
+    AssociationMaps associationMaps;
 
     auto nameChangeHandler = [&interfaceMap, &io, &nameOwners, &server,
+                              &associationMaps,
                               systemBus](sdbusplus::message_t& message) {
         std::string name;     // well-known
         std::string oldOwner; // unique-name
@@ -381,8 +386,9 @@ int main()
         sdbusplus::match_rules::nameOwnerChanged(),
         catchExceptions("NameOwnerChanged", std::move(nameChangeHandler)));
 
-    auto interfacesAddedHandler = [&io, &interfaceMap, &nameOwners,
-                                   &server](sdbusplus::message_t& message) {
+    auto interfacesAddedHandler = [&io, &interfaceMap, &nameOwners, &server,
+                                   &associationMaps](
+                                      sdbusplus::message_t& message) {
         sdbusplus::object_path objPath;
         InterfacesAdded interfacesAdded;
         message.read(objPath, interfacesAdded);
@@ -403,8 +409,9 @@ int main()
         sdbusplus::match_rules::interfacesAdded(),
         catchExceptions("InterfacesAdded", std::move(interfacesAddedHandler)));
 
-    auto interfacesRemovedHandler = [&io, &interfaceMap, &nameOwners,
-                                     &server](sdbusplus::message_t& message) {
+    auto interfacesRemovedHandler = [&io, &interfaceMap, &nameOwners, &server,
+                                     &associationMaps](
+                                        sdbusplus::message_t& message) {
         sdbusplus::object_path objPath;
         std::vector<std::string> interfacesRemoved;
         message.read(objPath, interfacesRemoved);
@@ -423,29 +430,30 @@ int main()
         catchExceptions("InterfacesRemoved",
                         std::move(interfacesRemovedHandler)));
 
-    auto associationChangedHandler = [&io, &server, &nameOwners, &interfaceMap](
-                                         sdbusplus::message_t& message) {
-        std::string objectName;
-        boost::container::flat_map<std::string,
-                                   std::variant<std::vector<Association>>>
-            values;
-        message.read(objectName, values);
-        auto prop = values.find(assocDefsProperty);
-        if (prop != values.end())
-        {
-            std::vector<Association> associations =
-                std::get<std::vector<Association>>(prop->second);
-
-            std::string wellKnown;
-            if (!getWellKnown(nameOwners, message.get_sender(), wellKnown))
+    auto associationChangedHandler =
+        [&io, &server, &nameOwners, &interfaceMap,
+         &associationMaps](sdbusplus::message_t& message) {
+            std::string objectName;
+            boost::container::flat_map<std::string,
+                                       std::variant<std::vector<Association>>>
+                values;
+            message.read(objectName, values);
+            auto prop = values.find(assocDefsProperty);
+            if (prop != values.end())
             {
-                return;
+                std::vector<Association> associations =
+                    std::get<std::vector<Association>>(prop->second);
+
+                std::string wellKnown;
+                if (!getWellKnown(nameOwners, message.get_sender(), wellKnown))
+                {
+                    return;
+                }
+                associationChanged(io, server, associations,
+                                   sdbusplus::object_path(message.get_path()),
+                                   wellKnown, interfaceMap, associationMaps);
             }
-            associationChanged(io, server, associations,
-                               sdbusplus::object_path(message.get_path()),
-                               wellKnown, interfaceMap, associationMaps);
-        }
-    };
+        };
     sdbusplus::match assocChangedMatch(
         static_cast<sdbusplus::bus_t&>(*systemBus),
         sdbusplus::match_rules::interface("org.freedesktop.DBus.Properties") +
@@ -485,9 +493,10 @@ int main()
 
     iface->register_method(
         "GetAssociatedSubTree",
-        [&interfaceMap](const sdbusplus::object_path& associationPath,
-                        const sdbusplus::object_path& reqPath, int32_t depth,
-                        std::vector<std::string>& interfaces) {
+        [&interfaceMap,
+         &associationMaps](const sdbusplus::object_path& associationPath,
+                           const sdbusplus::object_path& reqPath, int32_t depth,
+                           std::vector<std::string>& interfaces) {
             return getAssociatedSubTree(interfaceMap, associationMaps,
                                         associationPath, reqPath, depth,
                                         interfaces);
@@ -495,9 +504,10 @@ int main()
 
     iface->register_method(
         "GetAssociatedSubTreePaths",
-        [&interfaceMap](const sdbusplus::object_path& associationPath,
-                        const sdbusplus::object_path& reqPath, int32_t depth,
-                        std::vector<std::string>& interfaces) {
+        [&interfaceMap,
+         &associationMaps](const sdbusplus::object_path& associationPath,
+                           const sdbusplus::object_path& reqPath, int32_t depth,
+                           std::vector<std::string>& interfaces) {
             return getAssociatedSubTreePaths(interfaceMap, associationMaps,
                                              associationPath, reqPath, depth,
                                              interfaces);
@@ -505,10 +515,11 @@ int main()
 
     iface->register_method(
         "GetAssociatedSubTreeById",
-        [&interfaceMap](const std::string& id, const std::string& objectPath,
-                        std::vector<std::string>& subtreeInterfaces,
-                        const std::string& association,
-                        std::vector<std::string>& endpointInterfaces) {
+        [&interfaceMap,
+         &associationMaps](const std::string& id, const std::string& objectPath,
+                           std::vector<std::string>& subtreeInterfaces,
+                           const std::string& association,
+                           std::vector<std::string>& endpointInterfaces) {
             return getAssociatedSubTreeById(interfaceMap, associationMaps, id,
                                             objectPath, subtreeInterfaces,
                                             association, endpointInterfaces);
@@ -516,10 +527,11 @@ int main()
 
     iface->register_method(
         "GetAssociatedSubTreePathsById",
-        [&interfaceMap](const std::string& id, const std::string& objectPath,
-                        std::vector<std::string>& subtreeInterfaces,
-                        const std::string& association,
-                        std::vector<std::string>& endpointInterfaces) {
+        [&interfaceMap,
+         &associationMaps](const std::string& id, const std::string& objectPath,
+                           std::vector<std::string>& subtreeInterfaces,
+                           const std::string& association,
+                           std::vector<std::string>& endpointInterfaces) {
             return getAssociatedSubTreePathsById(
                 interfaceMap, associationMaps, id, objectPath,
                 subtreeInterfaces, association, endpointInterfaces);
