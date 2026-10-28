@@ -65,7 +65,14 @@ std::vector<InterfaceMapType::value_type> getAncestors(
             continue;
         }
 
-        if (reqPath.starts_with(thisPath))
+        // thisPath is an ancestor of reqPath if reqPath starts with thisPath
+        // followed by a slash or if thisPath is the root path and reqPath is
+        // not. Checking for the slash prevents e.g. /a/b from being reported
+        // as an ancestor of /a/bc.
+        if ((thisPath == "/" && !reqPath.empty()) ||
+            (reqPath.starts_with(thisPath) &&
+             reqPath.size() > thisPath.size() &&
+             reqPath[thisPath.size()] == '/'))
         {
             if (interfaces.empty())
             {

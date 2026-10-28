@@ -173,6 +173,38 @@ TEST_F(TestHandler, getAncestorsGood)
     ASSERT_THAT(parent->second, ElementsAre("test_interface_1"));
 }
 
+TEST_F(TestHandler, getAncestorsSiblingPrefix)
+{
+    // "/test/object_path_0/child" is a string prefix of
+    // "/test/object_path_0/child1" but is not an ancestor of it.
+    std::string path = "/test/object_path_0/child1";
+    std::vector<std::string> interfaces;
+    std::vector<InterfaceMapType::value_type> ancestors =
+        getAncestors(interfaceMap, path, interfaces);
+    ASSERT_EQ(ancestors.size(), 1);
+    EXPECT_EQ(ancestors[0].first, "/test/object_path_0");
+}
+
+TEST_F(TestHandler, getAncestorsRoot)
+{
+    interfaceMap["/"] = {{"test_object_connection_0", {"test_interface_0"}}};
+    std::string path = "/test/object_path_0/child";
+    std::vector<std::string> interfaces;
+    std::vector<InterfaceMapType::value_type> ancestors =
+        getAncestors(interfaceMap, path, interfaces);
+    ASSERT_EQ(ancestors.size(), 2);
+    EXPECT_EQ(ancestors[0].first, "/");
+    EXPECT_EQ(ancestors[1].first, "/test/object_path_0");
+}
+
+TEST_F(TestHandler, getAncestorsOfRoot)
+{
+    interfaceMap["/"] = {{"test_object_connection_0", {"test_interface_0"}}};
+    std::string path = "/";
+    std::vector<std::string> interfaces;
+    EXPECT_TRUE(getAncestors(interfaceMap, path, interfaces).empty());
+}
+
 TEST_F(TestHandler, getObjectBad)
 {
     std::string path = "/test/object_path_0";
