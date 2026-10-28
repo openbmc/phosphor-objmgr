@@ -320,68 +320,6 @@ static void doListNames(
         "ListNames");
 }
 
-// Remove parents of the passed in path that:
-// 1) Only have the 3 default interfaces on them
-//    - Means D-Bus created these, not application code,
-//      with the Properties, Introspectable, and Peer ifaces
-// 2) Have no other child for this owner
-static void removeUnneededParents(const sdbusplus::object_path& objectPath,
-                                  const std::string& owner,
-                                  InterfaceMapType& interfaceMap)
-{
-    auto parent = objectPath;
-
-    while (true)
-    {
-        if (parent == "/")
-        {
-            break;
-        }
-
-        parent = parent.parent_path();
-
-        auto parentIt = interfaceMap.find(parent);
-        if (parentIt == interfaceMap.end())
-        {
-            break;
-        }
-
-        auto ifacesIt = parentIt->second.find(owner);
-        if (ifacesIt == parentIt->second.end())
-        {
-            break;
-        }
-
-        if (ifacesIt->second.size() != 3)
-        {
-            break;
-        }
-
-        auto childPath = parent.string() + '/';
-
-        // Remove this parent if there isn't a remaining child on this owner
-        auto child = std::find_if(
-            interfaceMap.begin(), interfaceMap.end(),
-            [&owner, &childPath](const auto& entry) {
-                return entry.first.starts_with(childPath) &&
-                       (entry.second.find(owner) != entry.second.end());
-            });
-
-        if (child == interfaceMap.end())
-        {
-            parentIt->second.erase(ifacesIt);
-            if (parentIt->second.empty())
-            {
-                interfaceMap.erase(parentIt);
-            }
-        }
-        else
-        {
-            break;
-        }
-    }
-}
-
 // sdbusplus invokes match callbacks from a noexcept function. Since any
 // process on the bus can emit a signal with an unexpected signature, an
 // exception thrown while handling a signal must not reach sdbusplus because
@@ -497,62 +435,13 @@ int main()
         sdbusplus::object_path objPath;
         std::vector<std::string> interfacesRemoved;
         message.read(objPath, interfacesRemoved);
-        auto connectionMap = interfaceMap.find(objPath);
-        if (connectionMap == interfaceMap.end())
-        {
-            return;
-        }
-
         std::string sender;
         if (!getWellKnown(nameOwners, message.get_sender(), sender))
         {
             return;
         }
-        for (const std::string& interface : interfacesRemoved)
-        {
-            auto interfaceSet = connectionMap->second.find(sender);
-            if (interfaceSet == connectionMap->second.end())
-            {
-                continue;
-            }
-
-            if (interface == assocDefsInterface)
-            {
-                removeAssociation(io, objPath, sender, server, associationMaps);
-            }
-
-            interfaceSet->second.erase(interface);
-
-            if (interfaceSet->second.empty())
-            {
-                // If this was the last interface on this connection,
-                // erase the connection
-                connectionMap->second.erase(interfaceSet);
-
-                // Instead of checking if every single path is the endpoint
-                // of an association that needs to be moved to pending,
-                // only check when the only remaining owner of this path is
-                // ourself, which would be because we still own the
-                // association path.
-                if ((connectionMap->second.size() == 1) &&
-                    (connectionMap->second.begin()->first ==
-                     "xyz.openbmc_project.ObjectMapper"))
-                {
-                    // Remove the 2 association D-Bus paths and move the
-                    // association to pending.
-                    moveAssociationToPending(io, objPath, associationMaps,
-                                             server);
-                }
-            }
-        }
-        // If this was the last connection on this object path,
-        // erase the object path
-        if (connectionMap->second.empty())
-        {
-            interfaceMap.erase(connectionMap);
-        }
-
-        removeUnneededParents(objPath, sender, interfaceMap);
+        processInterfacesRemoved(io, interfaceMap, objPath, interfacesRemoved,
+                                 sender, associationMaps, server);
     };
 
     sdbusplus::match interfacesRemoved(
