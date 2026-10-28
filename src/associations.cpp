@@ -458,7 +458,7 @@ void addSingleAssociation(
     {
         boost::container::flat_map<std::string, AssociationPaths> owners;
         owners.emplace(owner, std::move(objects));
-        assocMaps.owners.emplace(endpoint, owners);
+        assocMaps.owners.emplace(ownerPath, owners);
     }
 }
 

@@ -624,3 +624,17 @@ TEST_F(TestAssociations, associationChangedInvalidType)
     EXPECT_TRUE(assocMaps.ifaces.empty());
     EXPECT_TRUE(assocMaps.pending.empty());
 }
+
+// When no associationOwners entry exists yet for ownerPath,
+// addSingleAssociation() must create one under ownerPath rather than endpoint.
+TEST_F(TestAssociations, addSingleAssociationOwnerKey)
+{
+    AssociationMaps assocMaps;
+
+    addSingleAssociation(io, *server, defaultSourcePath + "/fwd_asaok",
+                         defaultEndpoint, defaultDbusSvc, defaultSourcePath,
+                         assocMaps);
+
+    EXPECT_TRUE(assocMaps.owners.contains(defaultSourcePath));
+    EXPECT_FALSE(assocMaps.owners.contains(defaultEndpoint));
+}
