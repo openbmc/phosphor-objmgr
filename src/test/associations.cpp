@@ -981,3 +981,77 @@ TEST_F(TestAssociations, moveAssocToPendingEmptyForwardType)
     EXPECT_TRUE(assocMaps.ifaces.contains(defaultEndpoint + "/r_matpeft"));
     EXPECT_TRUE(assocMaps.owners.contains(defaultSourcePath));
 }
+
+// If two objects declare both sides of the same association, removing one
+// declaration must keep the association objects of the other declaration.
+TEST_F(TestAssociations, associationChangedMutualDeclaration)
+{
+    const std::string pathX = "/xyz/openbmc_project/x_acmd";
+    const std::string pathY = "/xyz/openbmc_project/y_acmd";
+    const std::string ownerX = "xyz.openbmc_project.X";
+    const std::string ownerY = "xyz.openbmc_project.Y";
+
+    AssociationMaps assocMaps;
+    InterfaceMapType interfaceMap = {{pathX, {{ownerX, {"a"}}}},
+                                     {pathY, {{ownerY, {"b"}}}}};
+
+    associationChanged(io, *server, {{"a_acmd", "b_acmd", pathY}},
+                       sdbusplus::object_path(pathX), ownerX, interfaceMap,
+                       assocMaps);
+    associationChanged(io, *server, {{"b_acmd", "a_acmd", pathX}},
+                       sdbusplus::object_path(pathY), ownerY, interfaceMap,
+                       assocMaps);
+    ASSERT_EQ(assocMaps.ifaces.size(), 2);
+
+    // pathY no longer declares the association
+    associationChanged(io, *server, {}, sdbusplus::object_path(pathY), ownerY,
+                       interfaceMap, assocMaps);
+
+    auto fwd = assocMaps.ifaces.find(pathX + "/a_acmd");
+    ASSERT_NE(fwd, assocMaps.ifaces.end());
+    EXPECT_THAT(std::get<endpointsPos>(fwd->second),
+                testing::ElementsAre(pathY));
+    auto rev = assocMaps.ifaces.find(pathY + "/b_acmd");
+    ASSERT_NE(rev, assocMaps.ifaces.end());
+    EXPECT_THAT(std::get<endpointsPos>(rev->second),
+                testing::ElementsAre(pathX));
+
+    // Removing the remaining declaration removes the association objects
+    removeAssociation(io, pathX, ownerX, *server, assocMaps);
+    EXPECT_TRUE(assocMaps.ifaces.empty());
+    EXPECT_TRUE(assocMaps.owners.empty());
+}
+
+// If two services declare the same association on the same path, removing
+// the declaration of one service must keep the association objects.
+TEST_F(TestAssociations, associationChangedTwoServices)
+{
+    const std::string ownerA = "xyz.openbmc_project.A";
+    const std::string ownerB = "xyz.openbmc_project.B";
+    std::vector<Association> associations = {
+        {"inventory_acts", "error_acts", defaultEndpoint}};
+
+    AssociationMaps assocMaps;
+    InterfaceMapType interfaceMap = createDefaultInterfaceMap();
+
+    associationChanged(io, *server, associations, defaultSourcePath, ownerA,
+                       interfaceMap, assocMaps);
+    associationChanged(io, *server, associations, defaultSourcePath, ownerB,
+                       interfaceMap, assocMaps);
+    ASSERT_EQ(assocMaps.ifaces.size(), 2);
+
+    removeAssociation(io, defaultSourcePath, ownerA, *server, assocMaps);
+
+    auto fwd = assocMaps.ifaces.find(defaultSourcePath + "/inventory_acts");
+    ASSERT_NE(fwd, assocMaps.ifaces.end());
+    EXPECT_THAT(std::get<endpointsPos>(fwd->second),
+                testing::ElementsAre(defaultEndpoint));
+    auto rev = assocMaps.ifaces.find(defaultEndpoint + "/error_acts");
+    ASSERT_NE(rev, assocMaps.ifaces.end());
+    EXPECT_THAT(std::get<endpointsPos>(rev->second),
+                testing::ElementsAre(defaultSourcePath));
+
+    removeAssociation(io, defaultSourcePath, ownerB, *server, assocMaps);
+    EXPECT_TRUE(assocMaps.ifaces.empty());
+    EXPECT_TRUE(assocMaps.owners.empty());
+}
