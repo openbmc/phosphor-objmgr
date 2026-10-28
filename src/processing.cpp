@@ -188,6 +188,24 @@ static bool hasOnlyDefaultInterfaces(const InterfaceNames& interfaces)
     });
 }
 
+// Whether or not owner owns a descendant of path.
+static bool hasChildForOwner(const InterfaceMapType& interfaceMap,
+                             const std::string& path, const std::string& owner)
+{
+    const std::string childPrefix = path == "/" ? path : path + '/';
+
+    // interfaceMap is sorted, so all descendants of path follow childPrefix.
+    for (auto it = interfaceMap.lower_bound(childPrefix);
+         it != interfaceMap.end() && it->first.starts_with(childPrefix); ++it)
+    {
+        if (it->first != path && it->second.contains(owner))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 void removeUnneededParents(const sdbusplus::object_path& objectPath,
                            const std::string& owner,
                            InterfaceMapType& interfaceMap)
@@ -220,29 +238,16 @@ void removeUnneededParents(const sdbusplus::object_path& objectPath,
             break;
         }
 
-        const std::string childPath =
-            parent == "/" ? parent.string() : parent.string() + '/';
-
         // Remove this parent if there isn't a remaining child on this owner
-        auto child =
-            std::find_if(interfaceMap.begin(), interfaceMap.end(),
-                         [&owner, &parent, &childPath](const auto& entry) {
-                             return entry.first != parent &&
-                                    entry.first.starts_with(childPath) &&
-                                    entry.second.contains(owner);
-                         });
-
-        if (child == interfaceMap.end())
-        {
-            parentIt->second.erase(ifacesIt);
-            if (parentIt->second.empty())
-            {
-                interfaceMap.erase(parentIt);
-            }
-        }
-        else
+        if (hasChildForOwner(interfaceMap, parent, owner))
         {
             break;
+        }
+
+        parentIt->second.erase(ifacesIt);
+        if (parentIt->second.empty())
+        {
+            interfaceMap.erase(parentIt);
         }
     }
 }
