@@ -1,5 +1,7 @@
 #include "introspect.hpp"
 
+#include "path.hpp"
+
 #include <tinyxml2.h>
 
 #include <iostream>
@@ -44,6 +46,14 @@ std::optional<IntrospectResult> parseIntrospectXml(const std::string& path,
         const char* childName = pElement->Attribute("name");
         if (childName == nullptr)
         {
+            continue;
+        }
+        // Ignore names that would result in an invalid object path. Using
+        // such a path in a method call would throw an exception.
+        if (!isValidPathElement(childName))
+        {
+            std::cerr << "Ignoring child node with invalid name \"" << childName
+                      << "\" of " << path << "\n";
             continue;
         }
         result.childPaths.emplace_back(parentPath + "/" + childName);

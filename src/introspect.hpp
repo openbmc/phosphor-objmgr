@@ -15,7 +15,8 @@ struct IntrospectResult
 
 /** @brief Parse the reply of an org.freedesktop.DBus.Introspectable call
  *
- * Elements without a name attribute are ignored.
+ * Elements without a name attribute and child nodes with a name that is not
+ * a valid object path element are ignored.
  *
  * @param[in] path - Object path that has been introspected
  * @param[in] xml  - Introspection XML document

@@ -55,6 +55,23 @@ TEST(Introspect, NamelessElements)
                                      ElementsAre("/a/child")))));
 }
 
+// Child nodes with a name that would result in an invalid object path must be
+// ignored.
+TEST(Introspect, InvalidChildNames)
+{
+    const std::string xml = R"(
+<node>
+  <node name=""/>
+  <node name="a/b"/>
+  <node name="a-b"/>
+  <node name="valid_1"/>
+</node>)";
+
+    EXPECT_THAT(parseIntrospectXml("/x", xml),
+                Optional(Field(&IntrospectResult::childPaths,
+                               ElementsAre("/x/valid_1"))));
+}
+
 TEST(Introspect, InvalidXml)
 {
     EXPECT_FALSE(parseIntrospectXml("/", "<node").has_value());
