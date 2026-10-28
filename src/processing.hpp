@@ -88,7 +88,8 @@ void processInterfaceAdded(
 /** @brief Remove parents of the passed in path that are no longer needed
  *
  * Remove parents of objectPath for owner that only have the default
- * interfaces and that have no other children for owner.
+ * interfaces or no interfaces at all and that have no other children
+ * for owner.
  *
  * @param[in]     objectPath    - Path of which to remove the parents
  * @param[in]     owner         - Well known name of the service
