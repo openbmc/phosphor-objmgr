@@ -1,6 +1,10 @@
 processing_cpp_dep = declare_dependency(sources: '../processing.cpp')
 associations_cpp_dep = declare_dependency(sources: '../associations.cpp')
 handler_cpp_dep = declare_dependency(sources: '../handler.cpp')
+introspect_cpp_dep = declare_dependency(
+    sources: '../introspect.cpp',
+    dependencies: tinyxml2,
+)
 
 tests = [
     ['well_known', [associations_cpp_dep, processing_cpp_dep]],
@@ -10,6 +14,7 @@ tests = [
     ['interfaces_added', [associations_cpp_dep, processing_cpp_dep]],
     ['interfaces_removed', [associations_cpp_dep, processing_cpp_dep]],
     ['handler', [handler_cpp_dep, sdbusplus, phosphor_dbus_interfaces]],
+    ['introspect', [introspect_cpp_dep]],
 ]
 
 foreach t : tests
