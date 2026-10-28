@@ -69,6 +69,8 @@ struct async_wait_callback_data
     int retry;
 };
 
+struct async_subtree_request;
+
 struct mapper_async_subtree
 {
     char* namespace;
@@ -78,9 +80,20 @@ struct mapper_async_subtree
     sd_event* loop;
     sd_bus* conn;
     sd_bus_slot* slot;
-    sd_event_source* event_source;
+    /* List of outstanding GetSubTreePaths requests. */
+    struct async_subtree_request* requests;
     int finished;
     int op;
+};
+
+/* State of a single GetSubTreePaths request. */
+struct async_subtree_request
+{
+    mapper_async_subtree* subtree;
+    sd_bus_slot* call_slot;
+    sd_event_source* event_source;
+    struct async_subtree_request* prev;
+    struct async_subtree_request* next;
     int retry;
 };
 
@@ -488,21 +501,59 @@ free_wait:
     return r;
 }
 
+/* Cancel a GetSubTreePaths request and free the memory associated with it. */
+static void async_subtree_free_request(struct async_subtree_request* req)
+{
+    mapper_async_subtree* subtree = req->subtree;
+
+    sd_bus_slot_unref(req->call_slot);
+    sd_event_source_unref(req->event_source);
+    if (req->prev)
+    {
+        req->prev->next = req->next;
+    }
+    else
+    {
+        subtree->requests = req->next;
+    }
+    if (req->next)
+    {
+        req->next->prev = req->prev;
+    }
+    free(req);
+}
+
+static int async_subtree_send_request(struct async_subtree_request* req)
+{
+    mapper_async_subtree* subtree = req->subtree;
+
+    req->call_slot = sd_bus_slot_unref(req->call_slot);
+    return sd_bus_call_method_async(
+        subtree->conn, &req->call_slot, "xyz.openbmc_project.ObjectMapper",
+        "/xyz/openbmc_project/object_mapper",
+        "xyz.openbmc_project.ObjectMapper", "GetSubTreePaths",
+        async_subtree_getpaths_callback, req, "sias", subtree->namespace, 0, 1,
+        subtree->interface);
+}
+
 static int async_subtree_timeout_callback(
     _unused_ sd_event_source* s, _unused_ uint64_t usec, void* userdata)
 {
     int r;
-    struct mapper_async_subtree* subtree = userdata;
+    struct async_subtree_request* req = userdata;
+    mapper_async_subtree* subtree = req->subtree;
 
-    sd_event_source_unref(subtree->event_source);
-    r = sd_bus_call_method_async(
-        subtree->conn, NULL, "xyz.openbmc_project.ObjectMapper",
-        "/xyz/openbmc_project/object_mapper",
-        "xyz.openbmc_project.ObjectMapper", "GetSubTreePaths",
-        async_subtree_getpaths_callback, subtree, "sias", subtree->namespace, 0,
-        1, subtree->interface);
+    req->event_source = sd_event_source_unref(req->event_source);
+    if (subtree->finished)
+    {
+        async_subtree_free_request(req);
+        return 0;
+    }
+
+    r = async_subtree_send_request(req);
     if (r < 0)
     {
+        async_subtree_free_request(req);
         async_subtree_done(r, subtree);
     }
 
@@ -513,8 +564,12 @@ static int async_subtree_getpaths_callback(sd_bus_message* m, void* userdata,
                                            _unused_ sd_bus_error* e)
 {
     int r;
-    struct mapper_async_subtree* subtree = userdata;
+    struct async_subtree_request* req = userdata;
+    mapper_async_subtree* subtree = req->subtree;
     uint64_t next_retry;
+
+    /* The reply has been received. Release the reference to the slot. */
+    req->call_slot = sd_bus_slot_unref(req->call_slot);
 
     if (subtree->finished)
     {
@@ -536,24 +591,22 @@ static int async_subtree_getpaths_callback(sd_bus_message* m, void* userdata,
         }
     }
 
-    if ((r == EBUSY || r == ENOBUFS) && subtree->retry < mapper_busy_retries)
+    if ((r == EBUSY || r == ENOBUFS) && req->retry < mapper_busy_retries)
     {
         r = sd_event_now(subtree->loop, CLOCK_MONOTONIC, &next_retry);
         if (r < 0)
         {
-            async_subtree_done(r, subtree);
-            goto exit;
+            goto done;
         }
 
-        next_retry += mapper_busy_delay_interval_usec * (1 << subtree->retry);
-        r = sd_event_add_time(subtree->loop, &subtree->event_source,
+        next_retry += mapper_busy_delay_interval_usec * (1 << req->retry);
+        r = sd_event_add_time(subtree->loop, &req->event_source,
                               CLOCK_MONOTONIC, next_retry, 0,
-                              async_subtree_timeout_callback, subtree);
-        ++subtree->retry;
+                              async_subtree_timeout_callback, req);
+        ++req->retry;
         if (r < 0)
         {
-            async_subtree_done(r, subtree);
-            goto exit;
+            goto done;
         }
 
         return 0;
@@ -561,8 +614,8 @@ static int async_subtree_getpaths_callback(sd_bus_message* m, void* userdata,
 
     if (r)
     {
-        async_subtree_done(-r, subtree);
-        goto exit;
+        r = -r;
+        goto done;
     }
 
     if (subtree->op == MAPPER_OP_REMOVE)
@@ -570,42 +623,62 @@ static int async_subtree_getpaths_callback(sd_bus_message* m, void* userdata,
         r = sd_bus_message_enter_container(m, SD_BUS_TYPE_ARRAY, "s");
         if (r < 0)
         {
-            async_subtree_done(r, subtree);
-            goto exit;
+            goto done;
         }
 
         r = sd_bus_message_at_end(m, false);
         if (r < 0)
         {
-            async_subtree_done(r, subtree);
-            goto exit;
+            goto done;
         }
 
         /* For remove, operation is complete when the interface is not present
          * we know it is empty if the returned array is empty
          */
         if (r)
-            async_subtree_done(0, subtree);
+        {
+            r = 0;
+            goto done;
+        }
     }
 
 exit:
+    async_subtree_free_request(req);
+    return 0;
+
+done:
+    /* Free req before invoking the callback because the callback may free
+     * subtree. */
+    async_subtree_free_request(req);
+    async_subtree_done(r, subtree);
     return 0;
 }
 
 static int async_subtree_getpaths(mapper_async_subtree* subtree)
 {
     int r = 0;
+    struct async_subtree_request* req;
 
-    subtree->retry = 0;
-    subtree->event_source = NULL;
-    r = sd_bus_call_method_async(
-        subtree->conn, NULL, "xyz.openbmc_project.ObjectMapper",
-        "/xyz/openbmc_project/object_mapper",
-        "xyz.openbmc_project.ObjectMapper", "GetSubTreePaths",
-        async_subtree_getpaths_callback, subtree, "sias", subtree->namespace, 0,
-        1, subtree->interface);
+    /* Each request has its own retry state such that concurrent requests,
+     * e.g. triggered by multiple InterfacesRemoved signals, do not interfere
+     * with each other. */
+    req = calloc(1, sizeof(*req));
+    if (!req)
+    {
+        return -ENOMEM;
+    }
+    req->subtree = subtree;
+    req->next = subtree->requests;
+    if (subtree->requests)
+    {
+        subtree->requests->prev = req;
+    }
+    subtree->requests = req;
+
+    r = async_subtree_send_request(req);
     if (r < 0)
     {
+        async_subtree_free_request(req);
         fprintf(stderr, "Error invoking method: %s\n", strerror(-r));
         return r;
     }
@@ -633,6 +706,14 @@ static int async_subtree_match_callback(_unused_ sd_bus_message* m, void* t,
     return 0;
 }
 
+static void async_subtree_free_requests(mapper_async_subtree* t)
+{
+    while (t->requests)
+    {
+        async_subtree_free_request(t->requests);
+    }
+}
+
 static void async_subtree_done(int r, mapper_async_subtree* t)
 {
     if (t->finished)
@@ -641,7 +722,8 @@ static void async_subtree_done(int r, mapper_async_subtree* t)
     }
 
     t->finished = 1;
-    sd_bus_slot_unref(t->slot);
+    t->slot = sd_bus_slot_unref(t->slot);
+    async_subtree_free_requests(t);
 
     if (t->callback)
     {
@@ -701,6 +783,7 @@ _public_ int mapper_subtree_async(sd_bus* conn, sd_event* loop, char* namespace,
     return 0;
 
 unref_slot:
+    async_subtree_free_requests(subtree);
     sd_bus_slot_unref(subtree->slot);
 free_subtree:
     free(subtree);
