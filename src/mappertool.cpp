@@ -27,6 +27,8 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <cstdlib>
+#include <exception>
 #include <map>
 #include <print>
 #include <set>
@@ -84,8 +86,8 @@ static PathPairKey makeKey(const sdbusplus::object_path& x,
                                              : PathPairKey{y, x};
 }
 
-static void dumpAssocs(const std::string& nameFilter,
-                       const std::string& typeFilter, bool pathMode)
+static int dumpAssocs(const std::string& nameFilter,
+                      const std::string& typeFilter, bool pathMode)
 {
     auto bus = sdbusplus::bus::new_default();
 
@@ -100,7 +102,7 @@ static void dumpAssocs(const std::string& nameFilter,
     catch (const sdbusplus::exception_t& e)
     {
         std::println(stderr, "GetManagedObjects failed: {}", e.what());
-        return;
+        return EXIT_FAILURE;
     }
 
     // Gather all paths that have xyz.openbmc_project.Association, i.e. every
@@ -210,7 +212,7 @@ static void dumpAssocs(const std::string& nameFilter,
                                    : std::string(key.b) + "/(" + bTypes + ")";
             std::println("{} <-> {}", aStr, bStr);
         }
-        return;
+        return EXIT_SUCCESS;
     }
 
     // Two-line grouped format: pathA  | types (a->b)
@@ -236,10 +238,11 @@ static void dumpAssocs(const std::string& nameFilter,
         std::println("{:{}}  | {}", std::string(key.b), pathWidth,
                      joinTypes(info.bToA));
     }
+    return EXIT_SUCCESS;
 }
 
-static void getObject(const std::string& path,
-                      const std::vector<std::string>& interfaces)
+static int getObject(const std::string& path,
+                     const std::vector<std::string>& interfaces)
 {
     auto bus = sdbusplus::bus::new_default();
 
@@ -257,7 +260,7 @@ static void getObject(const std::string& path,
     catch (const sdbusplus::exception_t& e)
     {
         std::println(stderr, "GetObject failed: {}", e.what());
-        return;
+        return EXIT_FAILURE;
     }
 
     bool first = true;
@@ -278,10 +281,11 @@ static void getObject(const std::string& path,
             std::println("    {}", iface);
         }
     }
+    return EXIT_SUCCESS;
 }
 
-static void getSubTreePaths(const std::string& subtreePath, int32_t depth,
-                            const std::vector<std::string>& interfaces)
+static int getSubTreePaths(const std::string& subtreePath, int32_t depth,
+                           const std::vector<std::string>& interfaces)
 {
     auto bus = sdbusplus::bus::new_default();
 
@@ -299,21 +303,22 @@ static void getSubTreePaths(const std::string& subtreePath, int32_t depth,
     catch (const sdbusplus::exception_t& e)
     {
         std::println(stderr, "GetSubTreePaths failed: {}", e.what());
-        return;
+        return EXIT_FAILURE;
     }
 
     for (const auto& path : result)
     {
         std::println("{}", path);
     }
+    return EXIT_SUCCESS;
 }
 
 // a{sa{as}}: map of object path -> map of service -> list of interfaces
 using SubTreeType =
     std::map<std::string, std::map<std::string, std::vector<std::string>>>;
 
-static void getSubTree(const std::string& subtreePath, int32_t depth,
-                       const std::vector<std::string>& interfaces)
+static int getSubTree(const std::string& subtreePath, int32_t depth,
+                      const std::vector<std::string>& interfaces)
 {
     auto bus = sdbusplus::bus::new_default();
 
@@ -330,7 +335,7 @@ static void getSubTree(const std::string& subtreePath, int32_t depth,
     catch (const sdbusplus::exception_t& e)
     {
         std::println(stderr, "GetSubTree failed: {}", e.what());
-        return;
+        return EXIT_FAILURE;
     }
 
     bool firstObj = true;
@@ -351,10 +356,11 @@ static void getSubTree(const std::string& subtreePath, int32_t depth,
             }
         }
     }
+    return EXIT_SUCCESS;
 }
 
-static void getAncestors(const std::string& path,
-                         const std::vector<std::string>& interfaces)
+static int getAncestors(const std::string& path,
+                        const std::vector<std::string>& interfaces)
 {
     auto bus = sdbusplus::bus::new_default();
 
@@ -371,7 +377,7 @@ static void getAncestors(const std::string& path,
     catch (const sdbusplus::exception_t& e)
     {
         std::println(stderr, "GetAncestors failed: {}", e.what());
-        return;
+        return EXIT_FAILURE;
     }
 
     bool firstObj = true;
@@ -392,11 +398,14 @@ static void getAncestors(const std::string& path,
             }
         }
     }
+    return EXIT_SUCCESS;
 }
 
 int main(int argc, char** argv)
 {
     CLI::App app{"mappertool - OpenBMC mapper inspection utility"};
+    // Exit status of the subcommand that has been run.
+    int rc = EXIT_SUCCESS;
     app.require_subcommand(1);
 
     // assocs subcommand
@@ -415,7 +424,9 @@ int main(int argc, char** argv)
     assocs->add_flag("-p,--paths", pathMode,
                      "Print raw association paths instead of human form");
 
-    assocs->callback([&]() { dumpAssocs(nameFilter, typeFilter, pathMode); });
+    assocs->callback([&]() {
+        rc = dumpAssocs(nameFilter, typeFilter, pathMode);
+    });
 
     // getobject subcommand
     auto* getobj = app.add_subcommand(
@@ -430,7 +441,7 @@ int main(int argc, char** argv)
         "-i,--interface", ifaceFilter,
         "Restrict to services implementing this interface (repeatable)");
 
-    getobj->callback([&]() { getObject(objPath, ifaceFilter); });
+    getobj->callback([&]() { rc = getObject(objPath, ifaceFilter); });
 
     // getsubtreepaths subcommand
     auto* getstp = app.add_subcommand(
@@ -450,7 +461,9 @@ int main(int argc, char** argv)
         "-i,--interface", stpIfaces,
         "Restrict to objects implementing this interface (repeatable)");
 
-    getstp->callback([&]() { getSubTreePaths(stpRoot, stpDepth, stpIfaces); });
+    getstp->callback([&]() {
+        rc = getSubTreePaths(stpRoot, stpDepth, stpIfaces);
+    });
 
     // getsubtree subcommand
     auto* getst = app.add_subcommand(
@@ -470,7 +483,7 @@ int main(int argc, char** argv)
         "-i,--interface", stIfaces,
         "Restrict to objects implementing this interface (repeatable)");
 
-    getst->callback([&]() { getSubTree(stRoot, stDepth, stIfaces); });
+    getst->callback([&]() { rc = getSubTree(stRoot, stDepth, stIfaces); });
 
     // getancestors subcommand
     auto* getanc = app.add_subcommand(
@@ -486,8 +499,17 @@ int main(int argc, char** argv)
         "-i,--interface", ancIfaces,
         "Restrict to ancestors implementing this interface (repeatable)");
 
-    getanc->callback([&]() { getAncestors(ancPath, ancIfaces); });
+    getanc->callback([&]() { rc = getAncestors(ancPath, ancIfaces); });
 
-    CLI11_PARSE(app, argc, argv);
-    return 0;
+    try
+    {
+        CLI11_PARSE(app, argc, argv);
+    }
+    catch (const std::exception& e)
+    {
+        // E.g. failure to connect to the D-Bus.
+        std::println(stderr, "{}", e.what());
+        return EXIT_FAILURE;
+    }
+    return rc;
 }
