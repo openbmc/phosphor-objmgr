@@ -172,3 +172,119 @@ void processInterfaceAdded(
     // The new interface might have an association pending
     checkIfPendingAssociation(io, objPath, interfaceMap, assocMaps, server);
 }
+
+void removeUnneededParents(const sdbusplus::object_path& objectPath,
+                           const std::string& owner,
+                           InterfaceMapType& interfaceMap)
+{
+    auto parent = objectPath;
+
+    while (true)
+    {
+        if (parent == "/")
+        {
+            break;
+        }
+
+        parent = parent.parent_path();
+
+        auto parentIt = interfaceMap.find(parent);
+        if (parentIt == interfaceMap.end())
+        {
+            break;
+        }
+
+        auto ifacesIt = parentIt->second.find(owner);
+        if (ifacesIt == parentIt->second.end())
+        {
+            break;
+        }
+
+        if (ifacesIt->second.size() != 3)
+        {
+            break;
+        }
+
+        auto childPath = parent.string() + '/';
+
+        // Remove this parent if there isn't a remaining child on this owner
+        auto child = std::find_if(
+            interfaceMap.begin(), interfaceMap.end(),
+            [&owner, &childPath](const auto& entry) {
+                return entry.first.starts_with(childPath) &&
+                       (entry.second.find(owner) != entry.second.end());
+            });
+
+        if (child == interfaceMap.end())
+        {
+            parentIt->second.erase(ifacesIt);
+            if (parentIt->second.empty())
+            {
+                interfaceMap.erase(parentIt);
+            }
+        }
+        else
+        {
+            break;
+        }
+    }
+}
+
+void processInterfacesRemoved(
+    boost::asio::io_context& io, InterfaceMapType& interfaceMap,
+    const sdbusplus::object_path& objPath,
+    const std::vector<std::string>& interfacesRemoved,
+    const std::string& sender, AssociationMaps& assocMaps,
+    sdbusplus::asio::object_server& server)
+{
+    auto connectionMap = interfaceMap.find(objPath);
+    if (connectionMap == interfaceMap.end())
+    {
+        return;
+    }
+
+    for (const std::string& interface : interfacesRemoved)
+    {
+        auto interfaceSet = connectionMap->second.find(sender);
+        if (interfaceSet == connectionMap->second.end())
+        {
+            continue;
+        }
+
+        if (interface == assocDefsInterface)
+        {
+            removeAssociation(io, objPath, sender, server, assocMaps);
+        }
+
+        interfaceSet->second.erase(interface);
+
+        if (interfaceSet->second.empty())
+        {
+            // If this was the last interface on this connection,
+            // erase the connection
+            connectionMap->second.erase(interfaceSet);
+
+            // Instead of checking if every single path is the endpoint
+            // of an association that needs to be moved to pending,
+            // only check when the only remaining owner of this path is
+            // ourself, which would be because we still own the
+            // association path.
+            if ((connectionMap->second.size() == 1) &&
+                (connectionMap->second.begin()->first ==
+                 "xyz.openbmc_project.ObjectMapper"))
+            {
+                // Remove the 2 association D-Bus paths and move the
+                // association to pending.
+                moveAssociationToPending(io, objPath, assocMaps, server);
+            }
+        }
+    }
+    // If this was the last connection on this object path,
+    // erase the object path
+    if (connectionMap->second.empty())
+    {
+        interfaceMap.erase(connectionMap);
+    }
+
+    removeUnneededParents(objPath, sender, interfaceMap);
+}
