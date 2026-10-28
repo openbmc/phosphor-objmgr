@@ -14,14 +14,16 @@ std::optional<IntrospectResult> parseIntrospectXml(const std::string& path,
     tinyxml2::XMLError e = doc.Parse(xml.c_str());
     if (e != tinyxml2::XMLError::XML_SUCCESS)
     {
-        std::cerr << "XML parsing failed\n";
+        std::cerr << "Failed to parse the introspection data of " << path
+                  << ": " << doc.ErrorStr() << "\n";
         return std::nullopt;
     }
 
     tinyxml2::XMLElement* pRoot = doc.FirstChildElement("node");
     if (pRoot == nullptr)
     {
-        std::cerr << "XML document did not contain any data\n";
+        std::cerr << "The introspection data of " << path
+                  << " does not have a <node> root element\n";
         return std::nullopt;
     }
 
