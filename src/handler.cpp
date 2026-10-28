@@ -9,6 +9,7 @@
 #include <cassert>
 #include <iterator>
 #include <string>
+#include <string_view>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -80,38 +81,45 @@ std::vector<InterfaceMapType::value_type> getAncestors(
             ResourceNotFound();
     }
 
-    std::vector<InterfaceMapType::value_type> ret;
-    for (const auto& objectPath : interfaceMap)
+    // Look up the ancestors of reqPath instead of iterating over the entire
+    // interface map. Walking up the path components also guarantees that
+    // e.g. /a/b is not reported as an ancestor of /a/bc.
+    std::vector<InterfaceMapType::const_iterator> ancestors;
+    std::string_view path = reqPath;
+    // The root path has no ancestors.
+    while (!path.empty() && path != "/")
     {
+        auto pos = path.rfind('/');
+        if (pos == std::string_view::npos)
+        {
+            break;
+        }
+        path = pos == 0 ? std::string_view("/") : path.substr(0, pos);
+        auto it = interfaceMap.find(path);
+        if (it != interfaceMap.end())
+        {
+            ancestors.push_back(it);
+        }
+    }
+    // Report the ancestors in sorted order, starting with the root.
+    std::reverse(ancestors.begin(), ancestors.end());
+
+    std::vector<InterfaceMapType::value_type> ret;
+    for (const auto& ancestor : ancestors)
+    {
+        const auto& objectPath = *ancestor;
         const auto& thisPath = objectPath.first;
 
-        if (reqPath == thisPath)
+        if (interfaces.empty())
         {
+            ret.emplace_back(objectPath);
             continue;
         }
-
-        // thisPath is an ancestor of reqPath if reqPath starts with thisPath
-        // followed by a slash or if thisPath is the root path and reqPath is
-        // not. Checking for the slash prevents e.g. /a/b from being reported
-        // as an ancestor of /a/bc.
-        if ((thisPath == "/" && !reqPath.empty()) ||
-            (reqPath.starts_with(thisPath) &&
-             reqPath.size() > thisPath.size() &&
-             reqPath[thisPath.size()] == '/'))
+        for (const auto& connectionInterfaces : objectPath.second)
         {
-            if (interfaces.empty())
+            if (intersects(interfaces, connectionInterfaces.second))
             {
-                ret.emplace_back(objectPath);
-            }
-            else
-            {
-                for (const auto& connectionInterfaces : objectPath.second)
-                {
-                    if (intersects(interfaces, connectionInterfaces.second))
-                    {
-                        addObjectMapResult(ret, thisPath, connectionInterfaces);
-                    }
-                }
+                addObjectMapResult(ret, thisPath, connectionInterfaces);
             }
         }
     }
@@ -183,8 +191,13 @@ std::vector<InterfaceMapType::value_type> getSubTree(
     }
 
     std::vector<InterfaceMapType::value_type> ret;
-    for (const auto& objectPath : interfaceMap)
+    // All paths that start with reqPath follow reqPath in the sorted
+    // interface map. Hence, there is no need to examine other paths.
+    for (auto objectIt = interfaceMap.lower_bound(reqPath);
+         objectIt != interfaceMap.end() && objectIt->first.starts_with(reqPath);
+         ++objectIt)
     {
+        const auto& objectPath = *objectIt;
         const auto& thisPath = objectPath.first;
 
         // Skip exact match on stripped search term
@@ -245,8 +258,13 @@ std::vector<std::string> getSubTreePaths(const InterfaceMapType& interfaceMap,
     }
 
     std::vector<std::string> ret;
-    for (const auto& objectPath : interfaceMap)
+    // All paths that start with reqPath follow reqPath in the sorted
+    // interface map. Hence, there is no need to examine other paths.
+    for (auto objectIt = interfaceMap.lower_bound(reqPath);
+         objectIt != interfaceMap.end() && objectIt->first.starts_with(reqPath);
+         ++objectIt)
     {
+        const auto& objectPath = *objectIt;
         const auto& thisPath = objectPath.first;
 
         // Skip exact match on stripped search term
